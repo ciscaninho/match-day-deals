@@ -47,6 +47,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        ticket: {
+          available: "hsl(var(--ticket-available))",
+          soon: "hsl(var(--ticket-soon))",
+          soldout: "hsl(var(--ticket-soldout))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
