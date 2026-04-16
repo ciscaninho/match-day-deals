@@ -2,7 +2,7 @@ export type TicketStatus = "not_released" | "on_sale" | "sold_out";
 
 export interface TicketSource {
   name: string;
-  type: "official" | "resale";
+  type: "official" | "resale" | "partner";
   url: string;
   recommended?: boolean;
 }
@@ -11,7 +11,10 @@ export interface Match {
   id: string;
   homeTeam: string;
   awayTeam: string;
+  homeShort: string;
+  awayShort: string;
   competition: string;
+  country: string;
   date: string;
   stadium: string;
   city: string;
@@ -24,11 +27,15 @@ export interface Match {
 }
 
 export const matches: Match[] = [
+  // Champions League
   {
     id: "1",
     homeTeam: "FC Barcelona",
     awayTeam: "Real Madrid",
+    homeShort: "BAR",
+    awayShort: "RMA",
     competition: "La Liga",
+    country: "Spain",
     date: "2026-05-02T21:00:00",
     stadium: "Spotify Camp Nou",
     city: "Barcelona",
@@ -47,7 +54,10 @@ export const matches: Match[] = [
     id: "2",
     homeTeam: "Manchester City",
     awayTeam: "Arsenal",
+    homeShort: "MCI",
+    awayShort: "ARS",
     competition: "Premier League",
+    country: "England",
     date: "2026-04-25T17:30:00",
     stadium: "Etihad Stadium",
     city: "Manchester",
@@ -64,7 +74,10 @@ export const matches: Match[] = [
     id: "3",
     homeTeam: "Bayern Munich",
     awayTeam: "Borussia Dortmund",
+    homeShort: "BAY",
+    awayShort: "BVB",
     competition: "Bundesliga",
+    country: "Germany",
     date: "2026-04-26T18:30:00",
     stadium: "Allianz Arena",
     city: "Munich",
@@ -82,7 +95,10 @@ export const matches: Match[] = [
     id: "4",
     homeTeam: "AC Milan",
     awayTeam: "Inter Milan",
+    homeShort: "ACM",
+    awayShort: "INT",
     competition: "Serie A",
+    country: "Italy",
     date: "2026-05-10T20:45:00",
     stadium: "San Siro",
     city: "Milan",
@@ -99,7 +115,10 @@ export const matches: Match[] = [
     id: "5",
     homeTeam: "PSG",
     awayTeam: "Olympique Marseille",
+    homeShort: "PSG",
+    awayShort: "OM",
     competition: "Ligue 1",
+    country: "France",
     date: "2026-05-17T21:00:00",
     stadium: "Parc des Princes",
     city: "Paris",
@@ -116,7 +135,10 @@ export const matches: Match[] = [
     id: "6",
     homeTeam: "Liverpool",
     awayTeam: "Manchester United",
+    homeShort: "LIV",
+    awayShort: "MUN",
     competition: "Premier League",
+    country: "England",
     date: "2026-04-19T16:00:00",
     stadium: "Anfield",
     city: "Liverpool",
@@ -135,7 +157,10 @@ export const matches: Match[] = [
     id: "7",
     homeTeam: "Juventus",
     awayTeam: "AS Roma",
+    homeShort: "JUV",
+    awayShort: "ROM",
     competition: "Serie A",
+    country: "Italy",
     date: "2026-05-03T20:45:00",
     stadium: "Allianz Stadium",
     city: "Turin",
@@ -152,7 +177,10 @@ export const matches: Match[] = [
     id: "8",
     homeTeam: "Atletico Madrid",
     awayTeam: "Sevilla",
+    homeShort: "ATM",
+    awayShort: "SEV",
     competition: "La Liga",
+    country: "Spain",
     date: "2026-04-20T19:00:00",
     stadium: "Metropolitano",
     city: "Madrid",
@@ -169,7 +197,10 @@ export const matches: Match[] = [
     id: "9",
     homeTeam: "Chelsea",
     awayTeam: "Tottenham",
+    homeShort: "CHE",
+    awayShort: "TOT",
     competition: "Premier League",
+    country: "England",
     date: "2026-05-09T15:00:00",
     stadium: "Stamford Bridge",
     city: "London",
@@ -186,7 +217,10 @@ export const matches: Match[] = [
     id: "10",
     homeTeam: "Real Madrid",
     awayTeam: "Villarreal",
+    homeShort: "RMA",
+    awayShort: "VIL",
     competition: "La Liga",
+    country: "Spain",
     date: "2026-04-22T21:00:00",
     stadium: "Santiago Bernabéu",
     city: "Madrid",
@@ -199,4 +233,111 @@ export const matches: Match[] = [
     ],
     featured: false,
   },
+  // Champions League matches
+  {
+    id: "11",
+    homeTeam: "Real Madrid",
+    awayTeam: "Bayern Munich",
+    homeShort: "RMA",
+    awayShort: "BAY",
+    competition: "Champions League",
+    country: "Europe",
+    date: "2026-04-29T21:00:00",
+    stadium: "Santiago Bernabéu",
+    city: "Madrid",
+    startingPrice: 120,
+    ticketStatus: "on_sale",
+    ticketReleaseDate: "2026-04-10T10:00:00",
+    ticketSources: [
+      { name: "UEFA Tickets", type: "official", url: "https://www.uefa.com/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
+    featured: true,
+    priority: true,
+  },
+  {
+    id: "12",
+    homeTeam: "Arsenal",
+    awayTeam: "PSG",
+    homeShort: "ARS",
+    awayShort: "PSG",
+    competition: "Champions League",
+    country: "Europe",
+    date: "2026-04-30T21:00:00",
+    stadium: "Emirates Stadium",
+    city: "London",
+    startingPrice: 95,
+    ticketStatus: "not_released",
+    ticketReleaseDate: "2026-04-15T10:00:00",
+    ticketSources: [
+      { name: "UEFA Tickets", type: "official", url: "https://www.uefa.com/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
+    featured: true,
+  },
+  // International
+  {
+    id: "13",
+    homeTeam: "France",
+    awayTeam: "Germany",
+    homeShort: "FRA",
+    awayShort: "GER",
+    competition: "International Friendly",
+    country: "International",
+    date: "2026-06-05T21:00:00",
+    stadium: "Stade de France",
+    city: "Paris",
+    startingPrice: 45,
+    ticketStatus: "not_released",
+    ticketReleaseDate: "2026-05-10T10:00:00",
+    ticketSources: [
+      { name: "FFF Billetterie", type: "official", url: "https://www.fff.fr/billetterie", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
+    featured: false,
+  },
+  {
+    id: "14",
+    homeTeam: "England",
+    awayTeam: "Spain",
+    homeShort: "ENG",
+    awayShort: "ESP",
+    competition: "International Friendly",
+    country: "International",
+    date: "2026-06-10T20:00:00",
+    stadium: "Wembley Stadium",
+    city: "London",
+    startingPrice: 50,
+    ticketStatus: "not_released",
+    ticketReleaseDate: "2026-05-15T09:00:00",
+    ticketSources: [
+      { name: "FA Tickets", type: "official", url: "https://www.thefa.com/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
+    featured: false,
+  },
+  // More league matches
+  {
+    id: "15",
+    homeTeam: "Napoli",
+    awayTeam: "Lazio",
+    homeShort: "NAP",
+    awayShort: "LAZ",
+    competition: "Serie A",
+    country: "Italy",
+    date: "2026-05-04T18:00:00",
+    stadium: "Stadio Diego Armando Maradona",
+    city: "Naples",
+    startingPrice: 35,
+    ticketStatus: "on_sale",
+    ticketReleaseDate: "2026-04-08T10:00:00",
+    ticketSources: [
+      { name: "SSC Napoli Tickets", type: "official", url: "https://www.sscnapoli.it/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
+    featured: false,
+  },
 ];
+
+export const competitions = [...new Set(matches.map((m) => m.competition))];
+export const countries = [...new Set(matches.map((m) => m.country))];
