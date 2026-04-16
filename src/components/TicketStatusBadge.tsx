@@ -10,7 +10,7 @@ const statusConfig: Record<TicketStatus, { label: string; className: string }> =
 export const TicketStatusBadge = ({ status }: { status: TicketStatus }) => {
   const config = statusConfig[status];
   return (
-    <Badge className={`${config.className} text-xs font-semibold border-0`}>
+    <Badge className={`${config.className} text-[10px] font-bold border-0 px-2 py-0.5`}>
       {config.label}
     </Badge>
   );
