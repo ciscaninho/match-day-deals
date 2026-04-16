@@ -1,19 +1,26 @@
 export type TicketStatus = "not_released" | "on_sale" | "sold_out";
 
+export interface TicketSource {
+  name: string;
+  type: "official" | "resale";
+  url: string;
+  recommended?: boolean;
+}
+
 export interface Match {
   id: string;
   homeTeam: string;
   awayTeam: string;
   competition: string;
-  date: string; // ISO string
+  date: string;
   stadium: string;
   city: string;
   startingPrice: number | null;
   ticketStatus: TicketStatus;
-  ticketReleaseDate: string; // ISO string
-  officialTicketUrl: string;
-  resaleUrl: string;
+  ticketReleaseDate: string;
+  ticketSources: TicketSource[];
   featured: boolean;
+  priority?: boolean;
 }
 
 export const matches: Match[] = [
@@ -28,9 +35,13 @@ export const matches: Match[] = [
     startingPrice: 89,
     ticketStatus: "on_sale",
     ticketReleaseDate: "2026-04-01T10:00:00",
-    officialTicketUrl: "https://www.fcbarcelona.com/en/tickets",
-    resaleUrl: "https://www.stubhub.com",
+    ticketSources: [
+      { name: "FC Barcelona Tickets", type: "official", url: "https://www.fcbarcelona.com/en/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+      { name: "Viagogo", type: "resale", url: "https://www.viagogo.com" },
+    ],
     featured: true,
+    priority: true,
   },
   {
     id: "2",
@@ -43,8 +54,10 @@ export const matches: Match[] = [
     startingPrice: 65,
     ticketStatus: "on_sale",
     ticketReleaseDate: "2026-03-20T09:00:00",
-    officialTicketUrl: "https://www.mancity.com/tickets",
-    resaleUrl: "https://www.stubhub.com",
+    ticketSources: [
+      { name: "Man City Tickets", type: "official", url: "https://www.mancity.com/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
     featured: true,
   },
   {
@@ -58,9 +71,12 @@ export const matches: Match[] = [
     startingPrice: 55,
     ticketStatus: "on_sale",
     ticketReleaseDate: "2026-03-25T10:00:00",
-    officialTicketUrl: "https://www.fcbayern.com/en/tickets",
-    resaleUrl: "https://www.stubhub.com",
+    ticketSources: [
+      { name: "FC Bayern Tickets", type: "official", url: "https://www.fcbayern.com/en/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
     featured: true,
+    priority: true,
   },
   {
     id: "4",
@@ -73,8 +89,10 @@ export const matches: Match[] = [
     startingPrice: 75,
     ticketStatus: "not_released",
     ticketReleaseDate: "2026-04-20T10:00:00",
-    officialTicketUrl: "https://www.acmilan.com/en/tickets",
-    resaleUrl: "https://www.stubhub.com",
+    ticketSources: [
+      { name: "AC Milan Official", type: "official", url: "https://www.acmilan.com/en/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
     featured: false,
   },
   {
@@ -88,8 +106,10 @@ export const matches: Match[] = [
     startingPrice: null,
     ticketStatus: "not_released",
     ticketReleaseDate: "2026-05-01T10:00:00",
-    officialTicketUrl: "https://www.psg.fr/tickets",
-    resaleUrl: "https://www.stubhub.com",
+    ticketSources: [
+      { name: "PSG Billetterie", type: "official", url: "https://www.psg.fr/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
     featured: false,
   },
   {
@@ -103,9 +123,13 @@ export const matches: Match[] = [
     startingPrice: 72,
     ticketStatus: "sold_out",
     ticketReleaseDate: "2026-03-10T09:00:00",
-    officialTicketUrl: "https://www.liverpoolfc.com/tickets",
-    resaleUrl: "https://www.stubhub.com",
+    ticketSources: [
+      { name: "Liverpool FC Tickets", type: "official", url: "https://www.liverpoolfc.com/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+      { name: "Viagogo", type: "resale", url: "https://www.viagogo.com" },
+    ],
     featured: true,
+    priority: true,
   },
   {
     id: "7",
@@ -118,8 +142,10 @@ export const matches: Match[] = [
     startingPrice: 48,
     ticketStatus: "on_sale",
     ticketReleaseDate: "2026-04-05T10:00:00",
-    officialTicketUrl: "https://www.juventus.com/en/tickets",
-    resaleUrl: "https://www.stubhub.com",
+    ticketSources: [
+      { name: "Juventus Tickets", type: "official", url: "https://www.juventus.com/en/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
     featured: false,
   },
   {
@@ -133,8 +159,10 @@ export const matches: Match[] = [
     startingPrice: 40,
     ticketStatus: "on_sale",
     ticketReleaseDate: "2026-03-28T10:00:00",
-    officialTicketUrl: "https://www.atleticodemadrid.com/tickets",
-    resaleUrl: "https://www.stubhub.com",
+    ticketSources: [
+      { name: "Atletico Official", type: "official", url: "https://www.atleticodemadrid.com/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
     featured: false,
   },
   {
@@ -148,8 +176,10 @@ export const matches: Match[] = [
     startingPrice: 68,
     ticketStatus: "not_released",
     ticketReleaseDate: "2026-04-18T09:00:00",
-    officialTicketUrl: "https://www.chelseafc.com/en/tickets",
-    resaleUrl: "https://www.stubhub.com",
+    ticketSources: [
+      { name: "Chelsea FC Tickets", type: "official", url: "https://www.chelseafc.com/en/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
     featured: false,
   },
   {
@@ -163,8 +193,10 @@ export const matches: Match[] = [
     startingPrice: 60,
     ticketStatus: "on_sale",
     ticketReleaseDate: "2026-03-30T10:00:00",
-    officialTicketUrl: "https://www.realmadrid.com/en/tickets",
-    resaleUrl: "https://www.stubhub.com",
+    ticketSources: [
+      { name: "Real Madrid Tickets", type: "official", url: "https://www.realmadrid.com/en/tickets", recommended: true },
+      { name: "StubHub", type: "resale", url: "https://www.stubhub.com" },
+    ],
     featured: false,
   },
 ];
