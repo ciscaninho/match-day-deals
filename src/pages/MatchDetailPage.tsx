@@ -1,13 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { matches } from "@/data/matches";
 import { useUser } from "@/contexts/UserContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { BottomNav } from "@/components/BottomNav";
 import { AdBanner } from "@/components/AdBanner";
 import { TicketStatusBadge } from "@/components/TicketStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Calendar, MapPin, Clock, ExternalLink, Ticket, Heart, Mail, Star, HelpCircle } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Clock, ExternalLink, Ticket, Heart, Mail, Star, HelpCircle, Shield } from "lucide-react";
 import { toast } from "sonner";
 
 const formatDate = (iso: string) =>
@@ -18,10 +19,17 @@ const formatDate = (iso: string) =>
 const formatTime = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
+const sourceTypeLabel: Record<string, { label: string; color: string }> = {
+  official: { label: "Official", color: "bg-primary/15 text-primary" },
+  resale: { label: "Official Resale", color: "bg-accent/15 text-accent" },
+  partner: { label: "Partner", color: "bg-secondary text-muted-foreground" },
+};
+
 const MatchDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isFollowing, followMatch, unfollowMatch, isPremium, maxFollowed, followedMatches, addPoints } = useUser();
+  const { t } = useLanguage();
   const match = matches.find((m) => m.id === id);
 
   if (!match) {
@@ -47,7 +55,6 @@ const MatchDetailPage = () => {
       const ok = followMatch(match.id);
       if (ok) {
         toast.success("Match followed! +5 pts");
-        // Points for visiting match page
         addPoints(2);
       }
     }
@@ -63,45 +70,90 @@ const MatchDetailPage = () => {
 
   const officialSources = match.ticketSources.filter((s) => s.type === "official");
   const resaleSources = match.ticketSources.filter((s) => s.type === "resale");
+  const partnerSources = match.ticketSources.filter((s) => s.type === "partner");
   const recommended = match.ticketSources.find((s) => s.recommended);
+
+  const renderSources = (sources: typeof match.ticketSources, typeKey: string) => {
+    if (sources.length === 0) return null;
+    const config = sourceTypeLabel[typeKey];
+    return (
+      <>
+        <div className="flex items-center gap-2 mt-2">
+          <span className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${config.color}`}>
+            {config.label}
+          </span>
+        </div>
+        {sources.map((src) => (
+          <Button
+            key={src.url}
+            variant="outline"
+            className="w-full justify-between border-border/50 hover:border-primary/30"
+            onClick={() => window.open(src.url, "_blank")}
+          >
+            <span className="flex items-center gap-2 text-sm">
+              {src.name}
+              {src.recommended && (
+                <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-semibold flex items-center gap-0.5">
+                  <Star className="w-2.5 h-2.5" /> {t("match.recommended")}
+                </span>
+              )}
+            </span>
+            <ExternalLink className="w-4 h-4 text-muted-foreground" />
+          </Button>
+        ))}
+      </>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-primary px-5 pt-10 pb-6">
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-primary-foreground/70 text-sm">
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
-          <button onClick={handleFollow} className={`flex items-center gap-1 text-sm ${following ? "text-destructive" : "text-primary-foreground/70"}`}>
-            <Heart className={`w-4 h-4 ${following ? "fill-current" : ""}`} />
-            {following ? "Following" : "Follow"}
-          </button>
-        </div>
-        <span className="text-xs font-medium text-primary-foreground/60 uppercase tracking-wide">
-          {match.competition}
-        </span>
-        <div className="text-center mt-3">
-          <p className="text-xl font-bold text-primary-foreground">{match.homeTeam}</p>
-          <span className="text-sm text-primary-foreground/50 font-medium">vs</span>
-          <p className="text-xl font-bold text-primary-foreground">{match.awayTeam}</p>
+      <div className="gradient-pitch pitch-pattern px-5 pt-10 pb-8 relative overflow-hidden">
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-primary-foreground/70 text-sm">
+              <ArrowLeft className="w-4 h-4" /> {t("back")}
+            </button>
+            <button onClick={handleFollow} className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full transition-colors ${following ? "bg-destructive/20 text-destructive" : "bg-primary-foreground/10 text-primary-foreground/70"}`}>
+              <Heart className={`w-4 h-4 ${following ? "fill-current" : ""}`} />
+              {following ? t("match.following") : t("match.follow")}
+            </button>
+          </div>
+          <span className="text-[10px] font-semibold text-primary-foreground/50 uppercase tracking-widest">
+            {match.competition}
+          </span>
+          <div className="flex items-center justify-center gap-6 mt-4">
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-full bg-primary-foreground/10 flex items-center justify-center mx-auto mb-2">
+                <span className="text-sm font-bold text-primary-foreground">{match.homeShort}</span>
+              </div>
+              <p className="text-sm font-bold text-primary-foreground">{match.homeTeam}</p>
+            </div>
+            <span className="text-lg font-extrabold text-primary-foreground/30">{t("match.vs")}</span>
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-full bg-primary-foreground/10 flex items-center justify-center mx-auto mb-2">
+                <span className="text-sm font-bold text-primary-foreground">{match.awayShort}</span>
+              </div>
+              <p className="text-sm font-bold text-primary-foreground">{match.awayTeam}</p>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="px-5 mt-5 space-y-4">
         {/* Info */}
-        <Card>
+        <Card className="border-border/50">
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+              <Calendar className="w-4 h-4 text-primary shrink-0" />
               <div>
                 <p className="text-sm font-medium text-foreground">{formatDate(match.date)}</p>
                 <p className="text-xs text-muted-foreground">{formatTime(match.date)}</p>
               </div>
             </div>
-            <Separator />
+            <Separator className="bg-border/50" />
             <div className="flex items-center gap-3">
-              <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
+              <MapPin className="w-4 h-4 text-primary shrink-0" />
               <div>
                 <p className="text-sm font-medium text-foreground">{match.stadium}</p>
                 <p className="text-xs text-muted-foreground">{match.city}</p>
@@ -111,85 +163,47 @@ const MatchDetailPage = () => {
         </Card>
 
         {/* Ticket Info */}
-        <Card>
+        <Card className="border-border/50">
           <CardContent className="p-4 space-y-3">
-            <h3 className="text-sm font-bold text-foreground">Ticket Information</h3>
+            <h3 className="text-sm font-bold text-foreground">{t("match.ticket_info")}</h3>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Status</span>
+              <span className="text-sm text-muted-foreground">{t("match.status")}</span>
               <TicketStatusBadge status={match.ticketStatus} />
             </div>
-            <Separator />
+            <Separator className="bg-border/50" />
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Starting Price</span>
-              <span className="text-sm font-semibold text-foreground">
+              <span className="text-sm text-muted-foreground">{t("match.starting_price")}</span>
+              <span className="text-sm font-bold text-foreground">
                 {match.startingPrice ? `€${match.startingPrice}` : "TBA"}
               </span>
             </div>
-            <Separator />
+            <Separator className="bg-border/50" />
             <div className="flex items-center gap-3">
-              <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+              <Clock className="w-4 h-4 text-accent shrink-0" />
               <div>
-                <p className="text-xs text-muted-foreground">Ticket Release Date</p>
+                <p className="text-xs text-muted-foreground">{t("match.release_date")}</p>
                 <p className="text-sm font-medium text-foreground">{formatDate(match.ticketReleaseDate)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Where to Buy — Partner-ready structure */}
-        <Card>
-          <CardContent className="p-4 space-y-3">
+        {/* Where to Buy */}
+        <Card className="border-border/50">
+          <CardContent className="p-4 space-y-2">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Ticket className="w-4 h-4" /> Where to buy tickets
+              <Ticket className="w-4 h-4 text-primary" /> {t("match.where_to_buy")}
             </h3>
-
-            {officialSources.length > 0 && (
-              <>
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Official</p>
-                {officialSources.map((src) => (
-                  <Button
-                    key={src.url}
-                    variant="outline"
-                    className="w-full justify-between"
-                    onClick={() => window.open(src.url, "_blank")}
-                  >
-                    <span className="flex items-center gap-2">
-                      {src.name}
-                      {src.recommended && (
-                        <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-semibold flex items-center gap-0.5">
-                          <Star className="w-2.5 h-2.5" /> Recommended
-                        </span>
-                      )}
-                    </span>
-                    <ExternalLink className="w-4 h-4" />
-                  </Button>
-                ))}
-              </>
-            )}
-
-            {resaleSources.length > 0 && (
-              <>
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mt-2">Resale</p>
-                {resaleSources.map((src) => (
-                  <Button
-                    key={src.url}
-                    variant="outline"
-                    className="w-full justify-between"
-                    onClick={() => window.open(src.url, "_blank")}
-                  >
-                    {src.name}
-                    <ExternalLink className="w-4 h-4" />
-                  </Button>
-                ))}
-              </>
-            )}
+            {renderSources(officialSources, "official")}
+            {renderSources(resaleSources, "resale")}
+            {renderSources(partnerSources, "partner")}
           </CardContent>
         </Card>
 
         {/* CTA */}
         {recommended && (
-          <Button className="w-full gap-2" size="lg" onClick={() => window.open(recommended.url, "_blank")}>
-            Go to official ticket site
+          <Button className="w-full gap-2 font-semibold" size="lg" onClick={() => window.open(recommended.url, "_blank")}>
+            <Shield className="w-4 h-4" /> {t("match.go_official")}
             <ExternalLink className="w-4 h-4" />
           </Button>
         )}
@@ -197,8 +211,8 @@ const MatchDetailPage = () => {
         <AdBanner variant="detail" />
 
         {/* Need Help */}
-        <Button variant="outline" className="w-full gap-2 text-muted-foreground" onClick={handleNeedHelp}>
-          <HelpCircle className="w-4 h-4" /> Need help finding tickets?
+        <Button variant="outline" className="w-full gap-2 text-muted-foreground border-border/50" onClick={handleNeedHelp}>
+          <HelpCircle className="w-4 h-4" /> {t("match.need_help")}
           <Mail className="w-4 h-4 ml-auto" />
         </Button>
       </div>

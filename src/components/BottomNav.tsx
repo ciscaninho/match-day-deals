@@ -1,22 +1,24 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { Home, List, CalendarDays, Bell, User } from "lucide-react";
-
-const navItems = [
-  { label: "Home", icon: Home, path: "/" },
-  { label: "Matches", icon: List, path: "/matches" },
-  { label: "Calendar", icon: CalendarDays, path: "/calendar" },
-  { label: "Alerts", icon: Bell, path: "/notifications" },
-  { label: "Profile", icon: User, path: "/profile" },
-];
 
 export const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { unreadCount } = useUser();
+  const { t } = useLanguage();
+
+  const navItems = [
+    { label: t("nav.home"), icon: Home, path: "/" },
+    { label: t("nav.matches"), icon: List, path: "/matches" },
+    { label: t("nav.calendar"), icon: CalendarDays, path: "/calendar" },
+    { label: t("nav.alerts"), icon: Bell, path: "/notifications" },
+    { label: t("nav.profile"), icon: User, path: "/profile" },
+  ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border/50">
       <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
         {navItems.map((item) => {
           const isActive =
