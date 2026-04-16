@@ -53,8 +53,8 @@ const AdminPage = () => {
       city: m.city,
       startingPrice: m.startingPrice?.toString() || "",
       ticketStatus: m.ticketStatus,
-      officialTicketUrl: m.officialTicketUrl,
-      resaleUrl: m.resaleUrl,
+      officialTicketUrl: m.ticketSources.find((s) => s.type === "official")?.url || "",
+      resaleUrl: m.ticketSources.find((s) => s.type === "resale")?.url || "",
     });
   };
 
