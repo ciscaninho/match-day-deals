@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserProvider } from "@/contexts/UserContext";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import HomePage from "./pages/HomePage";
+import LandingPage from "./pages/LandingPage";
 import MatchesPage from "./pages/MatchesPage";
 import MatchDetailPage from "./pages/MatchDetailPage";
 import CalendarPage from "./pages/CalendarPage";
@@ -29,6 +30,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<HomePage />} />
+              <Route path="/landing" element={<LandingPage />} />
               <Route path="/matches" element={<MatchesPage />} />
               <Route path="/match/:id" element={<MatchDetailPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
