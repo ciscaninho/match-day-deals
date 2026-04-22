@@ -12,6 +12,8 @@ import {
   Mail,
   Trophy,
   Flame,
+  Calendar as CalendarIcon,
+  Gamepad2,
 } from "lucide-react";
 
 /**
@@ -21,12 +23,12 @@ import {
  */
 
 const tickerItems = [
-  { tag: "🔥", text: "PSG vs Barça : Ouverture billetterie demain 10h" },
-  { tag: "⚪", text: "Real Madrid vs Bayern : Sold Out" },
-  { tag: "🎟️", text: "Liverpool vs Inter : Phase ballot ouverte" },
-  { tag: "📅", text: "France vs Brésil : Vente officielle le 28/04" },
-  { tag: "⚡", text: "Man City vs Arsenal : Resale officielle disponible" },
-  { tag: "🏆", text: "Finale UCL Munich : Tirage au sort en cours" },
+  { tag: "🔥", text: "PSG vs Barça : ouverture de la billetterie demain à 10h" },
+  { tag: "⚪", text: "Real Madrid vs Bayern : complet" },
+  { tag: "🎟️", text: "Liverpool vs Inter : tirage au sort ouvert" },
+  { tag: "📅", text: "France vs Brésil : mise en vente officielle le 28/04" },
+  { tag: "⚡", text: "Man City vs Arsenal : nouvelles places disponibles" },
+  { tag: "🏆", text: "Finale Ligue des Champions à Munich : inscription en cours" },
 ];
 
 const hotMatches = [
@@ -38,7 +40,7 @@ const hotMatches = [
     competition: "UEFA Champions League",
     date: "Mer. 24 Avr · 21:00",
     venue: "Parc des Princes, Paris",
-    status: "Ventes bientôt ouvertes",
+    status: "Bientôt en vente",
     statusColor: "amber",
   },
   {
@@ -49,7 +51,7 @@ const hotMatches = [
     competition: "UEFA Champions League",
     date: "Mar. 30 Avr · 21:00",
     venue: "Santiago Bernabéu, Madrid",
-    status: "Sold Out",
+    status: "Complet",
     statusColor: "red",
   },
   {
@@ -60,7 +62,7 @@ const hotMatches = [
     competition: "Match International",
     date: "Sam. 08 Juin · 21:00",
     venue: "Stade de France, Paris",
-    status: "On Sale",
+    status: "En vente",
     statusColor: "green",
   },
 ];
@@ -89,6 +91,12 @@ const LandingPage = () => {
   const [year, setYear] = useState(2025);
   useEffect(() => setYear(new Date().getFullYear()), []);
 
+  // Pre-filled support email
+  const supportMail =
+    "mailto:support@foottickfinder.app" +
+    "?subject=" + encodeURIComponent("Demande d'information — Foot Ticket Finder") +
+    "&body=" + encodeURIComponent("Bonjour,\n\nJ'aimerais avoir plus d'informations sur :\n\n");
+
   return (
     <div className="min-h-screen bg-white text-[#2C3E50] font-sans antialiased">
       {/* ============ NAV ============ */}
@@ -101,15 +109,16 @@ const LandingPage = () => {
             <span className="font-extrabold text-[#2C3E50] tracking-tight">Foot Ticket Finder</span>
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-[#2C3E50]/70">
-            <a href="#why" className="hover:text-[#2ECC71]">Pourquoi nous</a>
-            <a href="#matches" className="hover:text-[#2ECC71]">Matchs chauds</a>
+            <a href="#why" className="hover:text-[#2ECC71]">Avantages</a>
+            <a href="#matches" className="hover:text-[#2ECC71]">Matchs à la une</a>
+            <a href="#app" className="hover:text-[#2ECC71]">L'application</a>
             <a href="#contact" className="hover:text-[#2ECC71]">Contact</a>
           </nav>
           <Link
             to="/"
             className="inline-flex items-center gap-1.5 rounded-full bg-[#2C3E50] text-white text-xs font-bold px-4 py-2 hover:bg-[#1f2d3a] transition-colors"
           >
-            Ouvrir l'app <ArrowRight className="w-3.5 h-3.5" />
+            Lancer l'app <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </header>
@@ -131,45 +140,38 @@ const LandingPage = () => {
         <div className="relative max-w-6xl mx-auto px-5 pt-16 pb-20 md:pt-24 md:pb-28">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 mb-6">
             <span className="w-2 h-2 rounded-full bg-[#2ECC71] animate-pulse" />
-            100% sources officielles · UEFA · FIFA · Clubs
+            Uniquement des sources officielles · UEFA · FIFA · Clubs
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.05] tracking-tight max-w-3xl">
-            Fini les galères de billetterie.{" "}
-            <span className="text-[#2ECC71]">Place au foot.</span>
+            Trouvez vos billets de foot{" "}
+            <span className="text-[#2ECC71]">au bon moment, au bon prix.</span>
           </h1>
 
           <p className="mt-5 max-w-xl text-base md:text-lg text-white/70 leading-relaxed">
-            Foot Ticket Finder centralise les ventes officielles des plus grands matchs européens et internationaux. Soyez alerté <strong className="text-white">avant tout le monde</strong> — sans revendeurs douteux, sans prix gonflés.
+            Foot Ticket Finder vous indique <strong className="text-white">quand et où</strong> acheter vos places pour les plus grands matchs européens et internationaux. Vous êtes prévenu dès l'ouverture de la billetterie officielle, directement sur votre téléphone.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3">
-            <a
-              href="#download"
-              className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-black hover:bg-black/85 text-white px-5 py-3.5 font-semibold transition-colors"
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold transition-colors shadow-lg shadow-[#2ECC71]/30"
             >
-              <Apple className="w-5 h-5" />
-              <div className="text-left leading-tight">
-                <div className="text-[10px] font-medium opacity-70">Télécharger sur</div>
-                <div className="text-sm">App Store</div>
-              </div>
-            </a>
+              Découvrir l'app maintenant
+              <ArrowRight className="w-4 h-4" />
+            </Link>
             <a
-              href="#download"
-              className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-3.5 font-semibold transition-colors shadow-lg shadow-[#2ECC71]/30"
+              href="#app"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 text-white px-6 py-3.5 font-semibold transition-colors border border-white/15"
             >
-              <Smartphone className="w-5 h-5" />
-              <div className="text-left leading-tight">
-                <div className="text-[10px] font-medium opacity-90">Disponible sur</div>
-                <div className="text-sm">Google Play</div>
-              </div>
+              Voir comment ça marche
             </a>
           </div>
 
           <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-white/60">
             <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> Gratuit</div>
             <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> Sans inscription</div>
-            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> Anti-scalpers</div>
+            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> Sources 100% officielles</div>
           </div>
         </div>
       </section>
@@ -179,7 +181,7 @@ const LandingPage = () => {
         <div className="flex items-center">
           <div className="shrink-0 flex items-center gap-2 px-4 py-3 bg-[#27ae60] font-bold text-xs uppercase tracking-wider">
             <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-            Live
+            En direct
           </div>
           <div className="flex-1 overflow-hidden relative">
             <div className="flex gap-10 animate-ticker whitespace-nowrap py-3 text-sm font-medium">
@@ -199,12 +201,12 @@ const LandingPage = () => {
       <section id="why" className="py-20 md:py-28 bg-white">
         <div className="max-w-6xl mx-auto px-5">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">Pourquoi nous</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">Pourquoi Foot Ticket Finder</span>
             <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">
-              Le seul outil dont les vrais fans ont besoin
+              L'outil pensé pour les vrais fans de football
             </h2>
             <p className="mt-4 text-[#2C3E50]/65">
-              On ne vend pas de billets. On vous dit exactement quand et où acheter ceux qui sont fiables.
+              Nous ne vendons pas de billets. Nous vous guidons vers les bons sites, au bon moment, pour acheter vos places en toute confiance.
             </p>
           </div>
 
@@ -212,29 +214,50 @@ const LandingPage = () => {
             {[
               {
                 icon: ShieldCheck,
-                title: "100% Officiel",
-                desc: "Uniquement des sources vérifiées : UEFA, FIFA, fédérations et plateformes officielles des clubs. Aucune revente louche.",
+                title: "Uniquement des sources officielles",
+                desc: "Nous référençons exclusivement les billetteries officielles : UEFA, FIFA, fédérations et sites des clubs. Pas de revente sauvage, pas de mauvaises surprises.",
+                href: "#matches",
+                cta: "Voir les matchs vérifiés",
               },
               {
                 icon: BellRing,
                 title: "Alertes en temps réel",
-                desc: "Notifications push avant l'ouverture des ventes. Soyez le premier au coup d'envoi de la billetterie.",
+                desc: "Recevez une notification dès qu'une billetterie ouvre. Vous êtes prévenu avant la majorité des fans, pour avoir une vraie chance d'obtenir une place.",
+                href: "/notifications",
+                cta: "Voir les alertes",
               },
               {
                 icon: Globe2,
-                title: "Couverture totale",
-                desc: "Ligue des Champions, Premier League, Liga, Serie A, Bundesliga, sélections nationales et grandes finales.",
+                title: "Tous les grands matchs",
+                desc: "Ligue des Champions, Premier League, Liga, Serie A, Bundesliga, équipes nationales et grandes finales internationales : tout est centralisé.",
+                href: "/matches",
+                cta: "Parcourir les matchs",
               },
             ].map((f) => (
               <div
                 key={f.title}
-                className="group relative rounded-2xl border border-slate-200 bg-white p-7 hover:border-[#2ECC71]/40 hover:shadow-lg hover:shadow-[#2ECC71]/5 transition-all"
+                className="group relative rounded-2xl border border-slate-200 bg-white p-7 hover:border-[#2ECC71]/40 hover:shadow-lg hover:shadow-[#2ECC71]/5 transition-all flex flex-col"
               >
                 <div className="w-12 h-12 rounded-xl bg-[#2ECC71]/10 flex items-center justify-center mb-5 group-hover:bg-[#2ECC71] transition-colors">
                   <f.icon className="w-6 h-6 text-[#2ECC71] group-hover:text-white transition-colors" />
                 </div>
                 <h3 className="font-extrabold text-lg text-[#2C3E50]">{f.title}</h3>
-                <p className="mt-2 text-sm text-[#2C3E50]/65 leading-relaxed">{f.desc}</p>
+                <p className="mt-2 text-sm text-[#2C3E50]/65 leading-relaxed flex-1">{f.desc}</p>
+                {f.href.startsWith("/") ? (
+                  <Link
+                    to={f.href}
+                    className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-[#2ECC71] hover:gap-2.5 transition-all"
+                  >
+                    {f.cta} <ArrowRight className="w-4 h-4" />
+                  </Link>
+                ) : (
+                  <a
+                    href={f.href}
+                    className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-[#2ECC71] hover:gap-2.5 transition-all"
+                  >
+                    {f.cta} <ArrowRight className="w-4 h-4" />
+                  </a>
+                )}
               </div>
             ))}
           </div>
@@ -255,10 +278,10 @@ const LandingPage = () => {
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71] flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5" /> Matchs chauds
+                <Flame className="w-3.5 h-3.5" /> Matchs à la une
               </span>
               <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">
-                Les billets que tout le monde attend
+                Les billets les plus attendus du moment
               </h2>
             </div>
             <Link
@@ -271,9 +294,10 @@ const LandingPage = () => {
 
           <div className="grid md:grid-cols-3 gap-5">
             {hotMatches.map((m) => (
-              <article
+              <Link
                 key={`${m.home}-${m.away}`}
-                className="rounded-2xl bg-white border border-slate-200 overflow-hidden hover:border-[#2ECC71]/40 hover:shadow-xl hover:shadow-[#2C3E50]/5 transition-all group"
+                to="/matches"
+                className="rounded-2xl bg-white border border-slate-200 overflow-hidden hover:border-[#2ECC71]/40 hover:shadow-xl hover:shadow-[#2C3E50]/5 transition-all group block"
               >
                 <div className="px-5 py-3 bg-[#2C3E50] text-white flex items-center justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">
@@ -303,44 +327,85 @@ const LandingPage = () => {
                   <div className="mt-5 flex items-center justify-between">
                     <StatusBadge status={m.status} color={m.statusColor} />
                     <span className="text-xs font-bold text-[#2ECC71] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                      Détails <ArrowRight className="w-3.5 h-3.5" />
+                      Voir le match <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
                 </div>
-              </article>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ DISCOVER THE APP ============ */}
+      <section id="app" className="py-20 md:py-28 bg-white">
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">Explorez l'application</span>
+            <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">
+              Tout ce dont un fan a besoin, en un seul endroit
+            </h2>
+            <p className="mt-4 text-[#2C3E50]/65">
+              Cliquez sur une rubrique pour découvrir directement la fonctionnalité dans l'app.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { to: "/matches", icon: Trophy, title: "Tous les matchs", desc: "Parcourez les matchs par compétition et par pays." },
+              { to: "/calendar", icon: CalendarIcon, title: "Calendrier", desc: "Visualisez les matchs à venir mois par mois." },
+              { to: "/notifications", icon: BellRing, title: "Mes alertes", desc: "Suivez vos matchs et recevez les bonnes infos." },
+              { to: "/quiz", icon: Gamepad2, title: "Quiz quotidien", desc: "Testez vos connaissances et gagnez des points." },
+            ].map((card) => (
+              <Link
+                key={card.to}
+                to={card.to}
+                className="group rounded-2xl border border-slate-200 bg-white p-6 hover:border-[#2ECC71]/40 hover:shadow-lg hover:shadow-[#2ECC71]/5 transition-all"
+              >
+                <div className="w-11 h-11 rounded-xl bg-[#2ECC71]/10 flex items-center justify-center mb-4 group-hover:bg-[#2ECC71] transition-colors">
+                  <card.icon className="w-5 h-5 text-[#2ECC71] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-extrabold text-base text-[#2C3E50]">{card.title}</h3>
+                <p className="mt-1.5 text-sm text-[#2C3E50]/65 leading-relaxed">{card.desc}</p>
+                <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-[#2ECC71] group-hover:gap-2 transition-all">
+                  Ouvrir <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
       {/* ============ CTA DOWNLOAD ============ */}
-      <section id="download" className="py-20 md:py-24 bg-white">
+      <section id="download" className="py-20 md:py-24 bg-slate-50">
         <div className="max-w-4xl mx-auto px-5">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2C3E50] to-[#1a2530] text-white p-10 md:p-14 text-center">
             <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-[#2ECC71]/30 blur-3xl" />
             <div className="relative">
               <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-                Le coup d'envoi est dans votre poche
+                Prêt à ne plus rater un seul match ?
               </h2>
               <p className="mt-3 text-white/70 max-w-md mx-auto">
-                Téléchargez l'app gratuitement et ne ratez plus jamais une ouverture de billetterie.
+                Lancez l'application gratuitement et soyez prévenu dès l'ouverture des prochaines billetteries officielles.
               </p>
               <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
-                <a href="#" className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-white text-[#2C3E50] px-5 py-3.5 font-semibold hover:bg-white/90">
-                  <Apple className="w-5 h-5" />
-                  <div className="text-left leading-tight">
-                    <div className="text-[10px] font-medium opacity-70">Télécharger sur</div>
-                    <div className="text-sm">App Store</div>
-                  </div>
-                </a>
-                <a href="#" className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-[#2ECC71] text-white px-5 py-3.5 font-semibold hover:bg-[#27ae60]">
-                  <Smartphone className="w-5 h-5" />
-                  <div className="text-left leading-tight">
-                    <div className="text-[10px] font-medium opacity-90">Disponible sur</div>
-                    <div className="text-sm">Google Play</div>
-                  </div>
-                </a>
+                <Link
+                  to="/"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold shadow-lg shadow-[#2ECC71]/30"
+                >
+                  Lancer l'application
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  to="/premium"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 text-white px-6 py-3.5 font-semibold border border-white/15"
+                >
+                  Découvrir Premium
+                </Link>
               </div>
+              <p className="mt-5 text-xs text-white/50">
+                Bientôt disponible sur iOS et Android.
+              </p>
             </div>
           </div>
         </div>
@@ -351,50 +416,56 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-5 py-14">
           <div className="grid md:grid-cols-4 gap-10">
             <div className="md:col-span-2">
-              <div className="flex items-center gap-2 mb-4">
+              <Link to="/landing" className="flex items-center gap-2 mb-4">
                 <div className="w-9 h-9 rounded-xl bg-[#2ECC71] flex items-center justify-center">
                   <Ticket className="w-5 h-5 text-white" />
                 </div>
                 <span className="font-extrabold text-white tracking-tight">Foot Ticket Finder</span>
-              </div>
+              </Link>
               <p className="text-sm text-white/60 max-w-sm leading-relaxed">
                 Le compagnon billetterie des fans de football. Officiel, transparent, sans intermédiaire douteux.
               </p>
 
               <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#2ECC71]/15 border border-[#2ECC71]/30 px-3.5 py-1.5 text-xs font-bold text-[#2ECC71]">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                Anti-Scalpers : Nous soutenons l'accès juste au football
+                100% sources officielles, pour un accès juste au football
               </div>
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Légal</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Navigation</h4>
               <ul className="space-y-2.5 text-sm">
-                <li><a href="#" className="hover:text-[#2ECC71]">Conditions d'utilisation</a></li>
-                <li><a href="#" className="hover:text-[#2ECC71]">Politique de confidentialité</a></li>
-                <li><a href="#" className="hover:text-[#2ECC71]">Mentions légales</a></li>
-                <li><a href="#" className="hover:text-[#2ECC71]">Cookies</a></li>
+                <li><Link to="/" className="hover:text-[#2ECC71]">Accueil de l'app</Link></li>
+                <li><Link to="/matches" className="hover:text-[#2ECC71]">Matchs</Link></li>
+                <li><Link to="/calendar" className="hover:text-[#2ECC71]">Calendrier</Link></li>
+                <li><Link to="/notifications" className="hover:text-[#2ECC71]">Notifications</Link></li>
+                <li><Link to="/premium" className="hover:text-[#2ECC71]">Premium</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Support</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Aide & contact</h4>
               <ul className="space-y-2.5 text-sm">
                 <li>
-                  <a href="mailto:support@foottickfinder.app" className="inline-flex items-center gap-1.5 hover:text-[#2ECC71]">
+                  <a href={supportMail} className="inline-flex items-center gap-1.5 hover:text-[#2ECC71]">
                     <Mail className="w-3.5 h-3.5" /> support@foottickfinder.app
                   </a>
                 </li>
-                <li><a href="#" className="hover:text-[#2ECC71]">Centre d'aide</a></li>
-                <li><a href="#" className="hover:text-[#2ECC71]">FAQ Billetterie</a></li>
-                <li><Link to="/" className="hover:text-[#2ECC71]">Ouvrir l'app web</Link></li>
+                <li><a href={supportMail} className="hover:text-[#2ECC71]">Nous contacter</a></li>
+                <li><Link to="/profile" className="hover:text-[#2ECC71]">Mon profil</Link></li>
+              </ul>
+
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mt-6 mb-3">Informations</h4>
+              <ul className="space-y-2.5 text-sm">
+                <li><a href={supportMail} className="hover:text-[#2ECC71]">Conditions d'utilisation</a></li>
+                <li><a href={supportMail} className="hover:text-[#2ECC71]">Politique de confidentialité</a></li>
               </ul>
             </div>
           </div>
 
           <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-white/50">
             <p>© {year} Foot Ticket Finder. Tous droits réservés.</p>
-            <p>Non affilié à l'UEFA, la FIFA ou aux clubs mentionnés.</p>
+            <p>Site indépendant, non affilié à l'UEFA, la FIFA ou aux clubs mentionnés.</p>
           </div>
         </div>
       </footer>
