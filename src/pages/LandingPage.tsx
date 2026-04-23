@@ -201,7 +201,7 @@ const LandingPage = () => {
         <div className="flex items-center">
           <div className="shrink-0 flex items-center gap-2 px-4 py-3 bg-[#27ae60] font-bold text-xs uppercase tracking-wider">
             <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-            En direct
+            {t("landing.ticker.live")}
           </div>
           <div className="flex-1 overflow-hidden relative">
             <div className="flex gap-10 animate-ticker whitespace-nowrap py-3 text-sm font-medium">
