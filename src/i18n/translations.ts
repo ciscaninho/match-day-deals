@@ -95,6 +95,17 @@ const enLanding = {
   "landing.footer.disclaimer": "Independent site, not affiliated with UEFA, FIFA or any of the clubs mentioned.",
   // language label
   "language": "Language",
+  "landing.ticker.item1": "PSG vs Barça: ticket sales open tomorrow at 10am",
+  "landing.ticker.item2": "Real Madrid vs Bayern: sold out",
+  "landing.ticker.item3": "Liverpool vs Inter: ballot now open",
+  "landing.ticker.item4": "France vs Brazil: official sale on 28/04",
+  "landing.ticker.item5": "Man City vs Arsenal: new seats released",
+  "landing.ticker.item6": "Champions League final in Munich: registration open",
+  "landing.match1.date": "Wed. 24 Apr · 21:00",
+  "landing.match2.date": "Tue. 30 Apr · 21:00",
+  "landing.match3.date": "Sat. 08 Jun · 21:00",
+  "landing.match3.away": "Brazil",
+  "landing.match3.competition": "International Friendly",
 };
 
 const frLanding = {
@@ -181,6 +192,17 @@ const frLanding = {
   "landing.footer.rights": "© {year} Foot Ticket Finder. Tous droits réservés.",
   "landing.footer.disclaimer": "Site indépendant, non affilié à l'UEFA, la FIFA ou aux clubs mentionnés.",
   "language": "Langue",
+  "landing.ticker.item1": "PSG vs Barça : ouverture de la billetterie demain à 10h",
+  "landing.ticker.item2": "Real Madrid vs Bayern : complet",
+  "landing.ticker.item3": "Liverpool vs Inter : tirage au sort ouvert",
+  "landing.ticker.item4": "France vs Brésil : mise en vente officielle le 28/04",
+  "landing.ticker.item5": "Man City vs Arsenal : nouvelles places disponibles",
+  "landing.ticker.item6": "Finale Ligue des Champions à Munich : inscription en cours",
+  "landing.match1.date": "Mer. 24 Avr · 21:00",
+  "landing.match2.date": "Mar. 30 Avr · 21:00",
+  "landing.match3.date": "Sam. 08 Juin · 21:00",
+  "landing.match3.away": "Brésil",
+  "landing.match3.competition": "Match International",
 };
 
 const nlLanding = {
@@ -267,6 +289,17 @@ const nlLanding = {
   "landing.footer.rights": "© {year} Foot Ticket Finder. Alle rechten voorbehouden.",
   "landing.footer.disclaimer": "Onafhankelijke site, niet aangesloten bij UEFA, FIFA of een van de genoemde clubs.",
   "language": "Taal",
+  "landing.ticker.item1": "PSG vs Barça: ticketverkoop opent morgen om 10u",
+  "landing.ticker.item2": "Real Madrid vs Bayern: uitverkocht",
+  "landing.ticker.item3": "Liverpool vs Inter: loting nu open",
+  "landing.ticker.item4": "Frankrijk vs Brazilië: officiële verkoop op 28/04",
+  "landing.ticker.item5": "Man City vs Arsenal: nieuwe plaatsen vrijgegeven",
+  "landing.ticker.item6": "Champions League-finale in München: inschrijving open",
+  "landing.match1.date": "Woe. 24 apr · 21:00",
+  "landing.match2.date": "Din. 30 apr · 21:00",
+  "landing.match3.date": "Zat. 08 jun · 21:00",
+  "landing.match3.away": "Brazilië",
+  "landing.match3.competition": "Vriendschappelijke wedstrijd",
 };
 
 const esLanding = {
@@ -353,6 +386,17 @@ const esLanding = {
   "landing.footer.rights": "© {year} Foot Ticket Finder. Todos los derechos reservados.",
   "landing.footer.disclaimer": "Sitio independiente, no afiliado a la UEFA, la FIFA ni a los clubes mencionados.",
   "language": "Idioma",
+  "landing.ticker.item1": "PSG vs Barça: la venta abre mañana a las 10h",
+  "landing.ticker.item2": "Real Madrid vs Bayern: agotado",
+  "landing.ticker.item3": "Liverpool vs Inter: sorteo abierto",
+  "landing.ticker.item4": "Francia vs Brasil: venta oficial el 28/04",
+  "landing.ticker.item5": "Man City vs Arsenal: nuevas entradas disponibles",
+  "landing.ticker.item6": "Final de la Champions en Múnich: inscripción abierta",
+  "landing.match1.date": "Mié. 24 abr · 21:00",
+  "landing.match2.date": "Mar. 30 abr · 21:00",
+  "landing.match3.date": "Sáb. 08 jun · 21:00",
+  "landing.match3.away": "Brasil",
+  "landing.match3.competition": "Partido amistoso",
 };
 
 const deLanding = {
@@ -439,6 +483,17 @@ const deLanding = {
   "landing.footer.rights": "© {year} Foot Ticket Finder. Alle Rechte vorbehalten.",
   "landing.footer.disclaimer": "Unabhängige Seite, nicht mit UEFA, FIFA oder den genannten Vereinen verbunden.",
   "language": "Sprache",
+  "landing.ticker.item1": "PSG vs Barça: Ticketverkauf startet morgen um 10 Uhr",
+  "landing.ticker.item2": "Real Madrid vs Bayern: ausverkauft",
+  "landing.ticker.item3": "Liverpool vs Inter: Verlosung jetzt offen",
+  "landing.ticker.item4": "Frankreich vs Brasilien: offizieller Verkauf am 28.04.",
+  "landing.ticker.item5": "Man City vs Arsenal: neue Plätze verfügbar",
+  "landing.ticker.item6": "Champions-League-Finale in München: Anmeldung läuft",
+  "landing.match1.date": "Mi. 24. Apr · 21:00",
+  "landing.match2.date": "Di. 30. Apr · 21:00",
+  "landing.match3.date": "Sa. 08. Juni · 21:00",
+  "landing.match3.away": "Brasilien",
+  "landing.match3.competition": "Länderspiel",
 };
 
 const itLanding = {
@@ -525,6 +580,17 @@ const itLanding = {
   "landing.footer.rights": "© {year} Foot Ticket Finder. Tutti i diritti riservati.",
   "landing.footer.disclaimer": "Sito indipendente, non affiliato a UEFA, FIFA o ai club menzionati.",
   "language": "Lingua",
+  "landing.ticker.item1": "PSG vs Barça: vendita biglietti aperta domani alle 10",
+  "landing.ticker.item2": "Real Madrid vs Bayern: esaurito",
+  "landing.ticker.item3": "Liverpool vs Inter: sorteggio aperto",
+  "landing.ticker.item4": "Francia vs Brasile: vendita ufficiale il 28/04",
+  "landing.ticker.item5": "Man City vs Arsenal: nuovi posti disponibili",
+  "landing.ticker.item6": "Finale di Champions a Monaco: iscrizioni aperte",
+  "landing.match1.date": "Mer. 24 apr · 21:00",
+  "landing.match2.date": "Mar. 30 apr · 21:00",
+  "landing.match3.date": "Sab. 08 giu · 21:00",
+  "landing.match3.away": "Brasile",
+  "landing.match3.competition": "Amichevole internazionale",
 };
 
 const ptLanding = {
@@ -611,6 +677,17 @@ const ptLanding = {
   "landing.footer.rights": "© {year} Foot Ticket Finder. Todos os direitos reservados.",
   "landing.footer.disclaimer": "Site independente, não afiliado à UEFA, FIFA ou aos clubes mencionados.",
   "language": "Idioma",
+  "landing.ticker.item1": "PSG vs Barça: venda de bilhetes abre amanhã às 10h",
+  "landing.ticker.item2": "Real Madrid vs Bayern: esgotado",
+  "landing.ticker.item3": "Liverpool vs Inter: sorteio aberto",
+  "landing.ticker.item4": "França vs Brasil: venda oficial a 28/04",
+  "landing.ticker.item5": "Man City vs Arsenal: novos lugares disponíveis",
+  "landing.ticker.item6": "Final da Champions em Munique: inscrição aberta",
+  "landing.match1.date": "Qua. 24 abr · 21:00",
+  "landing.match2.date": "Ter. 30 abr · 21:00",
+  "landing.match3.date": "Sáb. 08 jun · 21:00",
+  "landing.match3.away": "Brasil",
+  "landing.match3.competition": "Jogo amigável",
 };
 
 export const translations: Record<Locale, Record<string, string>> = {
