@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import {
   Ticket,
   ShieldCheck,
@@ -96,6 +97,19 @@ const LandingPage = () => {
     "mailto:support@foottickfinder.app" +
     "?subject=" + encodeURIComponent("Demande d'information — Foot Ticket Finder") +
     "&body=" + encodeURIComponent("Bonjour,\n\nJ'aimerais avoir plus d'informations sur :\n\n");
+
+  const [email, setEmail] = useState("");
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    // Simulated signup. Later: connect to Supabase or Mailchimp.
+    toast.success("C'est noté ! Vous recevrez nos alertes prioritaires.", {
+      description: `L'adresse ${email} a été ajoutée à la liste d'attente.`,
+    });
+    setEmail("");
+  };
 
   return (
     <div className="min-h-screen bg-white text-[#2C3E50] font-sans antialiased">
@@ -408,6 +422,46 @@ const LandingPage = () => {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ============ NEWSLETTER / EMAIL COLLECT ============ */}
+      <section id="newsletter" className="py-20 md:py-24 bg-white border-t border-slate-100">
+        <div className="max-w-2xl mx-auto px-5 text-center">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">
+            Ne ratez plus aucune ouverture
+          </span>
+          <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight text-[#2C3E50]">
+            Soyez le premier prévenu
+          </h2>
+          <p className="mt-4 text-[#2C3E50]/65">
+            Laissez votre email pour recevoir une alerte dès qu'un grand match est mis en vente.
+            Zéro spam, uniquement des alertes billetterie officielles.
+          </p>
+
+          <form
+            onSubmit={handleSubscribe}
+            className="mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+          >
+            <input
+              type="email"
+              placeholder="prenom@email.com"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#2ECC71]/20 focus:border-[#2ECC71] transition-all text-sm"
+            />
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3 font-semibold transition-colors shadow-lg shadow-[#2ECC71]/30 text-sm whitespace-nowrap"
+            >
+              M'inscrire aux alertes
+            </button>
+          </form>
+
+          <p className="mt-4 text-xs text-[#2C3E50]/50">
+            En vous inscrivant, vous acceptez de recevoir nos notifications de billetterie.
+          </p>
         </div>
       </section>
 
