@@ -25,70 +25,12 @@ import {
  * to keep the marketing identity separate from the in-app design system.
  */
 
-const tickerItems = [
-  { tag: "🔥", text: "PSG vs Barça : ouverture de la billetterie demain à 10h" },
-  { tag: "⚪", text: "Real Madrid vs Bayern : complet" },
-  { tag: "🎟️", text: "Liverpool vs Inter : tirage au sort ouvert" },
-  { tag: "📅", text: "France vs Brésil : mise en vente officielle le 28/04" },
-  { tag: "⚡", text: "Man City vs Arsenal : nouvelles places disponibles" },
-  { tag: "🏆", text: "Finale Ligue des Champions à Munich : inscription en cours" },
-];
-
-const hotMatches = [
-  {
-    home: "PSG",
-    away: "FC Barcelona",
-    homeShort: "PSG",
-    awayShort: "BAR",
-    competition: "UEFA Champions League",
-    date: "Mer. 24 Avr · 21:00",
-    venue: "Parc des Princes, Paris",
-    status: "Bientôt en vente",
-    statusColor: "amber",
-  },
-  {
-    home: "Real Madrid",
-    away: "Bayern München",
-    homeShort: "RMA",
-    awayShort: "BAY",
-    competition: "UEFA Champions League",
-    date: "Mar. 30 Avr · 21:00",
-    venue: "Santiago Bernabéu, Madrid",
-    status: "Complet",
-    statusColor: "red",
-  },
-  {
-    home: "France",
-    away: "Brésil",
-    homeShort: "FRA",
-    awayShort: "BRA",
-    competition: "Match International",
-    date: "Sam. 08 Juin · 21:00",
-    venue: "Stade de France, Paris",
-    status: "En vente",
-    statusColor: "green",
-  },
-];
-
-const StatusBadge = ({ status, color }: { status: string; color: string }) => {
-  const map: Record<string, string> = {
-    green: "bg-[#2ECC71] text-white",
-    amber: "bg-amber-400 text-[#2C3E50]",
-    red: "bg-red-500 text-white",
-  };
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${map[color]}`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
-      {status}
-    </span>
-  );
-};
-
 const TeamCrest = ({ short }: { short: string }) => (
   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-white to-slate-100 border-2 border-[#2C3E50]/10 flex items-center justify-center text-[11px] font-extrabold text-[#2C3E50] shadow-sm">
     {short}
   </div>
 );
+
 
 const LandingPage = () => {
   const { t } = useLanguage();
