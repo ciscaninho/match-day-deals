@@ -25,70 +25,12 @@ import {
  * to keep the marketing identity separate from the in-app design system.
  */
 
-const tickerItems = [
-  { tag: "🔥", text: "PSG vs Barça : ouverture de la billetterie demain à 10h" },
-  { tag: "⚪", text: "Real Madrid vs Bayern : complet" },
-  { tag: "🎟️", text: "Liverpool vs Inter : tirage au sort ouvert" },
-  { tag: "📅", text: "France vs Brésil : mise en vente officielle le 28/04" },
-  { tag: "⚡", text: "Man City vs Arsenal : nouvelles places disponibles" },
-  { tag: "🏆", text: "Finale Ligue des Champions à Munich : inscription en cours" },
-];
-
-const hotMatches = [
-  {
-    home: "PSG",
-    away: "FC Barcelona",
-    homeShort: "PSG",
-    awayShort: "BAR",
-    competition: "UEFA Champions League",
-    date: "Mer. 24 Avr · 21:00",
-    venue: "Parc des Princes, Paris",
-    status: "Bientôt en vente",
-    statusColor: "amber",
-  },
-  {
-    home: "Real Madrid",
-    away: "Bayern München",
-    homeShort: "RMA",
-    awayShort: "BAY",
-    competition: "UEFA Champions League",
-    date: "Mar. 30 Avr · 21:00",
-    venue: "Santiago Bernabéu, Madrid",
-    status: "Complet",
-    statusColor: "red",
-  },
-  {
-    home: "France",
-    away: "Brésil",
-    homeShort: "FRA",
-    awayShort: "BRA",
-    competition: "Match International",
-    date: "Sam. 08 Juin · 21:00",
-    venue: "Stade de France, Paris",
-    status: "En vente",
-    statusColor: "green",
-  },
-];
-
-const StatusBadge = ({ status, color }: { status: string; color: string }) => {
-  const map: Record<string, string> = {
-    green: "bg-[#2ECC71] text-white",
-    amber: "bg-amber-400 text-[#2C3E50]",
-    red: "bg-red-500 text-white",
-  };
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${map[color]}`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
-      {status}
-    </span>
-  );
-};
-
 const TeamCrest = ({ short }: { short: string }) => (
   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-white to-slate-100 border-2 border-[#2C3E50]/10 flex items-center justify-center text-[11px] font-extrabold text-[#2C3E50] shadow-sm">
     {short}
   </div>
 );
+
 
 const LandingPage = () => {
   const { t } = useLanguage();
@@ -111,6 +53,66 @@ const LandingPage = () => {
       description: t("landing.newsletter.toast.desc", { email }),
     });
     setEmail("");
+  };
+
+  // Translated dynamic data (inside component to react to locale)
+  const tickerItems = [
+    { tag: "🔥", text: t("landing.ticker.item1") },
+    { tag: "⚪", text: t("landing.ticker.item2") },
+    { tag: "🎟️", text: t("landing.ticker.item3") },
+    { tag: "📅", text: t("landing.ticker.item4") },
+    { tag: "⚡", text: t("landing.ticker.item5") },
+    { tag: "🏆", text: t("landing.ticker.item6") },
+  ];
+
+  const hotMatches = [
+    {
+      home: "PSG",
+      away: "FC Barcelona",
+      homeShort: "PSG",
+      awayShort: "BAR",
+      competition: "UEFA Champions League",
+      date: t("landing.match1.date"),
+      venue: "Parc des Princes, Paris",
+      status: t("landing.matches.status.coming_soon"),
+      statusColor: "amber",
+    },
+    {
+      home: "Real Madrid",
+      away: "Bayern München",
+      homeShort: "RMA",
+      awayShort: "BAY",
+      competition: "UEFA Champions League",
+      date: t("landing.match2.date"),
+      venue: "Santiago Bernabéu, Madrid",
+      status: t("landing.matches.status.sold_out"),
+      statusColor: "red",
+    },
+    {
+      home: "France",
+      away: t("landing.match3.away"),
+      homeShort: "FRA",
+      awayShort: "BRA",
+      competition: t("landing.match3.competition"),
+      date: t("landing.match3.date"),
+      venue: "Stade de France, Paris",
+      status: t("landing.matches.status.on_sale"),
+      statusColor: "green",
+    },
+  ];
+
+  const StatusBadge = ({ status, color }: { status: string; color: string }) => {
+    const map: Record<string, string> = {
+      green: "bg-[#2ECC71] text-white",
+      amber: "bg-amber-400 text-[#2C3E50]",
+      red: "bg-red-500 text-white",
+    };
+    return (
+      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${map[color]}`}>
+        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
+        {status}
+      </span>
+    );
   };
 
   return (
@@ -298,17 +300,17 @@ const LandingPage = () => {
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71] flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5" /> Matchs à la une
+                <Flame className="w-3.5 h-3.5" /> {t("landing.matches.eyebrow")}
               </span>
               <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">
-                Les billets les plus attendus du moment
+                {t("landing.matches.title")}
               </h2>
             </div>
             <Link
               to="/matches"
               className="inline-flex items-center gap-1.5 text-sm font-bold text-[#2C3E50] hover:text-[#2ECC71]"
             >
-              Voir tous les matchs <ArrowRight className="w-4 h-4" />
+              {t("landing.matches.view_all")} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -347,7 +349,7 @@ const LandingPage = () => {
                   <div className="mt-5 flex items-center justify-between">
                     <StatusBadge status={m.status} color={m.statusColor} />
                     <span className="text-xs font-bold text-[#2ECC71] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                      Voir le match <ArrowRight className="w-3.5 h-3.5" />
+                      {t("landing.matches.view_match")} <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
                 </div>
@@ -361,21 +363,21 @@ const LandingPage = () => {
       <section id="app" className="py-20 md:py-28 bg-white">
         <div className="max-w-6xl mx-auto px-5">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">Explorez l'application</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">{t("landing.app.eyebrow")}</span>
             <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">
-              Tout ce dont un fan a besoin, en un seul endroit
+              {t("landing.app.title")}
             </h2>
             <p className="mt-4 text-[#2C3E50]/65">
-              Cliquez sur une rubrique pour découvrir directement la fonctionnalité dans l'app.
+              {t("landing.app.subtitle")}
             </p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { to: "/matches", icon: Trophy, title: "Tous les matchs", desc: "Parcourez les matchs par compétition et par pays." },
-              { to: "/calendar", icon: CalendarIcon, title: "Calendrier", desc: "Visualisez les matchs à venir mois par mois." },
-              { to: "/notifications", icon: BellRing, title: "Mes alertes", desc: "Suivez vos matchs et recevez les bonnes infos." },
-              { to: "/quiz", icon: Gamepad2, title: "Quiz quotidien", desc: "Testez vos connaissances et gagnez des points." },
+              { to: "/matches", icon: Trophy, title: t("landing.app.card1.title"), desc: t("landing.app.card1.desc") },
+              { to: "/calendar", icon: CalendarIcon, title: t("landing.app.card2.title"), desc: t("landing.app.card2.desc") },
+              { to: "/notifications", icon: BellRing, title: t("landing.app.card3.title"), desc: t("landing.app.card3.desc") },
+              { to: "/quiz", icon: Gamepad2, title: t("landing.app.card4.title"), desc: t("landing.app.card4.desc") },
             ].map((card) => (
               <Link
                 key={card.to}
@@ -388,7 +390,7 @@ const LandingPage = () => {
                 <h3 className="font-extrabold text-base text-[#2C3E50]">{card.title}</h3>
                 <p className="mt-1.5 text-sm text-[#2C3E50]/65 leading-relaxed">{card.desc}</p>
                 <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-[#2ECC71] group-hover:gap-2 transition-all">
-                  Ouvrir <ArrowRight className="w-3.5 h-3.5" />
+                  {t("landing.app.open")} <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               </Link>
             ))}
@@ -403,28 +405,28 @@ const LandingPage = () => {
             <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-[#2ECC71]/30 blur-3xl" />
             <div className="relative">
               <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-                Prêt à ne plus rater un seul match ?
+                {t("landing.cta.title")}
               </h2>
               <p className="mt-3 text-white/70 max-w-md mx-auto">
-                Lancez l'application gratuitement et soyez prévenu dès l'ouverture des prochaines billetteries officielles.
+                {t("landing.cta.desc")}
               </p>
               <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   to="/home"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold shadow-lg shadow-[#2ECC71]/30"
                 >
-                  Lancer l'application
+                  {t("landing.cta.launch")}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   to="/premium"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 text-white px-6 py-3.5 font-semibold border border-white/15"
                 >
-                  Découvrir Premium
+                  {t("landing.cta.premium")}
                 </Link>
               </div>
               <p className="mt-5 text-xs text-white/50">
-                Bientôt disponible sur iOS et Android.
+                {t("landing.cta.soon")}
               </p>
             </div>
           </div>
@@ -482,49 +484,49 @@ const LandingPage = () => {
                 <span className="font-extrabold text-white tracking-tight">Foot Ticket Finder</span>
               </Link>
               <p className="text-sm text-white/60 max-w-sm leading-relaxed">
-                Le compagnon billetterie des fans de football. Officiel, transparent, sans intermédiaire douteux.
+                {t("landing.footer.tagline")}
               </p>
 
               <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#2ECC71]/15 border border-[#2ECC71]/30 px-3.5 py-1.5 text-xs font-bold text-[#2ECC71]">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                100% sources officielles, pour un accès juste au football
+                {t("landing.footer.badge")}
               </div>
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Navigation</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">{t("landing.footer.nav")}</h4>
               <ul className="space-y-2.5 text-sm">
-                <li><Link to="/home" className="hover:text-[#2ECC71]">Accueil de l'app</Link></li>
-                <li><Link to="/matches" className="hover:text-[#2ECC71]">Matchs</Link></li>
-                <li><Link to="/calendar" className="hover:text-[#2ECC71]">Calendrier</Link></li>
-                <li><Link to="/notifications" className="hover:text-[#2ECC71]">Notifications</Link></li>
-                <li><Link to="/premium" className="hover:text-[#2ECC71]">Premium</Link></li>
+                <li><Link to="/home" className="hover:text-[#2ECC71]">{t("landing.footer.nav.home")}</Link></li>
+                <li><Link to="/matches" className="hover:text-[#2ECC71]">{t("landing.footer.nav.matches")}</Link></li>
+                <li><Link to="/calendar" className="hover:text-[#2ECC71]">{t("landing.footer.nav.calendar")}</Link></li>
+                <li><Link to="/notifications" className="hover:text-[#2ECC71]">{t("landing.footer.nav.notifications")}</Link></li>
+                <li><Link to="/premium" className="hover:text-[#2ECC71]">{t("landing.footer.nav.premium")}</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Aide & contact</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">{t("landing.footer.help")}</h4>
               <ul className="space-y-2.5 text-sm">
                 <li>
                   <a href={supportMail} className="inline-flex items-center gap-1.5 hover:text-[#2ECC71]">
                     <Mail className="w-3.5 h-3.5" /> support@foottickfinder.app
                   </a>
                 </li>
-                <li><a href={supportMail} className="hover:text-[#2ECC71]">Nous contacter</a></li>
-                <li><Link to="/profile" className="hover:text-[#2ECC71]">Mon profil</Link></li>
+                <li><a href={supportMail} className="hover:text-[#2ECC71]">{t("landing.footer.contact_us")}</a></li>
+                <li><Link to="/profile" className="hover:text-[#2ECC71]">{t("landing.footer.profile")}</Link></li>
               </ul>
 
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white mt-6 mb-3">Informations</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mt-6 mb-3">{t("landing.footer.info")}</h4>
               <ul className="space-y-2.5 text-sm">
-                <li><a href={supportMail} className="hover:text-[#2ECC71]">Conditions d'utilisation</a></li>
-                <li><a href={supportMail} className="hover:text-[#2ECC71]">Politique de confidentialité</a></li>
+                <li><a href={supportMail} className="hover:text-[#2ECC71]">{t("landing.footer.terms")}</a></li>
+                <li><a href={supportMail} className="hover:text-[#2ECC71]">{t("landing.footer.privacy")}</a></li>
               </ul>
             </div>
           </div>
 
           <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-white/50">
-            <p>© {year} Foot Ticket Finder. Tous droits réservés.</p>
-            <p>Site indépendant, non affilié à l'UEFA, la FIFA ou aux clubs mentionnés.</p>
+            <p>{t("landing.footer.rights", { year })}</p>
+            <p>{t("landing.footer.disclaimer")}</p>
           </div>
         </div>
       </footer>
