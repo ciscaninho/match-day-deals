@@ -55,6 +55,66 @@ const LandingPage = () => {
     setEmail("");
   };
 
+  // Translated dynamic data (inside component to react to locale)
+  const tickerItems = [
+    { tag: "🔥", text: t("landing.ticker.item1") },
+    { tag: "⚪", text: t("landing.ticker.item2") },
+    { tag: "🎟️", text: t("landing.ticker.item3") },
+    { tag: "📅", text: t("landing.ticker.item4") },
+    { tag: "⚡", text: t("landing.ticker.item5") },
+    { tag: "🏆", text: t("landing.ticker.item6") },
+  ];
+
+  const hotMatches = [
+    {
+      home: "PSG",
+      away: "FC Barcelona",
+      homeShort: "PSG",
+      awayShort: "BAR",
+      competition: "UEFA Champions League",
+      date: t("landing.match1.date"),
+      venue: "Parc des Princes, Paris",
+      status: t("landing.matches.status.coming_soon"),
+      statusColor: "amber",
+    },
+    {
+      home: "Real Madrid",
+      away: "Bayern München",
+      homeShort: "RMA",
+      awayShort: "BAY",
+      competition: "UEFA Champions League",
+      date: t("landing.match2.date"),
+      venue: "Santiago Bernabéu, Madrid",
+      status: t("landing.matches.status.sold_out"),
+      statusColor: "red",
+    },
+    {
+      home: "France",
+      away: t("landing.match3.away"),
+      homeShort: "FRA",
+      awayShort: "BRA",
+      competition: t("landing.match3.competition"),
+      date: t("landing.match3.date"),
+      venue: "Stade de France, Paris",
+      status: t("landing.matches.status.on_sale"),
+      statusColor: "green",
+    },
+  ];
+
+  const StatusBadge = ({ status, color }: { status: string; color: string }) => {
+    const map: Record<string, string> = {
+      green: "bg-[#2ECC71] text-white",
+      amber: "bg-amber-400 text-[#2C3E50]",
+      red: "bg-red-500 text-white",
+    };
+    return (
+      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${map[color]}`}>
+        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
+        {status}
+      </span>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-white text-[#2C3E50] font-sans antialiased">
       {/* ============ NAV ============ */}
