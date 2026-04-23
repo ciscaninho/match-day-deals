@@ -221,12 +221,12 @@ const LandingPage = () => {
       <section id="why" className="py-20 md:py-28 bg-white">
         <div className="max-w-6xl mx-auto px-5">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">Pourquoi Foot Ticket Finder</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">{t("landing.why.eyebrow")}</span>
             <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">
-              L'outil pensé pour les vrais fans de football
+              {t("landing.why.title")}
             </h2>
             <p className="mt-4 text-[#2C3E50]/65">
-              Nous ne vendons pas de billets. Nous vous guidons vers les bons sites, au bon moment, pour acheter vos places en toute confiance.
+              {t("landing.why.subtitle")}
             </p>
           </div>
 
@@ -234,24 +234,24 @@ const LandingPage = () => {
             {[
               {
                 icon: ShieldCheck,
-                title: "Uniquement des sources officielles",
-                desc: "Nous référençons exclusivement les billetteries officielles : UEFA, FIFA, fédérations et sites des clubs. Pas de revente sauvage, pas de mauvaises surprises.",
+                title: t("landing.why.card1.title"),
+                desc: t("landing.why.card1.desc"),
                 href: "#matches",
-                cta: "Voir les matchs vérifiés",
+                cta: t("landing.why.card1.cta"),
               },
               {
                 icon: BellRing,
-                title: "Alertes en temps réel",
-                desc: "Recevez une notification dès qu'une billetterie ouvre. Vous êtes prévenu avant la majorité des fans, pour avoir une vraie chance d'obtenir une place.",
+                title: t("landing.why.card2.title"),
+                desc: t("landing.why.card2.desc"),
                 href: "/notifications",
-                cta: "Voir les alertes",
+                cta: t("landing.why.card2.cta"),
               },
               {
                 icon: Globe2,
-                title: "Tous les grands matchs",
-                desc: "Ligue des Champions, Premier League, Liga, Serie A, Bundesliga, équipes nationales et grandes finales internationales : tout est centralisé.",
+                title: t("landing.why.card3.title"),
+                desc: t("landing.why.card3.desc"),
                 href: "/matches",
-                cta: "Parcourir les matchs",
+                cta: t("landing.why.card3.cta"),
               },
             ].map((f) => (
               <div
