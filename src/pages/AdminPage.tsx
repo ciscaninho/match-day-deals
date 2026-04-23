@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { matches } from "@/data/matches";
-import { Shield, Plus, Edit2 } from "lucide-react";
+import { Shield, Plus, Edit2, Bot, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import type { TicketStatus } from "@/data/matches";
+import { supabase } from "@/integrations/supabase/client";
+import { useAssistantSettings } from "@/hooks/useAssistantSettings";
 
 const AdminPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
