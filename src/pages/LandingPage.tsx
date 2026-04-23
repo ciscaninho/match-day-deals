@@ -435,14 +435,13 @@ const LandingPage = () => {
       <section id="newsletter" className="py-20 md:py-24 bg-white border-t border-slate-100">
         <div className="max-w-2xl mx-auto px-5 text-center">
           <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">
-            Ne ratez plus aucune ouverture
+            {t("landing.newsletter.eyebrow")}
           </span>
           <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight text-[#2C3E50]">
-            Soyez le premier prévenu
+            {t("landing.newsletter.title")}
           </h2>
           <p className="mt-4 text-[#2C3E50]/65">
-            Laissez votre email pour recevoir une alerte dès qu'un grand match est mis en vente.
-            Zéro spam, uniquement des alertes billetterie officielles.
+            {t("landing.newsletter.desc")}
           </p>
 
           <form
@@ -451,7 +450,7 @@ const LandingPage = () => {
           >
             <input
               type="email"
-              placeholder="prenom@email.com"
+              placeholder={t("landing.newsletter.placeholder")}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -461,12 +460,12 @@ const LandingPage = () => {
               type="submit"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3 font-semibold transition-colors shadow-lg shadow-[#2ECC71]/30 text-sm whitespace-nowrap"
             >
-              M'inscrire aux alertes
+              {t("landing.newsletter.cta")}
             </button>
           </form>
 
           <p className="mt-4 text-xs text-[#2C3E50]/50">
-            En vous inscrivant, vous acceptez de recevoir nos notifications de billetterie.
+            {t("landing.newsletter.disclaimer")}
           </p>
         </div>
       </section>
