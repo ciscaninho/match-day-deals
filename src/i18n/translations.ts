@@ -831,6 +831,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "notifications.title": "Notifications",
     "admin.title": "Admin Panel",
     "back": "Back",
+    ...aiEn,
     ...enLanding,
   },
   fr: {
@@ -920,6 +921,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "notifications.title": "Notifications",
     "admin.title": "Panneau Admin",
     "back": "Retour",
+    ...aiFr,
     ...frLanding,
   },
   nl: {
@@ -1009,10 +1011,11 @@ export const translations: Record<Locale, Record<string, string>> = {
     "notifications.title": "Meldingen",
     "admin.title": "Beheerderspaneel",
     "back": "Terug",
+    ...aiNl,
     ...nlLanding,
   },
-  es: { "app.name": "Foot Ticket Finder", ...esLanding },
-  de: { "app.name": "Foot Ticket Finder", ...deLanding },
-  it: { "app.name": "Foot Ticket Finder", ...itLanding },
-  pt: { "app.name": "Foot Ticket Finder", ...ptLanding },
+  es: { "app.name": "Foot Ticket Finder", ...aiEn, ...esLanding },
+  de: { "app.name": "Foot Ticket Finder", ...aiEn, ...deLanding },
+  it: { "app.name": "Foot Ticket Finder", ...aiEn, ...itLanding },
+  pt: { "app.name": "Foot Ticket Finder", ...aiEn, ...ptLanding },
 };
