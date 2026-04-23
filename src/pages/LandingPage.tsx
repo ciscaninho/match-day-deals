@@ -125,10 +125,10 @@ const LandingPage = () => {
             <span className="font-extrabold text-[#2C3E50] tracking-tight">Foot Ticket Finder</span>
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-[#2C3E50]/70">
-            <a href="#why" className="hover:text-[#2ECC71]">Avantages</a>
-            <a href="#matches" className="hover:text-[#2ECC71]">Matchs à la une</a>
-            <a href="#app" className="hover:text-[#2ECC71]">L'application</a>
-            <a href="#contact" className="hover:text-[#2ECC71]">Contact</a>
+            <a href="#why" className="hover:text-[#2ECC71]">{t("landing.nav.benefits")}</a>
+            <a href="#matches" className="hover:text-[#2ECC71]">{t("landing.nav.matches")}</a>
+            <a href="#app" className="hover:text-[#2ECC71]">{t("landing.nav.app")}</a>
+            <a href="#contact" className="hover:text-[#2ECC71]">{t("landing.nav.contact")}</a>
           </nav>
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
@@ -136,7 +136,7 @@ const LandingPage = () => {
               to="/home"
               className="inline-flex items-center gap-1.5 rounded-full bg-[#2C3E50] text-white text-xs font-bold px-4 py-2 hover:bg-[#1f2d3a] transition-colors"
             >
-              Lancer l'app <ArrowRight className="w-3.5 h-3.5" />
+              {t("landing.nav.launch")} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
