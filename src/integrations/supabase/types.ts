@@ -14,16 +14,123 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      assistant_settings: {
+        Row: {
+          display_name: string
+          email_subject: string
+          enabled: boolean
+          escalation_enabled: boolean
+          fallback_message: string
+          faq_seed: string
+          greeting: string
+          id: number
+          support_email: string
+          updated_at: string
+        }
+        Insert: {
+          display_name?: string
+          email_subject?: string
+          enabled?: boolean
+          escalation_enabled?: boolean
+          fallback_message?: string
+          faq_seed?: string
+          greeting?: string
+          id?: number
+          support_email?: string
+          updated_at?: string
+        }
+        Update: {
+          display_name?: string
+          email_subject?: string
+          enabled?: boolean
+          escalation_enabled?: boolean
+          fallback_message?: string
+          faq_seed?: string
+          greeting?: string
+          id?: number
+          support_email?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      support_escalations: {
+        Row: {
+          created_at: string
+          current_page: string | null
+          email_sent: boolean
+          escalation_status: string
+          id: string
+          language: string | null
+          related_match_id: string | null
+          related_match_name: string | null
+          user_id: string | null
+          user_message: string
+          user_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_page?: string | null
+          email_sent?: boolean
+          escalation_status?: string
+          id?: string
+          language?: string | null
+          related_match_id?: string | null
+          related_match_name?: string | null
+          user_id?: string | null
+          user_message: string
+          user_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_page?: string | null
+          email_sent?: boolean
+          escalation_status?: string
+          id?: string
+          language?: string | null
+          related_match_id?: string | null
+          related_match_name?: string | null
+          user_id?: string | null
+          user_message?: string
+          user_type?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +257,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
