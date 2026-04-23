@@ -17,6 +17,7 @@ import PollsPage from "./pages/PollsPage";
 import QuizPage from "./pages/QuizPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
+import { AIAssistantWidget } from "./components/AIAssistantWidget";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/admin" element={<AdminPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <AIAssistantWidget />
           </BrowserRouter>
         </UserProvider>
       </LanguageProvider>

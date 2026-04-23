@@ -690,6 +690,59 @@ const ptLanding = {
   "landing.match3.competition": "Jogo amigável",
 };
 
+// AI Assistant strings — per-locale
+const aiEn = {
+  "ai.open": "Open assistant",
+  "ai.close": "Close",
+  "ai.send": "Send",
+  "ai.subtitle": "Always here to help",
+  "ai.placeholder": "Ask about matches, tickets, alerts…",
+  "ai.disclaimer": "AI replies may be imprecise. Always verify on official sources.",
+  "ai.rate_limit": "Too many messages. Please wait a moment.",
+  "ai.credits": "AI service unavailable. Please contact support.",
+  "ai.error": "Something went wrong. Please try again.",
+  "ai.escalation_placeholder": "Add details for our support team…",
+  "ai.escalation_send": "Send to support",
+  "ai.escalation_cancel": "Cancel",
+  "ai.escalation_sent": "Your message was sent to our support team.",
+  "ai.escalation_failed": "Could not send your message. Please try again.",
+  "ai.escalation_success_msg": "✅ Your message has been sent to our support team. They will review it as soon as possible.",
+};
+const aiFr = {
+  "ai.open": "Ouvrir l'assistant",
+  "ai.close": "Fermer",
+  "ai.send": "Envoyer",
+  "ai.subtitle": "Toujours là pour vous aider",
+  "ai.placeholder": "Posez votre question sur les matchs, billets…",
+  "ai.disclaimer": "L'IA peut se tromper. Vérifiez toujours sur les sources officielles.",
+  "ai.rate_limit": "Trop de messages. Veuillez patienter.",
+  "ai.credits": "Service IA indisponible. Contactez le support.",
+  "ai.error": "Une erreur s'est produite. Réessayez.",
+  "ai.escalation_placeholder": "Ajoutez des détails pour notre équipe support…",
+  "ai.escalation_send": "Envoyer au support",
+  "ai.escalation_cancel": "Annuler",
+  "ai.escalation_sent": "Votre message a été envoyé à notre équipe support.",
+  "ai.escalation_failed": "Envoi impossible. Réessayez.",
+  "ai.escalation_success_msg": "✅ Votre message a été envoyé à notre équipe support. Ils le traiteront dès que possible.",
+};
+const aiNl = {
+  "ai.open": "Assistent openen",
+  "ai.close": "Sluiten",
+  "ai.send": "Verzenden",
+  "ai.subtitle": "Altijd klaar om te helpen",
+  "ai.placeholder": "Stel een vraag over wedstrijden, tickets…",
+  "ai.disclaimer": "AI-antwoorden kunnen onnauwkeurig zijn. Verifieer altijd via officiële bronnen.",
+  "ai.rate_limit": "Te veel berichten. Wacht even.",
+  "ai.credits": "AI-service niet beschikbaar. Contacteer support.",
+  "ai.error": "Er is iets misgegaan. Probeer opnieuw.",
+  "ai.escalation_placeholder": "Voeg details toe voor ons support team…",
+  "ai.escalation_send": "Naar support sturen",
+  "ai.escalation_cancel": "Annuleren",
+  "ai.escalation_sent": "Je bericht is naar ons support team verzonden.",
+  "ai.escalation_failed": "Verzenden mislukt. Probeer opnieuw.",
+  "ai.escalation_success_msg": "✅ Je bericht is naar ons support team verzonden. Ze bekijken het zo snel mogelijk.",
+};
+
 export const translations: Record<Locale, Record<string, string>> = {
   en: {
     "app.name": "Foot Ticket Finder",
@@ -778,6 +831,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "notifications.title": "Notifications",
     "admin.title": "Admin Panel",
     "back": "Back",
+    ...aiEn,
     ...enLanding,
   },
   fr: {
@@ -867,6 +921,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "notifications.title": "Notifications",
     "admin.title": "Panneau Admin",
     "back": "Retour",
+    ...aiFr,
     ...frLanding,
   },
   nl: {
@@ -956,10 +1011,11 @@ export const translations: Record<Locale, Record<string, string>> = {
     "notifications.title": "Meldingen",
     "admin.title": "Beheerderspaneel",
     "back": "Terug",
+    ...aiNl,
     ...nlLanding,
   },
-  es: { "app.name": "Foot Ticket Finder", ...esLanding },
-  de: { "app.name": "Foot Ticket Finder", ...deLanding },
-  it: { "app.name": "Foot Ticket Finder", ...itLanding },
-  pt: { "app.name": "Foot Ticket Finder", ...ptLanding },
+  es: { "app.name": "Foot Ticket Finder", ...aiEn, ...esLanding },
+  de: { "app.name": "Foot Ticket Finder", ...aiEn, ...deLanding },
+  it: { "app.name": "Foot Ticket Finder", ...aiEn, ...itLanding },
+  pt: { "app.name": "Foot Ticket Finder", ...aiEn, ...ptLanding },
 };
