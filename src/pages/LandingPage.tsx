@@ -90,6 +90,7 @@ const TeamCrest = ({ short }: { short: string }) => (
 );
 
 const LandingPage = () => {
+  const { t } = useLanguage();
   const [year, setYear] = useState(2025);
   useEffect(() => setYear(new Date().getFullYear()), []);
 
@@ -105,9 +106,8 @@ const LandingPage = () => {
     e.preventDefault();
     if (!email) return;
 
-    // Simulated signup. Later: connect to Supabase or Mailchimp.
-    toast.success("C'est noté ! Vous recevrez nos alertes prioritaires.", {
-      description: `L'adresse ${email} a été ajoutée à la liste d'attente.`,
+    toast.success(t("landing.newsletter.toast.title"), {
+      description: t("landing.newsletter.toast.desc", { email }),
     });
     setEmail("");
   };
