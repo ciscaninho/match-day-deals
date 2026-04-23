@@ -21,9 +21,9 @@ const DEFAULTS: AssistantSettings = {
   greeting:
     "Hi! I'm your Foot Ticket Assistant. Ask me anything about matches, tickets, alerts, premium, or the app.",
   fallback_message:
-    "I'm sorry, I couldn't find a reliable answer to that question. I can send your message to our support team for review.",
-  support_email: "support@footticketfinder.com",
-  email_subject: "AI Support Escalation - Foot Ticket Finder",
+    "I'm sorry, I couldn't find a reliable answer to that. I'll send your request to our support team and they will get back to you within 24 hours.",
+  support_email: "support.footticket@gmail.com",
+  email_subject: "Support Request - Foot Ticket Finder",
   faq_seed: "",
 };
 
