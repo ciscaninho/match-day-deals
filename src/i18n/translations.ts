@@ -1,4 +1,333 @@
-export type Locale = "en" | "fr" | "nl";
+export type Locale = "en" | "fr" | "nl" | "es" | "de" | "it" | "pt";
+
+// Common keys used by the LandingPage. Other app keys can fall back to English.
+const enLanding = {
+  // nav
+  "landing.nav.benefits": "Benefits",
+  "landing.nav.matches": "Featured matches",
+  "landing.nav.app": "The app",
+  "landing.nav.contact": "Contact",
+  "landing.nav.launch": "Launch app",
+  // hero
+  "landing.hero.badge": "Only official sources · UEFA · FIFA · Clubs",
+  "landing.hero.title_1": "Find your football tickets",
+  "landing.hero.title_2": "at the right time, at the right price.",
+  "landing.hero.subtitle":
+    "Foot Ticket Finder tells you <strong>when and where</strong> to buy tickets for the biggest European and international matches. Get notified the moment official ticket sales open, right on your phone.",
+  "landing.hero.cta_primary": "Discover the app now",
+  "landing.hero.cta_secondary": "See how it works",
+  "landing.hero.point_1": "Free",
+  "landing.hero.point_2": "No signup needed",
+  "landing.hero.point_3": "100% official sources",
+  // ticker
+  "landing.ticker.live": "Live",
+  // why
+  "landing.why.eyebrow": "Why Foot Ticket Finder",
+  "landing.why.title": "The tool built for real football fans",
+  "landing.why.subtitle":
+    "We don't sell tickets. We guide you to the right websites at the right moment so you can buy with full confidence.",
+  "landing.why.card1.title": "Only official sources",
+  "landing.why.card1.desc":
+    "We only list official ticket offices: UEFA, FIFA, federations and club websites. No shady resellers, no bad surprises.",
+  "landing.why.card1.cta": "See verified matches",
+  "landing.why.card2.title": "Real-time alerts",
+  "landing.why.card2.desc":
+    "Get notified the moment a ticket sale opens. You'll be ahead of most fans, with a real chance of grabbing a seat.",
+  "landing.why.card2.cta": "View alerts",
+  "landing.why.card3.title": "All the big matches",
+  "landing.why.card3.desc":
+    "Champions League, Premier League, La Liga, Serie A, Bundesliga, national teams and major international finals — all in one place.",
+  "landing.why.card3.cta": "Browse matches",
+  // newsletter
+  "landing.newsletter.eyebrow": "Don't miss any release",
+  "landing.newsletter.title": "Be the first to know",
+  "landing.newsletter.desc":
+    "Drop your email to get an alert as soon as a major match goes on sale. Zero spam, only official ticket alerts.",
+  "landing.newsletter.placeholder": "you@email.com",
+  "landing.newsletter.cta": "Sign me up",
+  "landing.newsletter.disclaimer":
+    "By signing up, you agree to receive ticket release notifications.",
+  "landing.newsletter.toast.title": "Got it! You'll receive priority alerts.",
+  "landing.newsletter.toast.desc": "{email} was added to the waiting list.",
+  // language label
+  "language": "Language",
+};
+
+const frLanding = {
+  "landing.nav.benefits": "Avantages",
+  "landing.nav.matches": "Matchs à la une",
+  "landing.nav.app": "L'application",
+  "landing.nav.contact": "Contact",
+  "landing.nav.launch": "Lancer l'app",
+  "landing.hero.badge": "Uniquement des sources officielles · UEFA · FIFA · Clubs",
+  "landing.hero.title_1": "Trouvez vos billets de foot",
+  "landing.hero.title_2": "au bon moment, au bon prix.",
+  "landing.hero.subtitle":
+    "Foot Ticket Finder vous indique <strong>quand et où</strong> acheter vos places pour les plus grands matchs européens et internationaux. Vous êtes prévenu dès l'ouverture de la billetterie officielle, directement sur votre téléphone.",
+  "landing.hero.cta_primary": "Découvrir l'app maintenant",
+  "landing.hero.cta_secondary": "Voir comment ça marche",
+  "landing.hero.point_1": "Gratuit",
+  "landing.hero.point_2": "Sans inscription",
+  "landing.hero.point_3": "Sources 100% officielles",
+  "landing.ticker.live": "En direct",
+  "landing.why.eyebrow": "Pourquoi Foot Ticket Finder",
+  "landing.why.title": "L'outil pensé pour les vrais fans de football",
+  "landing.why.subtitle":
+    "Nous ne vendons pas de billets. Nous vous guidons vers les bons sites, au bon moment, pour acheter vos places en toute confiance.",
+  "landing.why.card1.title": "Uniquement des sources officielles",
+  "landing.why.card1.desc":
+    "Nous référençons exclusivement les billetteries officielles : UEFA, FIFA, fédérations et sites des clubs. Pas de revente sauvage, pas de mauvaises surprises.",
+  "landing.why.card1.cta": "Voir les matchs vérifiés",
+  "landing.why.card2.title": "Alertes en temps réel",
+  "landing.why.card2.desc":
+    "Recevez une notification dès qu'une billetterie ouvre. Vous êtes prévenu avant la majorité des fans, pour avoir une vraie chance d'obtenir une place.",
+  "landing.why.card2.cta": "Voir les alertes",
+  "landing.why.card3.title": "Tous les grands matchs",
+  "landing.why.card3.desc":
+    "Ligue des Champions, Premier League, Liga, Serie A, Bundesliga, équipes nationales et grandes finales internationales : tout est centralisé.",
+  "landing.why.card3.cta": "Parcourir les matchs",
+  "landing.newsletter.eyebrow": "Ne ratez plus aucune ouverture",
+  "landing.newsletter.title": "Soyez le premier prévenu",
+  "landing.newsletter.desc":
+    "Laissez votre email pour recevoir une alerte dès qu'un grand match est mis en vente. Zéro spam, uniquement des alertes billetterie officielles.",
+  "landing.newsletter.placeholder": "vous@email.com",
+  "landing.newsletter.cta": "M'inscrire aux alertes",
+  "landing.newsletter.disclaimer":
+    "En vous inscrivant, vous acceptez de recevoir nos notifications de billetterie.",
+  "landing.newsletter.toast.title": "C'est noté ! Vous recevrez nos alertes prioritaires.",
+  "landing.newsletter.toast.desc": "L'adresse {email} a été ajoutée à la liste d'attente.",
+  "language": "Langue",
+};
+
+const nlLanding = {
+  "landing.nav.benefits": "Voordelen",
+  "landing.nav.matches": "Uitgelichte wedstrijden",
+  "landing.nav.app": "De app",
+  "landing.nav.contact": "Contact",
+  "landing.nav.launch": "App starten",
+  "landing.hero.badge": "Alleen officiële bronnen · UEFA · FIFA · Clubs",
+  "landing.hero.title_1": "Vind je voetbaltickets",
+  "landing.hero.title_2": "op het juiste moment, voor de juiste prijs.",
+  "landing.hero.subtitle":
+    "Foot Ticket Finder vertelt je <strong>wanneer en waar</strong> je tickets kunt kopen voor de grootste Europese en internationale wedstrijden. Word direct op je telefoon gewaarschuwd zodra de officiële verkoop opent.",
+  "landing.hero.cta_primary": "Ontdek de app nu",
+  "landing.hero.cta_secondary": "Zie hoe het werkt",
+  "landing.hero.point_1": "Gratis",
+  "landing.hero.point_2": "Geen registratie nodig",
+  "landing.hero.point_3": "100% officiële bronnen",
+  "landing.ticker.live": "Live",
+  "landing.why.eyebrow": "Waarom Foot Ticket Finder",
+  "landing.why.title": "De tool voor echte voetbalfans",
+  "landing.why.subtitle":
+    "Wij verkopen geen tickets. We wijzen je de juiste websites op het juiste moment, zodat je met vertrouwen koopt.",
+  "landing.why.card1.title": "Alleen officiële bronnen",
+  "landing.why.card1.desc":
+    "Alleen officiële ticketkanalen: UEFA, FIFA, bonden en clubs. Geen schimmige doorverkoop, geen onaangename verrassingen.",
+  "landing.why.card1.cta": "Bekijk geverifieerde wedstrijden",
+  "landing.why.card2.title": "Realtime meldingen",
+  "landing.why.card2.desc":
+    "Ontvang een melding zodra de verkoop opent. Wees de meeste fans voor en maak echt kans op een ticket.",
+  "landing.why.card2.cta": "Bekijk meldingen",
+  "landing.why.card3.title": "Alle grote wedstrijden",
+  "landing.why.card3.desc":
+    "Champions League, Premier League, La Liga, Serie A, Bundesliga, nationale teams en grote internationale finales — alles op één plek.",
+  "landing.why.card3.cta": "Wedstrijden bekijken",
+  "landing.newsletter.eyebrow": "Mis geen enkele verkoop",
+  "landing.newsletter.title": "Wees de eerste die het weet",
+  "landing.newsletter.desc":
+    "Laat je e-mail achter om een melding te krijgen zodra een grote wedstrijd in de verkoop gaat. Geen spam, alleen officiële ticketmeldingen.",
+  "landing.newsletter.placeholder": "jij@email.com",
+  "landing.newsletter.cta": "Meld me aan",
+  "landing.newsletter.disclaimer":
+    "Door je aan te melden ga je akkoord met het ontvangen van ticketmeldingen.",
+  "landing.newsletter.toast.title": "Genoteerd! Je ontvangt prioriteitsmeldingen.",
+  "landing.newsletter.toast.desc": "{email} is toegevoegd aan de wachtlijst.",
+  "language": "Taal",
+};
+
+const esLanding = {
+  "landing.nav.benefits": "Ventajas",
+  "landing.nav.matches": "Partidos destacados",
+  "landing.nav.app": "La aplicación",
+  "landing.nav.contact": "Contacto",
+  "landing.nav.launch": "Abrir la app",
+  "landing.hero.badge": "Solo fuentes oficiales · UEFA · FIFA · Clubes",
+  "landing.hero.title_1": "Encuentra tus entradas de fútbol",
+  "landing.hero.title_2": "en el momento justo, al precio justo.",
+  "landing.hero.subtitle":
+    "Foot Ticket Finder te dice <strong>cuándo y dónde</strong> comprar entradas para los mayores partidos europeos e internacionales. Recibe una alerta en cuanto abre la venta oficial, directamente en tu móvil.",
+  "landing.hero.cta_primary": "Descubre la app ahora",
+  "landing.hero.cta_secondary": "Ver cómo funciona",
+  "landing.hero.point_1": "Gratis",
+  "landing.hero.point_2": "Sin registro",
+  "landing.hero.point_3": "Fuentes 100% oficiales",
+  "landing.ticker.live": "En directo",
+  "landing.why.eyebrow": "Por qué Foot Ticket Finder",
+  "landing.why.title": "La herramienta hecha para los verdaderos aficionados",
+  "landing.why.subtitle":
+    "No vendemos entradas. Te guiamos hacia los sitios correctos en el momento adecuado para comprar con total confianza.",
+  "landing.why.card1.title": "Solo fuentes oficiales",
+  "landing.why.card1.desc":
+    "Solo listamos taquillas oficiales: UEFA, FIFA, federaciones y clubes. Sin reventa dudosa, sin sorpresas.",
+  "landing.why.card1.cta": "Ver partidos verificados",
+  "landing.why.card2.title": "Alertas en tiempo real",
+  "landing.why.card2.desc":
+    "Recibe una notificación en cuanto se abra la venta. Adelántate a la mayoría de aficionados.",
+  "landing.why.card2.cta": "Ver alertas",
+  "landing.why.card3.title": "Todos los grandes partidos",
+  "landing.why.card3.desc":
+    "Champions, Premier, La Liga, Serie A, Bundesliga, selecciones y finales internacionales — todo en un solo lugar.",
+  "landing.why.card3.cta": "Ver partidos",
+  "landing.newsletter.eyebrow": "No te pierdas ninguna apertura",
+  "landing.newsletter.title": "Sé el primero en enterarte",
+  "landing.newsletter.desc":
+    "Deja tu email para recibir una alerta en cuanto un gran partido salga a la venta. Sin spam, solo alertas oficiales.",
+  "landing.newsletter.placeholder": "tu@email.com",
+  "landing.newsletter.cta": "Apuntarme",
+  "landing.newsletter.disclaimer":
+    "Al registrarte aceptas recibir notificaciones de venta de entradas.",
+  "landing.newsletter.toast.title": "¡Apuntado! Recibirás alertas prioritarias.",
+  "landing.newsletter.toast.desc": "{email} se ha añadido a la lista.",
+  "language": "Idioma",
+};
+
+const deLanding = {
+  "landing.nav.benefits": "Vorteile",
+  "landing.nav.matches": "Top-Spiele",
+  "landing.nav.app": "Die App",
+  "landing.nav.contact": "Kontakt",
+  "landing.nav.launch": "App starten",
+  "landing.hero.badge": "Nur offizielle Quellen · UEFA · FIFA · Vereine",
+  "landing.hero.title_1": "Finde deine Fußballtickets",
+  "landing.hero.title_2": "zur richtigen Zeit, zum richtigen Preis.",
+  "landing.hero.subtitle":
+    "Foot Ticket Finder zeigt dir <strong>wann und wo</strong> du Tickets für die größten europäischen und internationalen Spiele kaufen kannst. Werde direkt auf deinem Handy benachrichtigt, sobald der offizielle Verkauf startet.",
+  "landing.hero.cta_primary": "App jetzt entdecken",
+  "landing.hero.cta_secondary": "So funktioniert's",
+  "landing.hero.point_1": "Kostenlos",
+  "landing.hero.point_2": "Keine Anmeldung",
+  "landing.hero.point_3": "100% offizielle Quellen",
+  "landing.ticker.live": "Live",
+  "landing.why.eyebrow": "Warum Foot Ticket Finder",
+  "landing.why.title": "Das Tool für echte Fußballfans",
+  "landing.why.subtitle":
+    "Wir verkaufen keine Tickets. Wir führen dich zu den richtigen Seiten zum richtigen Zeitpunkt, damit du mit vollem Vertrauen kaufen kannst.",
+  "landing.why.card1.title": "Nur offizielle Quellen",
+  "landing.why.card1.desc":
+    "Wir listen ausschließlich offizielle Ticketstellen: UEFA, FIFA, Verbände und Vereine. Kein dubioser Wiederverkauf, keine bösen Überraschungen.",
+  "landing.why.card1.cta": "Geprüfte Spiele ansehen",
+  "landing.why.card2.title": "Echtzeit-Benachrichtigungen",
+  "landing.why.card2.desc":
+    "Erhalte eine Meldung, sobald der Verkauf öffnet. Sei den meisten Fans einen Schritt voraus.",
+  "landing.why.card2.cta": "Benachrichtigungen ansehen",
+  "landing.why.card3.title": "Alle großen Spiele",
+  "landing.why.card3.desc":
+    "Champions League, Premier League, La Liga, Serie A, Bundesliga, Nationalmannschaften und internationale Endspiele — alles an einem Ort.",
+  "landing.why.card3.cta": "Spiele durchsuchen",
+  "landing.newsletter.eyebrow": "Verpasse keinen Verkaufsstart",
+  "landing.newsletter.title": "Sei der Erste, der es erfährt",
+  "landing.newsletter.desc":
+    "Hinterlasse deine E-Mail und erhalte eine Benachrichtigung, sobald ein großes Spiel in den Verkauf geht. Kein Spam, nur offizielle Ticket-Meldungen.",
+  "landing.newsletter.placeholder": "du@email.com",
+  "landing.newsletter.cta": "Anmelden",
+  "landing.newsletter.disclaimer":
+    "Mit der Anmeldung stimmst du zu, Ticket-Benachrichtigungen zu erhalten.",
+  "landing.newsletter.toast.title": "Notiert! Du erhältst Prioritäts-Meldungen.",
+  "landing.newsletter.toast.desc": "{email} wurde zur Warteliste hinzugefügt.",
+  "language": "Sprache",
+};
+
+const itLanding = {
+  "landing.nav.benefits": "Vantaggi",
+  "landing.nav.matches": "Partite in evidenza",
+  "landing.nav.app": "L'app",
+  "landing.nav.contact": "Contatti",
+  "landing.nav.launch": "Apri l'app",
+  "landing.hero.badge": "Solo fonti ufficiali · UEFA · FIFA · Club",
+  "landing.hero.title_1": "Trova i tuoi biglietti di calcio",
+  "landing.hero.title_2": "al momento giusto, al prezzo giusto.",
+  "landing.hero.subtitle":
+    "Foot Ticket Finder ti dice <strong>quando e dove</strong> comprare i biglietti per le più grandi partite europee e internazionali. Ricevi una notifica appena apre la vendita ufficiale, direttamente sul tuo telefono.",
+  "landing.hero.cta_primary": "Scopri l'app ora",
+  "landing.hero.cta_secondary": "Scopri come funziona",
+  "landing.hero.point_1": "Gratis",
+  "landing.hero.point_2": "Senza registrazione",
+  "landing.hero.point_3": "Fonti 100% ufficiali",
+  "landing.ticker.live": "In diretta",
+  "landing.why.eyebrow": "Perché Foot Ticket Finder",
+  "landing.why.title": "Lo strumento per i veri tifosi di calcio",
+  "landing.why.subtitle":
+    "Non vendiamo biglietti. Ti guidiamo verso i siti giusti nel momento giusto per acquistare in totale tranquillità.",
+  "landing.why.card1.title": "Solo fonti ufficiali",
+  "landing.why.card1.desc":
+    "Elenchiamo solo biglietterie ufficiali: UEFA, FIFA, federazioni e club. Nessuna rivendita sospetta, nessuna brutta sorpresa.",
+  "landing.why.card1.cta": "Vedi le partite verificate",
+  "landing.why.card2.title": "Avvisi in tempo reale",
+  "landing.why.card2.desc":
+    "Ricevi una notifica appena apre la vendita. Anticipa la maggior parte dei tifosi.",
+  "landing.why.card2.cta": "Vedi gli avvisi",
+  "landing.why.card3.title": "Tutte le grandi partite",
+  "landing.why.card3.desc":
+    "Champions League, Premier League, La Liga, Serie A, Bundesliga, nazionali e finali internazionali — tutto in un unico posto.",
+  "landing.why.card3.cta": "Sfoglia le partite",
+  "landing.newsletter.eyebrow": "Non perdere nessuna apertura",
+  "landing.newsletter.title": "Sii il primo a saperlo",
+  "landing.newsletter.desc":
+    "Lascia la tua email per ricevere un avviso appena una grande partita va in vendita. Zero spam, solo avvisi ufficiali.",
+  "landing.newsletter.placeholder": "tu@email.com",
+  "landing.newsletter.cta": "Iscrivimi",
+  "landing.newsletter.disclaimer":
+    "Iscrivendoti, accetti di ricevere notifiche sulla vendita dei biglietti.",
+  "landing.newsletter.toast.title": "Fatto! Riceverai gli avvisi prioritari.",
+  "landing.newsletter.toast.desc": "{email} è stata aggiunta alla lista d'attesa.",
+  "language": "Lingua",
+};
+
+const ptLanding = {
+  "landing.nav.benefits": "Vantagens",
+  "landing.nav.matches": "Jogos em destaque",
+  "landing.nav.app": "A aplicação",
+  "landing.nav.contact": "Contacto",
+  "landing.nav.launch": "Abrir a app",
+  "landing.hero.badge": "Apenas fontes oficiais · UEFA · FIFA · Clubes",
+  "landing.hero.title_1": "Encontre os seus bilhetes de futebol",
+  "landing.hero.title_2": "no momento certo, ao preço certo.",
+  "landing.hero.subtitle":
+    "Foot Ticket Finder diz-lhe <strong>quando e onde</strong> comprar bilhetes para os maiores jogos europeus e internacionais. Receba um alerta assim que a venda oficial abrir, diretamente no seu telemóvel.",
+  "landing.hero.cta_primary": "Descobrir a app agora",
+  "landing.hero.cta_secondary": "Ver como funciona",
+  "landing.hero.point_1": "Grátis",
+  "landing.hero.point_2": "Sem registo",
+  "landing.hero.point_3": "Fontes 100% oficiais",
+  "landing.ticker.live": "Em direto",
+  "landing.why.eyebrow": "Porquê Foot Ticket Finder",
+  "landing.why.title": "A ferramenta pensada para os verdadeiros adeptos",
+  "landing.why.subtitle":
+    "Não vendemos bilhetes. Guiamo-lo para os sites certos, no momento certo, para comprar com total confiança.",
+  "landing.why.card1.title": "Apenas fontes oficiais",
+  "landing.why.card1.desc":
+    "Apenas listamos bilheteiras oficiais: UEFA, FIFA, federações e clubes. Sem revenda duvidosa, sem más surpresas.",
+  "landing.why.card1.cta": "Ver jogos verificados",
+  "landing.why.card2.title": "Alertas em tempo real",
+  "landing.why.card2.desc":
+    "Receba uma notificação assim que a venda abrir. Antecipe-se à maioria dos adeptos.",
+  "landing.why.card2.cta": "Ver alertas",
+  "landing.why.card3.title": "Todos os grandes jogos",
+  "landing.why.card3.desc":
+    "Liga dos Campeões, Premier League, La Liga, Serie A, Bundesliga, seleções e finais internacionais — tudo num só lugar.",
+  "landing.why.card3.cta": "Explorar jogos",
+  "landing.newsletter.eyebrow": "Não perca nenhuma abertura",
+  "landing.newsletter.title": "Seja o primeiro a saber",
+  "landing.newsletter.desc":
+    "Deixe o seu e-mail para receber um alerta assim que um grande jogo for posto à venda. Sem spam, apenas alertas oficiais.",
+  "landing.newsletter.placeholder": "voce@email.com",
+  "landing.newsletter.cta": "Inscrever",
+  "landing.newsletter.disclaimer":
+    "Ao inscrever-se, aceita receber notificações de venda de bilhetes.",
+  "landing.newsletter.toast.title": "Registado! Receberá alertas prioritários.",
+  "landing.newsletter.toast.desc": "{email} foi adicionado à lista de espera.",
+  "language": "Idioma",
+};
 
 export const translations: Record<Locale, Record<string, string>> = {
   en: {
@@ -88,7 +417,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "notifications.title": "Notifications",
     "admin.title": "Admin Panel",
     "back": "Back",
-    "language": "Language",
+    ...enLanding,
   },
   fr: {
     "app.name": "Foot Ticket Finder",
@@ -177,7 +506,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "notifications.title": "Notifications",
     "admin.title": "Panneau Admin",
     "back": "Retour",
-    "language": "Langue",
+    ...frLanding,
   },
   nl: {
     "app.name": "Foot Ticket Finder",
@@ -266,6 +595,10 @@ export const translations: Record<Locale, Record<string, string>> = {
     "notifications.title": "Meldingen",
     "admin.title": "Beheerderspaneel",
     "back": "Terug",
-    "language": "Taal",
+    ...nlLanding,
   },
+  es: { "app.name": "Foot Ticket Finder", ...esLanding },
+  de: { "app.name": "Foot Ticket Finder", ...deLanding },
+  it: { "app.name": "Foot Ticket Finder", ...itLanding },
+  pt: { "app.name": "Foot Ticket Finder", ...ptLanding },
 };

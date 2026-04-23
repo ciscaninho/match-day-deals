@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
   Ticket,
   ShieldCheck,
@@ -90,6 +91,7 @@ const TeamCrest = ({ short }: { short: string }) => (
 );
 
 const LandingPage = () => {
+  const { t } = useLanguage();
   const [year, setYear] = useState(2025);
   useEffect(() => setYear(new Date().getFullYear()), []);
 
@@ -105,9 +107,8 @@ const LandingPage = () => {
     e.preventDefault();
     if (!email) return;
 
-    // Simulated signup. Later: connect to Supabase or Mailchimp.
-    toast.success("C'est noté ! Vous recevrez nos alertes prioritaires.", {
-      description: `L'adresse ${email} a été ajoutée à la liste d'attente.`,
+    toast.success(t("landing.newsletter.toast.title"), {
+      description: t("landing.newsletter.toast.desc", { email }),
     });
     setEmail("");
   };
@@ -124,10 +125,10 @@ const LandingPage = () => {
             <span className="font-extrabold text-[#2C3E50] tracking-tight">Foot Ticket Finder</span>
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-[#2C3E50]/70">
-            <a href="#why" className="hover:text-[#2ECC71]">Avantages</a>
-            <a href="#matches" className="hover:text-[#2ECC71]">Matchs à la une</a>
-            <a href="#app" className="hover:text-[#2ECC71]">L'application</a>
-            <a href="#contact" className="hover:text-[#2ECC71]">Contact</a>
+            <a href="#why" className="hover:text-[#2ECC71]">{t("landing.nav.benefits")}</a>
+            <a href="#matches" className="hover:text-[#2ECC71]">{t("landing.nav.matches")}</a>
+            <a href="#app" className="hover:text-[#2ECC71]">{t("landing.nav.app")}</a>
+            <a href="#contact" className="hover:text-[#2ECC71]">{t("landing.nav.contact")}</a>
           </nav>
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
@@ -135,7 +136,7 @@ const LandingPage = () => {
               to="/home"
               className="inline-flex items-center gap-1.5 rounded-full bg-[#2C3E50] text-white text-xs font-bold px-4 py-2 hover:bg-[#1f2d3a] transition-colors"
             >
-              Lancer l'app <ArrowRight className="w-3.5 h-3.5" />
+              {t("landing.nav.launch")} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
@@ -158,38 +159,39 @@ const LandingPage = () => {
         <div className="relative max-w-6xl mx-auto px-5 pt-16 pb-20 md:pt-24 md:pb-28">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 mb-6">
             <span className="w-2 h-2 rounded-full bg-[#2ECC71] animate-pulse" />
-            Uniquement des sources officielles · UEFA · FIFA · Clubs
+            {t("landing.hero.badge")}
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.05] tracking-tight max-w-3xl">
-            Trouvez vos billets de foot{" "}
-            <span className="text-[#2ECC71]">au bon moment, au bon prix.</span>
+            {t("landing.hero.title_1")}{" "}
+            <span className="text-[#2ECC71]">{t("landing.hero.title_2")}</span>
           </h1>
 
-          <p className="mt-5 max-w-xl text-base md:text-lg text-white/70 leading-relaxed">
-            Foot Ticket Finder vous indique <strong className="text-white">quand et où</strong> acheter vos places pour les plus grands matchs européens et internationaux. Vous êtes prévenu dès l'ouverture de la billetterie officielle, directement sur votre téléphone.
-          </p>
+          <p
+            className="mt-5 max-w-xl text-base md:text-lg text-white/70 leading-relaxed [&_strong]:text-white"
+            dangerouslySetInnerHTML={{ __html: t("landing.hero.subtitle") }}
+          />
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3">
             <Link
               to="/home"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold transition-colors shadow-lg shadow-[#2ECC71]/30"
             >
-              Découvrir l'app maintenant
+              {t("landing.hero.cta_primary")}
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
               href="#app"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 text-white px-6 py-3.5 font-semibold transition-colors border border-white/15"
             >
-              Voir comment ça marche
+              {t("landing.hero.cta_secondary")}
             </a>
           </div>
 
           <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-white/60">
-            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> Gratuit</div>
-            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> Sans inscription</div>
-            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> Sources 100% officielles</div>
+            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> {t("landing.hero.point_1")}</div>
+            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> {t("landing.hero.point_2")}</div>
+            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> {t("landing.hero.point_3")}</div>
           </div>
         </div>
       </section>
@@ -199,7 +201,7 @@ const LandingPage = () => {
         <div className="flex items-center">
           <div className="shrink-0 flex items-center gap-2 px-4 py-3 bg-[#27ae60] font-bold text-xs uppercase tracking-wider">
             <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-            En direct
+            {t("landing.ticker.live")}
           </div>
           <div className="flex-1 overflow-hidden relative">
             <div className="flex gap-10 animate-ticker whitespace-nowrap py-3 text-sm font-medium">
@@ -219,12 +221,12 @@ const LandingPage = () => {
       <section id="why" className="py-20 md:py-28 bg-white">
         <div className="max-w-6xl mx-auto px-5">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">Pourquoi Foot Ticket Finder</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">{t("landing.why.eyebrow")}</span>
             <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">
-              L'outil pensé pour les vrais fans de football
+              {t("landing.why.title")}
             </h2>
             <p className="mt-4 text-[#2C3E50]/65">
-              Nous ne vendons pas de billets. Nous vous guidons vers les bons sites, au bon moment, pour acheter vos places en toute confiance.
+              {t("landing.why.subtitle")}
             </p>
           </div>
 
@@ -232,24 +234,24 @@ const LandingPage = () => {
             {[
               {
                 icon: ShieldCheck,
-                title: "Uniquement des sources officielles",
-                desc: "Nous référençons exclusivement les billetteries officielles : UEFA, FIFA, fédérations et sites des clubs. Pas de revente sauvage, pas de mauvaises surprises.",
+                title: t("landing.why.card1.title"),
+                desc: t("landing.why.card1.desc"),
                 href: "#matches",
-                cta: "Voir les matchs vérifiés",
+                cta: t("landing.why.card1.cta"),
               },
               {
                 icon: BellRing,
-                title: "Alertes en temps réel",
-                desc: "Recevez une notification dès qu'une billetterie ouvre. Vous êtes prévenu avant la majorité des fans, pour avoir une vraie chance d'obtenir une place.",
+                title: t("landing.why.card2.title"),
+                desc: t("landing.why.card2.desc"),
                 href: "/notifications",
-                cta: "Voir les alertes",
+                cta: t("landing.why.card2.cta"),
               },
               {
                 icon: Globe2,
-                title: "Tous les grands matchs",
-                desc: "Ligue des Champions, Premier League, Liga, Serie A, Bundesliga, équipes nationales et grandes finales internationales : tout est centralisé.",
+                title: t("landing.why.card3.title"),
+                desc: t("landing.why.card3.desc"),
                 href: "/matches",
-                cta: "Parcourir les matchs",
+                cta: t("landing.why.card3.cta"),
               },
             ].map((f) => (
               <div
@@ -433,14 +435,13 @@ const LandingPage = () => {
       <section id="newsletter" className="py-20 md:py-24 bg-white border-t border-slate-100">
         <div className="max-w-2xl mx-auto px-5 text-center">
           <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">
-            Ne ratez plus aucune ouverture
+            {t("landing.newsletter.eyebrow")}
           </span>
           <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight text-[#2C3E50]">
-            Soyez le premier prévenu
+            {t("landing.newsletter.title")}
           </h2>
           <p className="mt-4 text-[#2C3E50]/65">
-            Laissez votre email pour recevoir une alerte dès qu'un grand match est mis en vente.
-            Zéro spam, uniquement des alertes billetterie officielles.
+            {t("landing.newsletter.desc")}
           </p>
 
           <form
@@ -449,7 +450,7 @@ const LandingPage = () => {
           >
             <input
               type="email"
-              placeholder="prenom@email.com"
+              placeholder={t("landing.newsletter.placeholder")}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -459,12 +460,12 @@ const LandingPage = () => {
               type="submit"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3 font-semibold transition-colors shadow-lg shadow-[#2ECC71]/30 text-sm whitespace-nowrap"
             >
-              M'inscrire aux alertes
+              {t("landing.newsletter.cta")}
             </button>
           </form>
 
           <p className="mt-4 text-xs text-[#2C3E50]/50">
-            En vous inscrivant, vous acceptez de recevoir nos notifications de billetterie.
+            {t("landing.newsletter.disclaimer")}
           </p>
         </div>
       </section>
