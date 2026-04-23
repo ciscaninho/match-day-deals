@@ -115,7 +115,7 @@ const LandingPage = () => {
             <a href="#contact" className="hover:text-[#2ECC71]">Contact</a>
           </nav>
           <Link
-            to="/"
+            to="/home"
             className="inline-flex items-center gap-1.5 rounded-full bg-[#2C3E50] text-white text-xs font-bold px-4 py-2 hover:bg-[#1f2d3a] transition-colors"
           >
             Lancer l'app <ArrowRight className="w-3.5 h-3.5" />
@@ -154,7 +154,7 @@ const LandingPage = () => {
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3">
             <Link
-              to="/"
+              to="/home"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold transition-colors shadow-lg shadow-[#2ECC71]/30"
             >
               Découvrir l'app maintenant
@@ -390,7 +390,7 @@ const LandingPage = () => {
               </p>
               <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
-                  to="/"
+                  to="/home"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold shadow-lg shadow-[#2ECC71]/30"
                 >
                   Lancer l'application
@@ -435,7 +435,7 @@ const LandingPage = () => {
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Navigation</h4>
               <ul className="space-y-2.5 text-sm">
-                <li><Link to="/" className="hover:text-[#2ECC71]">Accueil de l'app</Link></li>
+                <li><Link to="/home" className="hover:text-[#2ECC71]">Accueil de l'app</Link></li>
                 <li><Link to="/matches" className="hover:text-[#2ECC71]">Matchs</Link></li>
                 <li><Link to="/calendar" className="hover:text-[#2ECC71]">Calendrier</Link></li>
                 <li><Link to="/notifications" className="hover:text-[#2ECC71]">Notifications</Link></li>
