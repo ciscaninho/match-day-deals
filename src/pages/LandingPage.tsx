@@ -159,38 +159,39 @@ const LandingPage = () => {
         <div className="relative max-w-6xl mx-auto px-5 pt-16 pb-20 md:pt-24 md:pb-28">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 mb-6">
             <span className="w-2 h-2 rounded-full bg-[#2ECC71] animate-pulse" />
-            Uniquement des sources officielles · UEFA · FIFA · Clubs
+            {t("landing.hero.badge")}
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.05] tracking-tight max-w-3xl">
-            Trouvez vos billets de foot{" "}
-            <span className="text-[#2ECC71]">au bon moment, au bon prix.</span>
+            {t("landing.hero.title_1")}{" "}
+            <span className="text-[#2ECC71]">{t("landing.hero.title_2")}</span>
           </h1>
 
-          <p className="mt-5 max-w-xl text-base md:text-lg text-white/70 leading-relaxed">
-            Foot Ticket Finder vous indique <strong className="text-white">quand et où</strong> acheter vos places pour les plus grands matchs européens et internationaux. Vous êtes prévenu dès l'ouverture de la billetterie officielle, directement sur votre téléphone.
-          </p>
+          <p
+            className="mt-5 max-w-xl text-base md:text-lg text-white/70 leading-relaxed [&_strong]:text-white"
+            dangerouslySetInnerHTML={{ __html: t("landing.hero.subtitle") }}
+          />
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3">
             <Link
               to="/home"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold transition-colors shadow-lg shadow-[#2ECC71]/30"
             >
-              Découvrir l'app maintenant
+              {t("landing.hero.cta_primary")}
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
               href="#app"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 text-white px-6 py-3.5 font-semibold transition-colors border border-white/15"
             >
-              Voir comment ça marche
+              {t("landing.hero.cta_secondary")}
             </a>
           </div>
 
           <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-white/60">
-            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> Gratuit</div>
-            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> Sans inscription</div>
-            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> Sources 100% officielles</div>
+            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> {t("landing.hero.point_1")}</div>
+            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> {t("landing.hero.point_2")}</div>
+            <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> {t("landing.hero.point_3")}</div>
           </div>
         </div>
       </section>
