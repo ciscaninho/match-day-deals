@@ -8,77 +8,40 @@ export interface SportmonksSyncResult {
   error?: string;
 }
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-
 /**
  * Triggers the Sportmonks → Supabase sync edge function.
- *
- * Uses a direct `fetch` (instead of `supabase.functions.invoke`) so we can:
- *  - control the timeout (sync can take 10–30s due to Sportmonks pagination)
- *  - get clearer error messages instead of the generic
- *    "Failed to send a request to the Edge Function".
+ * Uses the Supabase SDK so headers (apikey, auth) are handled correctly
+ * across browsers (Safari is strict about CORS preflights).
  */
 export const syncSportmonksFixtures = async (): Promise<SportmonksSyncResult> => {
-  const url = `${SUPABASE_URL}/functions/v1/sync-sportmonks`;
-  console.log("[sportmonks] Calling:", url);
+  console.log("[sportmonks] invoke sync-sportmonks");
 
-  const { data: sessionData } = await supabase.auth.getSession();
-  const accessToken = sessionData.session?.access_token;
-  console.log("[sportmonks] Auth: using", accessToken ? "user session" : "anon apikey only");
+  const { data, error } = await supabase.functions.invoke("sync-sportmonks", {
+    body: {},
+  });
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    apikey: SUPABASE_ANON_KEY,
-  };
+  console.log("[sportmonks] result:", { data, error });
 
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
+  if (error) {
+    // The SDK error often hides the real edge function response body.
+    // Try to extract it.
+    const ctx = (error as unknown as { context?: Response }).context;
+    if (ctx && typeof ctx.text === "function") {
+      try {
+        const txt = await ctx.text();
+        console.error("[sportmonks] edge body:", txt);
+        try {
+          const parsed = JSON.parse(txt);
+          return { success: false, error: parsed.error ?? txt };
+        } catch {
+          return { success: false, error: txt || error.message };
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return { success: false, error: error.message };
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 60_000); // 60s
-
-  try {
-    const resp = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({}),
-      signal: controller.signal,
-    });
-
-    const text = await resp.text();
-    console.log("[sportmonks] Response status:", resp.status, "body:", text.slice(0, 200));
-    let parsed: SportmonksSyncResult | { error?: string } = {};
-    try {
-      parsed = text ? JSON.parse(text) : {};
-    } catch {
-      parsed = { error: text || `HTTP ${resp.status}` };
-    }
-
-    if (!resp.ok) {
-      return {
-        success: false,
-        error:
-          (parsed as { error?: string }).error ??
-          `Edge function returned ${resp.status}`,
-      };
-    }
-    return parsed as SportmonksSyncResult;
-  } catch (e) {
-    console.error("[sportmonks] Fetch failed:", e);
-    if ((e as Error).name === "AbortError") {
-      return {
-        success: false,
-        error:
-          "La synchronisation a dépassé 60 s. Réessayez ou vérifiez les logs de la fonction.",
-      };
-    }
-    return {
-      success: false,
-      error: e instanceof Error ? e.message : "Network error",
-    };
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  return data as SportmonksSyncResult;
 };
