@@ -53,6 +53,75 @@ export type Database = {
         }
         Relationships: []
       }
+      matches: {
+        Row: {
+          away_short: string
+          away_team: string
+          category: string | null
+          city: string
+          competition: string
+          country: string
+          created_at: string
+          date: string
+          featured: boolean
+          home_short: string
+          home_team: string
+          id: string
+          official_link: string | null
+          priority: boolean
+          stadium: string
+          starting_price: number | null
+          ticket_release_date: string | null
+          ticket_sources: Json
+          ticket_status: string
+          updated_at: string
+        }
+        Insert: {
+          away_short: string
+          away_team: string
+          category?: string | null
+          city?: string
+          competition: string
+          country?: string
+          created_at?: string
+          date: string
+          featured?: boolean
+          home_short: string
+          home_team: string
+          id: string
+          official_link?: string | null
+          priority?: boolean
+          stadium?: string
+          starting_price?: number | null
+          ticket_release_date?: string | null
+          ticket_sources?: Json
+          ticket_status?: string
+          updated_at?: string
+        }
+        Update: {
+          away_short?: string
+          away_team?: string
+          category?: string | null
+          city?: string
+          competition?: string
+          country?: string
+          created_at?: string
+          date?: string
+          featured?: boolean
+          home_short?: string
+          home_team?: string
+          id?: string
+          official_link?: string | null
+          priority?: boolean
+          stadium?: string
+          starting_price?: number | null
+          ticket_release_date?: string | null
+          ticket_sources?: Json
+          ticket_status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       support_escalations: {
         Row: {
           created_at: string
