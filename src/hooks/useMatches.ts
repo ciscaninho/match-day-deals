@@ -8,6 +8,8 @@ type MatchRow = {
   away_team: string;
   home_short: string;
   away_short: string;
+  home_logo: string | null;
+  away_logo: string | null;
   competition: string;
   country: string | null;
   date: string;
@@ -27,6 +29,8 @@ const mapRow = (row: MatchRow): Match => ({
   awayTeam: row.away_team,
   homeShort: row.home_short,
   awayShort: row.away_short,
+  homeLogo: row.home_logo,
+  awayLogo: row.away_logo,
   competition: row.competition,
   country: row.country ?? "",
   date: row.date,

@@ -8,11 +8,13 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { matches } from "@/data/matches";
-import { Shield, Plus, Edit2, Bot, Inbox } from "lucide-react";
+import { Shield, Plus, Edit2, Bot, Inbox, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import type { TicketStatus } from "@/data/matches";
 import { supabase } from "@/integrations/supabase/client";
 import { useAssistantSettings } from "@/hooks/useAssistantSettings";
+import { syncSportmonksFixtures } from "@/services/sportmonks";
+import { useQueryClient } from "@tanstack/react-query";
 
 const AdminPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -75,6 +77,8 @@ const AdminPage = () => {
           <Shield className="w-5 h-5" /> Admin Panel
         </h1>
         <p className="text-xs text-muted-foreground mb-6">Manage matches and ticket info</p>
+
+        <SportmonksSyncCard />
 
         {/* Existing matches */}
         <h2 className="text-sm font-bold text-foreground mb-2">Existing Matches</h2>
@@ -327,6 +331,65 @@ const EscalationInbox = () => {
             </div>
           ))}
         </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ---------- Sportmonks Sync ----------
+const SportmonksSyncCard = () => {
+  const [loading, setLoading] = useState(false);
+  const [lastResult, setLastResult] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const handleSync = async () => {
+    setLoading(true);
+    setLastResult(null);
+    try {
+      const result = await syncSportmonksFixtures();
+      if (result.success) {
+        const msg = `Synced ${result.synced ?? 0} fixtures from Sportmonks`;
+        toast.success(msg);
+        setLastResult(msg);
+        await queryClient.invalidateQueries({ queryKey: ["matches"] });
+      } else {
+        const msg = result.error ?? "Sync failed";
+        toast.error(msg);
+        setLastResult(`Error: ${msg}`);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      toast.error(msg);
+      setLastResult(`Error: ${msg}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card className="mb-4">
+      <CardContent className="p-4 space-y-3">
+        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+          <RefreshCw className="w-4 h-4" /> Sportmonks Sync
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Fetches the next 60 days of fixtures from Sportmonks and upserts them
+          into your matches database. Existing entries are updated, new ones added.
+        </p>
+        <Button
+          size="sm"
+          className="w-full text-xs gap-2"
+          onClick={handleSync}
+          disabled={loading}
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+          {loading ? "Synchronisation en cours…" : "Forcer la synchronisation Sportmonks"}
+        </Button>
+        {lastResult && (
+          <p className="text-[11px] text-muted-foreground border-t border-border pt-2">
+            {lastResult}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

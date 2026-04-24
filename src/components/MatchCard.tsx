@@ -38,8 +38,20 @@ export const MatchCard = ({ match }: { match: Match }) => {
           <div className="flex items-center gap-4">
             {/* Home team */}
             <div className="flex-1 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0">
-                {match.homeShort}
+              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
+                {match.homeLogo ? (
+                  <img
+                    src={match.homeLogo}
+                    alt={`${match.homeTeam} logo`}
+                    loading="lazy"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  match.homeShort
+                )}
               </div>
               <p className="text-sm font-bold text-foreground leading-tight">
                 {match.homeTeam}
@@ -53,8 +65,20 @@ export const MatchCard = ({ match }: { match: Match }) => {
               <p className="text-sm font-bold text-foreground leading-tight">
                 {match.awayTeam}
               </p>
-              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0">
-                {match.awayShort}
+              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
+                {match.awayLogo ? (
+                  <img
+                    src={match.awayLogo}
+                    alt={`${match.awayTeam} logo`}
+                    loading="lazy"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  match.awayShort
+                )}
               </div>
             </div>
           </div>
