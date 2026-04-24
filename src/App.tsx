@@ -20,7 +20,15 @@ import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import { AIAssistantWidget } from "./components/AIAssistantWidget";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 30, // 30s — keep data fresh
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
