@@ -44,6 +44,7 @@ export const syncSportmonksFixtures = async (): Promise<SportmonksSyncResult> =>
     });
 
     const text = await resp.text();
+    console.log("[sportmonks] Response status:", resp.status, "body:", text.slice(0, 200));
     let parsed: SportmonksSyncResult | { error?: string } = {};
     try {
       parsed = text ? JSON.parse(text) : {};
@@ -61,6 +62,7 @@ export const syncSportmonksFixtures = async (): Promise<SportmonksSyncResult> =>
     }
     return parsed as SportmonksSyncResult;
   } catch (e) {
+    console.error("[sportmonks] Fetch failed:", e);
     if ((e as Error).name === "AbortError") {
       return {
         success: false,
