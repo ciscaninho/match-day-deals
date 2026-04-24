@@ -23,10 +23,18 @@ export const syncSportmonksFixtures = async (): Promise<SportmonksSyncResult> =>
   const url = `${SUPABASE_URL}/functions/v1/sync-sportmonks`;
   console.log("[sportmonks] Calling:", url);
 
-  // Pull the user's access token (if logged in) — falls back to anon key.
   const { data: sessionData } = await supabase.auth.getSession();
-  const accessToken = sessionData.session?.access_token ?? SUPABASE_ANON_KEY;
-  console.log("[sportmonks] Auth: using", sessionData.session ? "user session" : "anon key");
+  const accessToken = sessionData.session?.access_token;
+  console.log("[sportmonks] Auth: using", accessToken ? "user session" : "anon apikey only");
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    apikey: SUPABASE_ANON_KEY,
+  };
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 60_000); // 60s
@@ -34,11 +42,7 @@ export const syncSportmonksFixtures = async (): Promise<SportmonksSyncResult> =>
   try {
     const resp = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers,
       body: JSON.stringify({}),
       signal: controller.signal,
     });
