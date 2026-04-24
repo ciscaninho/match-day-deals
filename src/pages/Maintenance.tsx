@@ -23,13 +23,13 @@ const Maintenance = () => {
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground leading-tight">
-          Foot Ticket Finder arrive bientôt&nbsp;!
+          Foot Ticket Finder arrive bientôt.
         </h1>
 
         <p className="text-base text-muted-foreground leading-relaxed">
-          Nous préparons le meilleur de la billetterie officielle pour vous.
+          Nous préparons la meilleure expérience billetterie pour vous.
           <br />
-          Revenez très vite.
+          Revenez très vite&nbsp;!
         </p>
 
         <p className="text-xs text-muted-foreground/70 mt-4">
