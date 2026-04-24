@@ -112,7 +112,13 @@ const CalendarPage = () => {
             Matches in {MONTHS[month]}
           </h2>
           <div className="space-y-2">
-            {Object.entries(matchesByDay)
+            {isLoading && (
+              <>
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+              </>
+            )}
+            {!isLoading && Object.entries(matchesByDay)
               .sort(([a], [b]) => Number(a) - Number(b))
               .flatMap(([, dayMatches]) =>
                 dayMatches.map((m) => (
@@ -136,12 +142,13 @@ const CalendarPage = () => {
                   </button>
                 ))
               )}
-            {Object.keys(matchesByDay).length === 0 && (
+            {!isLoading && Object.keys(matchesByDay).length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">
                 No matches this month.
               </p>
             )}
           </div>
+
         </div>
       </div>
 
