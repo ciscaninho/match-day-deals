@@ -2,20 +2,33 @@ import { useState, useMemo } from "react";
 import { MatchCard } from "@/components/MatchCard";
 import { BottomNav } from "@/components/BottomNav";
 import { AdBanner } from "@/components/AdBanner";
-import { matches, competitions, countries } from "@/data/matches";
+import { useMatches } from "@/hooks/useMatches";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 
-const teams = [...new Set(matches.flatMap((m) => [m.homeTeam, m.awayTeam]))].sort();
-
 const MatchesPage = () => {
   const { t } = useLanguage();
+  const { data: matches = [], isLoading, isError } = useMatches();
   const [search, setSearch] = useState("");
   const [competition, setCompetition] = useState("all");
   const [country, setCountry] = useState("all");
   const [team, setTeam] = useState("all");
+
+  const competitions = useMemo(
+    () => [...new Set(matches.map((m) => m.competition))].sort(),
+    [matches]
+  );
+  const countries = useMemo(
+    () => [...new Set(matches.map((m) => m.country))].filter(Boolean).sort(),
+    [matches]
+  );
+  const teams = useMemo(
+    () => [...new Set(matches.flatMap((m) => [m.homeTeam, m.awayTeam]))].sort(),
+    [matches]
+  );
 
   const filtered = useMemo(() => {
     return matches
@@ -28,7 +41,7 @@ const MatchesPage = () => {
         return matchesSearch && matchesComp && matchesCountry && matchesTeam;
       })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [search, competition, country, team]);
+  }, [matches, search, competition, country, team]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -63,19 +76,33 @@ const MatchesPage = () => {
             </SelectContent>
           </Select>
         </div>
-        <p className="text-xs text-muted-foreground mb-3">
-          {filtered.length} {filtered.length !== 1 ? t("matches.found") : t("matches.found_one")}
-        </p>
+        {!isLoading && !isError && (
+          <p className="text-xs text-muted-foreground mb-3">
+            {filtered.length} {filtered.length !== 1 ? t("matches.found") : t("matches.found_one")}
+          </p>
+        )}
       </div>
 
       <div className="px-5 flex flex-col gap-3">
-        {filtered.map((match, i) => (
+        {isLoading && (
+          <>
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+          </>
+        )}
+        {isError && !isLoading && (
+          <p className="text-center text-sm text-destructive py-8">
+            Unable to load matches. Please try again.
+          </p>
+        )}
+        {!isLoading && !isError && filtered.map((match, i) => (
           <div key={match.id}>
             <MatchCard match={match} />
             {(i + 1) % 3 === 0 && i < filtered.length - 1 && <AdBanner variant="inline" />}
           </div>
         ))}
-        {filtered.length === 0 && (
+        {!isLoading && !isError && filtered.length === 0 && (
           <p className="text-center text-muted-foreground py-8">{t("matches.none")}</p>
         )}
       </div>
