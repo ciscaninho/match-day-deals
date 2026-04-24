@@ -2,3 +2,7 @@ project_id = "efhbpagnaaafdmvlwqbp"
 
 [functions.ai-assistant]
 verify_jwt = false
+
+[functions.sync-sportmonks]
+verify_jwt = false
+
