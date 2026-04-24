@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useMatches } from "@/hooks/useMatches";
 import {
   Ticket,
   ShieldCheck,
@@ -34,6 +35,7 @@ const TeamCrest = ({ short }: { short: string }) => (
 
 const LandingPage = () => {
   const { t } = useLanguage();
+  const { data: matches = [] } = useMatches();
   const [year, setYear] = useState(2025);
   useEffect(() => setYear(new Date().getFullYear()), []);
 
@@ -65,41 +67,31 @@ const LandingPage = () => {
     { tag: "🏆", text: t("landing.ticker.item6") },
   ];
 
-  const hotMatches = [
-    {
-      home: "PSG",
-      away: "FC Barcelona",
-      homeShort: "PSG",
-      awayShort: "BAR",
-      competition: "UEFA Champions League",
-      date: t("landing.match1.date"),
-      venue: "Parc des Princes, Paris",
-      status: t("landing.matches.status.coming_soon"),
-      statusColor: "amber",
-    },
-    {
-      home: "Real Madrid",
-      away: "Bayern München",
-      homeShort: "RMA",
-      awayShort: "BAY",
-      competition: "UEFA Champions League",
-      date: t("landing.match2.date"),
-      venue: "Santiago Bernabéu, Madrid",
-      status: t("landing.matches.status.sold_out"),
-      statusColor: "red",
-    },
-    {
-      home: "France",
-      away: t("landing.match3.away"),
-      homeShort: "FRA",
-      awayShort: "BRA",
-      competition: t("landing.match3.competition"),
-      date: t("landing.match3.date"),
-      venue: "Stade de France, Paris",
-      status: t("landing.matches.status.on_sale"),
-      statusColor: "green",
-    },
-  ];
+  const hotMatches = matches.slice(0, 3).map((m) => ({
+    home: m.homeTeam,
+    away: m.awayTeam,
+    homeShort: m.homeShort,
+    awayShort: m.awayShort,
+    competition: m.competition,
+    date: new Date(m.date).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }),
+    venue: [m.stadium, m.city].filter(Boolean).join(", "),
+    status:
+      m.ticketStatus === "sold_out"
+        ? t("landing.matches.status.sold_out")
+        : m.ticketStatus === "on_sale"
+          ? t("landing.matches.status.on_sale")
+          : t("landing.matches.status.coming_soon"),
+    statusColor:
+      m.ticketStatus === "sold_out"
+        ? "red"
+        : m.ticketStatus === "on_sale"
+          ? "green"
+          : "amber",
+  }));
 
   const StatusBadge = ({ status, color }: { status: string; color: string }) => {
     const map: Record<string, string> = {
