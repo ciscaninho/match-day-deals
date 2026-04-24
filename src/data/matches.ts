@@ -28,16 +28,13 @@ export interface Match {
   priority?: boolean;
 }
 
-export const matches: Match[] = [
-  // Champions League
-  {
-    id: "1",
-    homeTeam: "FC Barcelona",
-    awayTeam: "Real Madrid",
-    homeShort: "BAR",
-    awayShort: "RMA",
-    competition: "La Liga",
-    country: "Spain",
+// Mock data removed — all match data is now fetched from Supabase via `useMatches`.
+// This empty array is kept only for legacy imports that haven't been migrated yet.
+export const matches: Match[] = [];
+
+export const competitions: string[] = [];
+export const countries: string[] = [];
+
     date: "2026-05-02T21:00:00",
     stadium: "Spotify Camp Nou",
     city: "Barcelona",
