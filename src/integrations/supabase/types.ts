@@ -55,6 +55,7 @@ export type Database = {
       }
       matches: {
         Row: {
+          away_logo: string | null
           away_short: string
           away_team: string
           category: string | null
@@ -64,11 +65,13 @@ export type Database = {
           created_at: string
           date: string
           featured: boolean
+          home_logo: string | null
           home_short: string
           home_team: string
           id: string
           official_link: string | null
           priority: boolean
+          sportmonks_id: number | null
           stadium: string
           starting_price: number | null
           ticket_release_date: string | null
@@ -77,6 +80,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          away_logo?: string | null
           away_short: string
           away_team: string
           category?: string | null
@@ -86,11 +90,13 @@ export type Database = {
           created_at?: string
           date: string
           featured?: boolean
+          home_logo?: string | null
           home_short: string
           home_team: string
           id: string
           official_link?: string | null
           priority?: boolean
+          sportmonks_id?: number | null
           stadium?: string
           starting_price?: number | null
           ticket_release_date?: string | null
@@ -99,6 +105,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          away_logo?: string | null
           away_short?: string
           away_team?: string
           category?: string | null
@@ -108,11 +115,13 @@ export type Database = {
           created_at?: string
           date?: string
           featured?: boolean
+          home_logo?: string | null
           home_short?: string
           home_team?: string
           id?: string
           official_link?: string | null
           priority?: boolean
+          sportmonks_id?: number | null
           stadium?: string
           starting_price?: number | null
           ticket_release_date?: string | null
