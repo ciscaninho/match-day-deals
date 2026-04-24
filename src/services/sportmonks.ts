@@ -42,11 +42,7 @@ export const syncSportmonksFixtures = async (): Promise<SportmonksSyncResult> =>
   try {
     const resp = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers,
       body: JSON.stringify({}),
       signal: controller.signal,
     });
