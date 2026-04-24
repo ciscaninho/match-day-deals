@@ -370,11 +370,11 @@ const ApiFootballSyncCard = () => {
     <Card className="mb-4">
       <CardContent className="p-4 space-y-3">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-          <RefreshCw className="w-4 h-4" /> API-FOOTBALL Sync
+          <RefreshCw className="w-4 h-4" /> Football-Data Sync
         </h3>
         <p className="text-xs text-muted-foreground">
-          Récupère les matchs API-FOOTBALL de Ligue 1 et Premier League pour la saison 2025,
-          puis les enregistre dans la base via upsert. Les entrées existantes sont mises à jour.
+          Récupère les matchs des 30 prochains jours pour la Ligue 1, la Premier League
+          et la Champions League via Football-Data.org, puis les enregistre dans la base via upsert.
         </p>
         <Button
           size="sm"
@@ -383,7 +383,7 @@ const ApiFootballSyncCard = () => {
           disabled={loading}
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          {loading ? "Synchronisation en cours…" : "Forcer la synchronisation API-FOOTBALL"}
+          {loading ? "Synchronisation en cours…" : "Forcer la synchronisation Football-Data"}
         </Button>
         {lastResult && (
           <p className="text-[11px] text-muted-foreground border-t border-border pt-2 break-words">

@@ -9,92 +9,100 @@ export interface ApiFootballSyncResult {
   status?: number;
 }
 
-const API_BASE_URL = "https://v3.football.api-sports.io/fixtures";
-const API_SEASON = 2024;
-const API_LEAGUES = [
-  { id: 61, label: "Ligue 1" },
-  { id: 39, label: "Premier League" },
-] as const;
+const API_BASE_URL = "https://api.football-data.org/v4/matches";
+const COMPETITIONS = ["FL1", "PL", "CL"] as const; // Ligue 1, Premier League, Champions League
+const DAYS_AHEAD = 30;
 
-interface ApiFootballTeam {
+interface FdTeam {
+  id: number;
+  name: string | null;
+  shortName: string | null;
+  tla: string | null;
+  crest: string | null;
+}
+
+interface FdCompetition {
   id: number;
   name: string;
-  logo: string | null;
+  code: string;
+  type: string;
+  emblem: string | null;
 }
 
-interface ApiFootballFixtureResponse {
-  fixture: {
-    id: number;
-    date: string;
-    venue: { id: number | null; name: string | null; city: string | null };
-  };
-  league: {
-    id: number;
-    name: string;
-    country: string;
-    logo: string | null;
-  };
-  teams: {
-    home: ApiFootballTeam;
-    away: ApiFootballTeam;
-  };
+interface FdArea {
+  id: number;
+  name: string;
+  code: string;
+  flag: string | null;
 }
 
-interface ApiFootballResponse {
-  errors?: unknown;
-  results?: number;
-  response?: ApiFootballFixtureResponse[];
+interface FdMatch {
+  id: number;
+  utcDate: string;
+  status: string;
+  area: FdArea;
+  competition: FdCompetition;
+  homeTeam: FdTeam;
+  awayTeam: FdTeam;
+  venue?: string | null;
 }
 
-const shortCode = (name: string) =>
-  name.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "TBD";
+interface FdResponse {
+  matches?: FdMatch[];
+  errorCode?: number;
+  message?: string;
+}
 
-const buildId = (fixtureId: number) => `af_${fixtureId}`;
+const shortCode = (team: FdTeam) => {
+  if (team.tla) return team.tla.toUpperCase();
+  const src = team.shortName || team.name || "";
+  return src.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "TBD";
+};
 
-const hasApiErrors = (errors: unknown) =>
-  Boolean(
-    errors &&
-      ((Array.isArray(errors) && errors.length > 0) ||
-        (typeof errors === "object" && Object.keys(errors as object).length > 0))
-  );
+const buildId = (matchId: number) => `fd_${matchId}`;
 
-const getLeagueUrl = (leagueId: number) =>
-  `${API_BASE_URL}?league=${leagueId}&season=${API_SEASON}`;
+const formatDate = (d: Date) => d.toISOString().slice(0, 10);
 
 /**
- * Browser-only API-FOOTBALL → Supabase sync.
- * Reads VITE_API_FOOTBALL_KEY from the frontend env and calls api-sports.io directly.
- * Upserts results into the `matches` table via the Supabase JS client.
+ * Browser-only Football-Data.org v4 → Supabase sync.
+ * Reads VITE_FOOTBALL_DATA_KEY from the frontend env and calls api.football-data.org directly.
+ * Fetches the next 30 days of fixtures for Ligue 1, Premier League and Champions League,
+ * then upserts results into the `matches` table via the Supabase JS client.
  */
 export const syncApiFootballFixtures = async (): Promise<ApiFootballSyncResult> => {
-  const apiKey = (import.meta.env.VITE_API_FOOTBALL_KEY as string | undefined)?.trim();
+  const apiKey = (import.meta.env.VITE_FOOTBALL_DATA_KEY as string | undefined)?.trim();
   if (!apiKey) {
     return {
       success: false,
-      error: "[KEY] VITE_API_FOOTBALL_KEY manquant. Ajoute-le dans Vercel puis redéploie.",
+      error: "[KEY] VITE_FOOTBALL_DATA_KEY manquant. Ajoute-le dans Vercel puis redéploie.",
       errorType: "key",
     };
   }
 
   const headers = {
-    "x-apisports-key": apiKey,
+    "X-Auth-Token": apiKey,
     Accept: "application/json",
   };
 
+  const dateFrom = formatDate(new Date());
+  const dateTo = formatDate(new Date(Date.now() + DAYS_AHEAD * 24 * 60 * 60 * 1000));
+
+  const buildUrl = (code: string) =>
+    `${API_BASE_URL}?competitions=${code}&dateFrom=${dateFrom}&dateTo=${dateTo}`;
+
   let responses: Response[];
   try {
-    responses = await Promise.all(
-      API_LEAGUES.map(({ id }) =>
-        fetch(getLeagueUrl(id), {
-          headers,
-        })
-      )
-    );
+    // Football-Data free plan rate-limits to ~10 req/min. Sequential calls keep us safe.
+    responses = [];
+    for (const code of COMPETITIONS) {
+      const resp = await fetch(buildUrl(code), { headers });
+      responses.push(resp);
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return {
       success: false,
-      error: `[NETWORK] Impossible d'appeler API-FOOTBALL: ${message}`,
+      error: `[NETWORK] Impossible d'appeler Football-Data.org: ${message}`,
       errorType: "network",
     };
   }
@@ -106,55 +114,53 @@ export const syncApiFootballFixtures = async (): Promise<ApiFootballSyncResult> 
       failedResponse.status === 401 || failedResponse.status === 403 ? "key" : "network";
     return {
       success: false,
-      error: `[API-FOOTBALL ${failedResponse.status}] ${txt.slice(0, 300)}`,
+      error: `[FOOTBALL-DATA ${failedResponse.status}] ${txt.slice(0, 300)}`,
       errorType,
       status: failedResponse.status,
     };
   }
 
-  let payloads: ApiFootballResponse[];
+  let payloads: FdResponse[];
   try {
-    payloads = (await Promise.all(responses.map((resp) => resp.json()))) as ApiFootballResponse[];
+    payloads = (await Promise.all(responses.map((resp) => resp.json()))) as FdResponse[];
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return {
       success: false,
-      error: `[NETWORK] Réponse API-FOOTBALL invalide: ${message}`,
+      error: `[NETWORK] Réponse Football-Data invalide: ${message}`,
       errorType: "network",
     };
   }
 
-  const payloadWithErrors = payloads.find((payload) => hasApiErrors(payload.errors));
-  if (payloadWithErrors) {
+  const payloadWithError = payloads.find((p) => p.errorCode);
+  if (payloadWithError) {
     return {
       success: false,
-      error: `[KEY] API-FOOTBALL a retourné une erreur: ${JSON.stringify(payloadWithErrors.errors).slice(0, 300)}`,
+      error: `[KEY] Football-Data a retourné une erreur: ${payloadWithError.message ?? "unknown"}`,
       errorType: "key",
     };
   }
 
-  const fixtureMap = new Map<number, ApiFootballFixtureResponse>();
+  const matchMap = new Map<number, FdMatch>();
   payloads.forEach((payload) => {
-    (payload.response ?? []).forEach((fixture) => {
-      fixtureMap.set(fixture.fixture.id, fixture);
-    });
+    (payload.matches ?? []).forEach((m) => matchMap.set(m.id, m));
   });
 
-  const fixtures = Array.from(fixtureMap.values());
-  const rows = fixtures.map((f) => ({
-    id: buildId(f.fixture.id),
-    sportmonks_id: f.fixture.id,
-    home_team: f.teams.home.name,
-    away_team: f.teams.away.name,
-    home_short: shortCode(f.teams.home.name),
-    away_short: shortCode(f.teams.away.name),
-    home_logo: f.teams.home.logo,
-    away_logo: f.teams.away.logo,
-    competition: f.league.name,
-    country: f.league.country ?? "",
-    date: f.fixture.date,
-    stadium: f.fixture.venue?.name ?? "",
-    city: f.fixture.venue?.city ?? "",
+  const matches = Array.from(matchMap.values());
+  const rows = matches.map((m) => ({
+    id: buildId(m.id),
+    sportmonks_id: m.id,
+    home_team: m.homeTeam.name ?? m.homeTeam.shortName ?? "TBD",
+    away_team: m.awayTeam.name ?? m.awayTeam.shortName ?? "TBD",
+    home_short: shortCode(m.homeTeam),
+    away_short: shortCode(m.awayTeam),
+    home_logo: m.homeTeam.crest,
+    away_logo: m.awayTeam.crest,
+    competition: m.competition.name,
+    country: m.area?.name ?? "",
+    date: m.utcDate,
+    stadium: m.venue ?? "",
+    city: "",
     ticket_status: "not_released",
     ticket_release_date: null,
     ticket_sources: [],
@@ -167,7 +173,7 @@ export const syncApiFootballFixtures = async (): Promise<ApiFootballSyncResult> 
     return {
       success: true,
       synced: 0,
-      message: `Aucun match retourné pour ${API_LEAGUES.map(({ label }) => label).join(" + ")}`,
+      message: `Aucun match retourné pour ${COMPETITIONS.join(" + ")} sur ${DAYS_AHEAD} jours`,
     };
   }
 
@@ -191,6 +197,6 @@ export const syncApiFootballFixtures = async (): Promise<ApiFootballSyncResult> 
   return {
     success: true,
     synced: rows.length,
-    message: `Synchronisation ${API_LEAGUES.map(({ label }) => label).join(" + ")} (${API_SEASON})`,
+    message: `Synchronisation Football-Data (Ligue 1 + Premier League + Champions League, ${DAYS_AHEAD} prochains jours)`,
   };
 };
