@@ -54,9 +54,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const SPORTMONKS_API_TOKEN = Deno.env.get("SPORTMONKS_API_TOKEN");
+    const SPORTMONKS_API_TOKEN = Deno.env.get("SPORTMONKS_API_TOKEN")?.trim();
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    console.log("sync-sportmonks: token length =", SPORTMONKS_API_TOKEN?.length ?? 0);
 
     if (!SPORTMONKS_API_TOKEN) {
       return new Response(
