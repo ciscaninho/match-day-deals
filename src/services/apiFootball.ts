@@ -9,7 +9,12 @@ export interface ApiFootballSyncResult {
   status?: number;
 }
 
-const API_URL = "https://v3.football.api-sports.io/fixtures?next=50";
+const API_BASE_URL = "https://v3.football.api-sports.io/fixtures";
+const API_SEASON = 2025;
+const API_LEAGUES = [
+  { id: 61, label: "Ligue 1" },
+  { id: 39, label: "Premier League" },
+] as const;
 
 interface ApiFootballTeam {
   id: number;
@@ -46,6 +51,16 @@ const shortCode = (name: string) =>
 
 const buildId = (fixtureId: number) => `af_${fixtureId}`;
 
+const hasApiErrors = (errors: unknown) =>
+  Boolean(
+    errors &&
+      ((Array.isArray(errors) && errors.length > 0) ||
+        (typeof errors === "object" && Object.keys(errors as object).length > 0))
+  );
+
+const getLeagueUrl = (leagueId: number) =>
+  `${API_BASE_URL}?league=${leagueId}&season=${API_SEASON}`;
+
 /**
  * Browser-only API-FOOTBALL → Supabase sync.
  * Reads VITE_API_FOOTBALL_KEY from the frontend env and calls api-sports.io directly.
@@ -61,28 +76,20 @@ export const syncApiFootballFixtures = async (): Promise<ApiFootballSyncResult> 
     };
   }
 
-  let json: ApiFootballResponse;
+  const headers = {
+    "x-apisports-key": apiKey,
+    Accept: "application/json",
+  };
+
+  let responses: Response[];
   try {
-    const resp = await fetch(API_URL, {
-      headers: {
-        "x-apisports-key": apiKey,
-        Accept: "application/json",
-      },
-    });
-
-    if (!resp.ok) {
-      const txt = await resp.text();
-      const errorType: ApiFootballSyncResult["errorType"] =
-        resp.status === 401 || resp.status === 403 ? "key" : "network";
-      return {
-        success: false,
-        error: `[API-FOOTBALL ${resp.status}] ${txt.slice(0, 300)}`,
-        errorType,
-        status: resp.status,
-      };
-    }
-
-    json = (await resp.json()) as ApiFootballResponse;
+    responses = await Promise.all(
+      API_LEAGUES.map(({ id }) =>
+        fetch(getLeagueUrl(id), {
+          headers,
+        })
+      )
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return {
@@ -92,24 +99,51 @@ export const syncApiFootballFixtures = async (): Promise<ApiFootballSyncResult> 
     };
   }
 
-  // API-FOOTBALL returns errors as object or array
-  const errors = json.errors;
-  const hasErrors =
-    errors &&
-    ((Array.isArray(errors) && errors.length > 0) ||
-      (typeof errors === "object" && Object.keys(errors as object).length > 0));
-  if (hasErrors) {
+  const failedResponse = responses.find((resp) => !resp.ok);
+  if (failedResponse) {
+    const txt = await failedResponse.text();
+    const errorType: ApiFootballSyncResult["errorType"] =
+      failedResponse.status === 401 || failedResponse.status === 403 ? "key" : "network";
     return {
       success: false,
-      error: `[KEY] API-FOOTBALL a retourné une erreur: ${JSON.stringify(errors).slice(0, 300)}`,
+      error: `[API-FOOTBALL ${failedResponse.status}] ${txt.slice(0, 300)}`,
+      errorType,
+      status: failedResponse.status,
+    };
+  }
+
+  let payloads: ApiFootballResponse[];
+  try {
+    payloads = (await Promise.all(responses.map((resp) => resp.json()))) as ApiFootballResponse[];
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return {
+      success: false,
+      error: `[NETWORK] Réponse API-FOOTBALL invalide: ${message}`,
+      errorType: "network",
+    };
+  }
+
+  const payloadWithErrors = payloads.find((payload) => hasApiErrors(payload.errors));
+  if (payloadWithErrors) {
+    return {
+      success: false,
+      error: `[KEY] API-FOOTBALL a retourné une erreur: ${JSON.stringify(payloadWithErrors.errors).slice(0, 300)}`,
       errorType: "key",
     };
   }
 
-  const fixtures = json.response ?? [];
+  const fixtureMap = new Map<number, ApiFootballFixtureResponse>();
+  payloads.forEach((payload) => {
+    (payload.response ?? []).forEach((fixture) => {
+      fixtureMap.set(fixture.fixture.id, fixture);
+    });
+  });
+
+  const fixtures = Array.from(fixtureMap.values());
   const rows = fixtures.map((f) => ({
     id: buildId(f.fixture.id),
-    sportmonks_id: f.fixture.id, // reuse this column to store the API fixture id
+    sportmonks_id: f.fixture.id,
     home_team: f.teams.home.name,
     away_team: f.teams.away.name,
     home_short: shortCode(f.teams.home.name),
@@ -130,7 +164,11 @@ export const syncApiFootballFixtures = async (): Promise<ApiFootballSyncResult> 
   }));
 
   if (rows.length === 0) {
-    return { success: true, synced: 0, message: "No fixtures returned" };
+    return {
+      success: true,
+      synced: 0,
+      message: `Aucun match retourné pour ${API_LEAGUES.map(({ label }) => label).join(" + ")}`,
+    };
   }
 
   const { error } = await supabase
@@ -150,5 +188,9 @@ export const syncApiFootballFixtures = async (): Promise<ApiFootballSyncResult> 
     };
   }
 
-  return { success: true, synced: rows.length };
+  return {
+    success: true,
+    synced: rows.length,
+    message: `Synchronisation ${API_LEAGUES.map(({ label }) => label).join(" + ")} (${API_SEASON})`,
+  };
 };
