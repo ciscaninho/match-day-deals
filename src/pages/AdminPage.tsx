@@ -8,11 +8,13 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { matches } from "@/data/matches";
-import { Shield, Plus, Edit2, Bot, Inbox } from "lucide-react";
+import { Shield, Plus, Edit2, Bot, Inbox, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import type { TicketStatus } from "@/data/matches";
 import { supabase } from "@/integrations/supabase/client";
 import { useAssistantSettings } from "@/hooks/useAssistantSettings";
+import { syncSportmonksFixtures } from "@/services/sportmonks";
+import { useQueryClient } from "@tanstack/react-query";
 
 const AdminPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -75,6 +77,8 @@ const AdminPage = () => {
           <Shield className="w-5 h-5" /> Admin Panel
         </h1>
         <p className="text-xs text-muted-foreground mb-6">Manage matches and ticket info</p>
+
+        <SportmonksSyncCard />
 
         {/* Existing matches */}
         <h2 className="text-sm font-bold text-foreground mb-2">Existing Matches</h2>
