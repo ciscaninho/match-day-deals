@@ -39,7 +39,7 @@ const LandingPage = () => {
 
   // Pre-filled support email
   const supportMail =
-    "mailto:support@foottickfinder.app" +
+    "mailto:support@footticketfinder.com" +
     "?subject=" + encodeURIComponent("Demande d'information — Foot Ticket Finder") +
     "&body=" + encodeURIComponent("Bonjour,\n\nJ'aimerais avoir plus d'informations sur :\n\n");
 
@@ -509,7 +509,7 @@ const LandingPage = () => {
               <ul className="space-y-2.5 text-sm">
                 <li>
                   <a href={supportMail} className="inline-flex items-center gap-1.5 hover:text-[#2ECC71]">
-                    <Mail className="w-3.5 h-3.5" /> support@foottickfinder.app
+                    <Mail className="w-3.5 h-3.5" /> support@footticketfinder.com
                   </a>
                 </li>
                 <li><a href={supportMail} className="hover:text-[#2ECC71]">{t("landing.footer.contact_us")}</a></li>
