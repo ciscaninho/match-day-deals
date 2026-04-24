@@ -10,7 +10,7 @@ export interface ApiFootballSyncResult {
 }
 
 const API_BASE_URL = "https://v3.football.api-sports.io/fixtures";
-const API_SEASON = 2025;
+const API_SEASON = 2024;
 const API_LEAGUES = [
   { id: 61, label: "Ligue 1" },
   { id: 39, label: "Premier League" },
