@@ -13,6 +13,8 @@ export interface Match {
   awayTeam: string;
   homeShort: string;
   awayShort: string;
+  homeLogo?: string | null;
+  awayLogo?: string | null;
   competition: string;
   country: string;
   date: string;
