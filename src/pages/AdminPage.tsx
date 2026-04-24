@@ -336,4 +336,63 @@ const EscalationInbox = () => {
   );
 };
 
+// ---------- Sportmonks Sync ----------
+const SportmonksSyncCard = () => {
+  const [loading, setLoading] = useState(false);
+  const [lastResult, setLastResult] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const handleSync = async () => {
+    setLoading(true);
+    setLastResult(null);
+    try {
+      const result = await syncSportmonksFixtures();
+      if (result.success) {
+        const msg = `Synced ${result.synced ?? 0} fixtures from Sportmonks`;
+        toast.success(msg);
+        setLastResult(msg);
+        await queryClient.invalidateQueries({ queryKey: ["matches"] });
+      } else {
+        const msg = result.error ?? "Sync failed";
+        toast.error(msg);
+        setLastResult(`Error: ${msg}`);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      toast.error(msg);
+      setLastResult(`Error: ${msg}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card className="mb-4">
+      <CardContent className="p-4 space-y-3">
+        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+          <RefreshCw className="w-4 h-4" /> Sportmonks Sync
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Fetches the next 60 days of fixtures from Sportmonks and upserts them
+          into your matches database. Existing entries are updated, new ones added.
+        </p>
+        <Button
+          size="sm"
+          className="w-full text-xs gap-2"
+          onClick={handleSync}
+          disabled={loading}
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+          {loading ? "Synchronisation en cours…" : "Forcer la synchronisation Sportmonks"}
+        </Button>
+        {lastResult && (
+          <p className="text-[11px] text-muted-foreground border-t border-border pt-2">
+            {lastResult}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 export default AdminPage;
