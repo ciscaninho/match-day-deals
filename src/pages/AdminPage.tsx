@@ -373,8 +373,8 @@ const ApiFootballSyncCard = () => {
           <RefreshCw className="w-4 h-4" /> API-FOOTBALL Sync
         </h3>
         <p className="text-xs text-muted-foreground">
-          Récupère les 50 prochains matchs depuis API-FOOTBALL (api-sports.io)
-          et les enregistre dans la base via upsert. Les entrées existantes sont mises à jour.
+          Récupère les matchs API-FOOTBALL de Ligue 1 et Premier League pour la saison 2025,
+          puis les enregistre dans la base via upsert. Les entrées existantes sont mises à jour.
         </p>
         <Button
           size="sm"
