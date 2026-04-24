@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { matches } from "@/data/matches";
+import { useMatch } from "@/hooks/useMatches";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { BottomNav } from "@/components/BottomNav";
@@ -30,9 +31,20 @@ const MatchDetailPage = () => {
   const navigate = useNavigate();
   const { isFollowing, followMatch, unfollowMatch, isPremium, maxFollowed, followedMatches, addPoints } = useUser();
   const { t } = useLanguage();
-  const match = matches.find((m) => m.id === id);
+  const { data: match, isLoading, isError } = useMatch(id);
 
-  if (!match) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-20 px-5 pt-12 space-y-4">
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-48 w-full" />
+        <BottomNav />
+      </div>
+    );
+  }
+
+  if (isError || !match) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center pb-20">
         <p className="text-muted-foreground">Match not found.</p>
