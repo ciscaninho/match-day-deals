@@ -7,7 +7,8 @@ import { DailyReward } from "@/components/DailyReward";
 import { AdBanner } from "@/components/AdBanner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { matches } from "@/data/matches";
+import { useMatches } from "@/hooks/useMatches";
+import { Skeleton } from "@/components/ui/skeleton";
 import { newsItems } from "@/data/news";
 import { Search, ArrowRight, Crown, Star, Zap, Ticket, Trophy, Flame } from "lucide-react";
 
@@ -15,6 +16,7 @@ const HomePage = () => {
   const navigate = useNavigate();
   const { isPremium } = useUser();
   const { t } = useLanguage();
+  const { data: matches = [], isLoading, isError } = useMatches();
   const featured = matches.filter((m) => m.featured);
   const priority = matches.filter((m) => m.priority);
   const upcomingReleases = matches
@@ -96,6 +98,20 @@ const HomePage = () => {
             <ArrowRight className="w-4 h-4 text-accent-foreground/60" />
           </button>
         </div>
+      )}
+
+      {/* Loading / error states */}
+      {isLoading && (
+        <div className="px-5 mt-6 flex flex-col gap-3">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      )}
+      {isError && !isLoading && (
+        <p className="px-5 mt-6 text-center text-sm text-destructive">
+          {t("home.error_loading") || "Unable to load matches. Please try again."}
+        </p>
       )}
 
       {/* Priority Matches (Premium) */}
