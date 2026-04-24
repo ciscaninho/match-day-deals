@@ -54,10 +54,15 @@ export const useMatches = () => {
         .from("matches")
         .select("*")
         .order("date", { ascending: true });
-      if (error) throw error;
+      console.log("Matchs récupérés:", data);
+      if (error) {
+        console.error("Erreur Supabase:", error);
+        throw error;
+      }
       return (data as MatchRow[]).map(mapRow);
     },
-    staleTime: 1000 * 30,
+    staleTime: 0,
+    refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
 };
@@ -72,7 +77,11 @@ export const useMatch = (id: string | undefined) => {
         .select("*")
         .eq("id", id)
         .maybeSingle();
-      if (error) throw error;
+      console.log("Matchs récupérés:", data);
+      if (error) {
+        console.error("Erreur Supabase:", error);
+        throw error;
+      }
       return data ? mapRow(data as MatchRow) : null;
     },
     enabled: !!id,

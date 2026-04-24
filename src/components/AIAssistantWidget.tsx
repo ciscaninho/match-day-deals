@@ -8,8 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useUser } from "@/contexts/UserContext";
 import { useAssistantSettings } from "@/hooks/useAssistantSettings";
+import { useMatches } from "@/hooks/useMatches";
 import { supabase } from "@/integrations/supabase/client";
-import { matches } from "@/data/matches";
 import { toast } from "sonner";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -21,6 +21,7 @@ export const AIAssistantWidget = () => {
   const { t, locale } = useLanguage();
   const { isPremium } = useUser();
   const location = useLocation();
+  const { data: matches = [] } = useMatches();
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);

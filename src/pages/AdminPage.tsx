@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { matches } from "@/data/matches";
 import { Shield, Plus, Edit2, Bot, Inbox, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import type { TicketStatus } from "@/data/matches";
@@ -15,8 +14,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAssistantSettings } from "@/hooks/useAssistantSettings";
 import { syncApiFootballFixtures } from "@/services/apiFootball";
 import { useQueryClient } from "@tanstack/react-query";
+import { useMatches } from "@/hooks/useMatches";
 
 const AdminPage = () => {
+  const { data: matches = [] } = useMatches();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     homeTeam: "",
@@ -348,10 +349,11 @@ const ApiFootballSyncCard = () => {
     try {
       const result = await syncApiFootballFixtures();
       if (result.success) {
-        const msg = `Synced ${result.synced ?? 0} fixtures from API-FOOTBALL`;
+        const msg = `Synced ${result.synced ?? 0} fixtures from Football-Data`;
         toast.success(msg);
         setLastResult(msg);
         await queryClient.invalidateQueries({ queryKey: ["matches"] });
+        await queryClient.refetchQueries({ queryKey: ["matches"] });
       } else {
         const msg = result.error ?? "Sync failed";
         toast.error(msg);
