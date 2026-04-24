@@ -1,0 +1,1 @@
+ALTER TABLE public.matches ADD CONSTRAINT matches_sportmonks_id_key UNIQUE (sportmonks_id);
