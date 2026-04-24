@@ -7,6 +7,7 @@ import { UserProvider } from "@/contexts/UserContext";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
+import Maintenance from "./pages/Maintenance";
 import MatchesPage from "./pages/MatchesPage";
 import MatchDetailPage from "./pages/MatchDetailPage";
 import CalendarPage from "./pages/CalendarPage";
