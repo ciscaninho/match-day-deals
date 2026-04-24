@@ -21,10 +21,12 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as strin
  */
 export const syncSportmonksFixtures = async (): Promise<SportmonksSyncResult> => {
   const url = `${SUPABASE_URL}/functions/v1/sync-sportmonks`;
+  console.log("[sportmonks] Calling:", url);
 
   // Pull the user's access token (if logged in) — falls back to anon key.
   const { data: sessionData } = await supabase.auth.getSession();
   const accessToken = sessionData.session?.access_token ?? SUPABASE_ANON_KEY;
+  console.log("[sportmonks] Auth: using", sessionData.session ? "user session" : "anon key");
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 60_000); // 60s
@@ -42,6 +44,7 @@ export const syncSportmonksFixtures = async (): Promise<SportmonksSyncResult> =>
     });
 
     const text = await resp.text();
+    console.log("[sportmonks] Response status:", resp.status, "body:", text.slice(0, 200));
     let parsed: SportmonksSyncResult | { error?: string } = {};
     try {
       parsed = text ? JSON.parse(text) : {};
@@ -59,6 +62,7 @@ export const syncSportmonksFixtures = async (): Promise<SportmonksSyncResult> =>
     }
     return parsed as SportmonksSyncResult;
   } catch (e) {
+    console.error("[sportmonks] Fetch failed:", e);
     if ((e as Error).name === "AbortError") {
       return {
         success: false,
