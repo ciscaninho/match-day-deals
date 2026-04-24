@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
     const MAX_PAGES = 5; // safety limit
 
     while (nextUrl && page < MAX_PAGES) {
-      const resp = await fetch(nextUrl, {
+      const resp: Response = await fetch(nextUrl, {
         headers: {
           Authorization: SPORTMONKS_API_TOKEN,
           Accept: "application/json",
@@ -105,10 +105,11 @@ Deno.serve(async (req) => {
           { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
-      const json = await resp.json();
+      const json: { data?: SportmonksFixture[]; pagination?: { has_more?: boolean; next_page?: string } } =
+        await resp.json();
       const data: SportmonksFixture[] = json.data ?? [];
       allFixtures.push(...data);
-      nextUrl = json.pagination?.has_more ? json.pagination.next_page : null;
+      nextUrl = json.pagination?.has_more ? json.pagination.next_page ?? null : null;
       page += 1;
     }
 
