@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
-import { matches } from "@/data/matches";
+import { useMatches } from "@/hooks/useMatches";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { Match } from "@/data/matches";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
@@ -13,7 +15,8 @@ const MONTHS = [
 
 const CalendarPage = () => {
   const navigate = useNavigate();
-  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 3)); // April 2026
+  const { data: matches = [], isLoading } = useMatches();
+  const [currentMonth, setCurrentMonth] = useState(() => new Date());
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
@@ -22,7 +25,7 @@ const CalendarPage = () => {
   const firstDayOfWeek = (new Date(year, month, 1).getDay() + 6) % 7; // Monday = 0
 
   const matchesByDay = useMemo(() => {
-    const map: Record<number, typeof matches> = {};
+    const map: Record<number, Match[]> = {};
     matches.forEach((m) => {
       const d = new Date(m.date);
       if (d.getFullYear() === year && d.getMonth() === month) {
@@ -32,7 +35,8 @@ const CalendarPage = () => {
       }
     });
     return map;
-  }, [year, month]);
+  }, [matches, year, month]);
+
 
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1));
   const nextMonth = () => setCurrentMonth(new Date(year, month + 1));
@@ -108,7 +112,13 @@ const CalendarPage = () => {
             Matches in {MONTHS[month]}
           </h2>
           <div className="space-y-2">
-            {Object.entries(matchesByDay)
+            {isLoading && (
+              <>
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+              </>
+            )}
+            {!isLoading && Object.entries(matchesByDay)
               .sort(([a], [b]) => Number(a) - Number(b))
               .flatMap(([, dayMatches]) =>
                 dayMatches.map((m) => (
@@ -132,12 +142,13 @@ const CalendarPage = () => {
                   </button>
                 ))
               )}
-            {Object.keys(matchesByDay).length === 0 && (
+            {!isLoading && Object.keys(matchesByDay).length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">
                 No matches this month.
               </p>
             )}
           </div>
+
         </div>
       </div>
 
