@@ -3,7 +3,7 @@ import { useUser } from "@/contexts/UserContext";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { matches } from "@/data/matches";
+
 import { BarChart3, Check } from "lucide-react";
 import { toast } from "sonner";
 
