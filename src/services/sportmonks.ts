@@ -8,40 +8,39 @@ export interface SportmonksSyncResult {
   error?: string;
 }
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
 /**
  * Triggers the Sportmonks → Supabase sync edge function.
- * Uses the Supabase SDK so headers (apikey, auth) are handled correctly
- * across browsers (Safari is strict about CORS preflights).
+ * Uses a direct fetch with the publishable key only because this function
+ * is public and does not require a user session.
  */
 export const syncSportmonksFixtures = async (): Promise<SportmonksSyncResult> => {
-  console.log("[sportmonks] invoke sync-sportmonks");
-
-  const { data, error } = await supabase.functions.invoke("sync-sportmonks", {
-    body: {},
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/sync-sportmonks`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+    },
+    body: JSON.stringify({}),
   });
 
-  console.log("[sportmonks] result:", { data, error });
+  const text = await response.text();
+  let payload: SportmonksSyncResult | { error?: string } = {};
 
-  if (error) {
-    // The SDK error often hides the real edge function response body.
-    // Try to extract it.
-    const ctx = (error as unknown as { context?: Response }).context;
-    if (ctx && typeof ctx.text === "function") {
-      try {
-        const txt = await ctx.text();
-        console.error("[sportmonks] edge body:", txt);
-        try {
-          const parsed = JSON.parse(txt);
-          return { success: false, error: parsed.error ?? txt };
-        } catch {
-          return { success: false, error: txt || error.message };
-        }
-      } catch {
-        // ignore
-      }
-    }
-    return { success: false, error: error.message };
+  try {
+    payload = text ? JSON.parse(text) : {};
+  } catch {
+    payload = { error: text || `HTTP ${response.status}` };
   }
 
-  return data as SportmonksSyncResult;
+  if (!response.ok) {
+    return {
+      success: false,
+      error: (payload as { error?: string }).error ?? `Edge function returned ${response.status}`,
+    };
+  }
+
+  return payload as SportmonksSyncResult;
 };
