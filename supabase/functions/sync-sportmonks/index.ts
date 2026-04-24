@@ -81,7 +81,6 @@ Deno.serve(async (req) => {
     const url = new URL(
       `${SPORTMONKS_BASE}/fixtures/between/${fmt(today)}/${fmt(end)}`,
     );
-    url.searchParams.set("api_token", SPORTMONKS_API_TOKEN);
     url.searchParams.set("include", "participants;league.country;venue");
     url.searchParams.set("per_page", "100");
 
@@ -91,7 +90,12 @@ Deno.serve(async (req) => {
     const MAX_PAGES = 5; // safety limit
 
     while (nextUrl && page < MAX_PAGES) {
-      const resp = await fetch(nextUrl);
+      const resp = await fetch(nextUrl, {
+        headers: {
+          Authorization: SPORTMONKS_API_TOKEN,
+          Accept: "application/json",
+        },
+      });
       if (!resp.ok) {
         const txt = await resp.text();
         return new Response(
