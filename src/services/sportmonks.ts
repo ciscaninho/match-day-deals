@@ -6,41 +6,52 @@ export interface SportmonksSyncResult {
   pages?: number;
   message?: string;
   error?: string;
+  errorType?: "key" | "function" | "table" | "network" | "unknown";
+  status?: number;
 }
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
 /**
  * Triggers the Sportmonks → Supabase sync edge function.
- * Uses a direct fetch with the publishable key only because this function
- * is public and does not require a user session.
+ * Uses the supabase SDK so the publishable key + headers are always correct,
+ * avoiding "Invalid API key" issues from manual fetch calls.
  */
 export const syncSportmonksFixtures = async (): Promise<SportmonksSyncResult> => {
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/sync-sportmonks`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: SUPABASE_PUBLISHABLE_KEY,
-    },
-    body: JSON.stringify({}),
-  });
-
-  const text = await response.text();
-  let payload: SportmonksSyncResult | { error?: string } = {};
-
   try {
-    payload = text ? JSON.parse(text) : {};
-  } catch {
-    payload = { error: text || `HTTP ${response.status}` };
-  }
+    const { data, error } = await supabase.functions.invoke("sync-sportmonks", {
+      body: {},
+    });
 
-  if (!response.ok) {
+    if (error) {
+      // FunctionsHttpError / FunctionsRelayError / FunctionsFetchError
+      const status = (error as { context?: { status?: number } }).context?.status;
+      const message = error.message || "Unknown edge function error";
+
+      let errorType: SportmonksSyncResult["errorType"] = "function";
+      if (status === 401 || status === 403 || /api key|apikey|jwt|unauthor/i.test(message)) {
+        errorType = "key";
+      } else if (status === 404) {
+        errorType = "function";
+      } else if (/relation|table|column|schema/i.test(message)) {
+        errorType = "table";
+      } else if (/fetch|network|load failed/i.test(message)) {
+        errorType = "network";
+      }
+
+      return {
+        success: false,
+        error: `[${errorType.toUpperCase()}${status ? ` ${status}` : ""}] ${message}`,
+        errorType,
+        status,
+      };
+    }
+
+    return (data as SportmonksSyncResult) ?? { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
     return {
       success: false,
-      error: (payload as { error?: string }).error ?? `Edge function returned ${response.status}`,
+      error: `[NETWORK] ${message}`,
+      errorType: "network",
     };
   }
-
-  return payload as SportmonksSyncResult;
 };
