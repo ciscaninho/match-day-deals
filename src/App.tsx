@@ -7,6 +7,7 @@ import { UserProvider } from "@/contexts/UserContext";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
+import Maintenance from "./pages/Maintenance";
 import MatchesPage from "./pages/MatchesPage";
 import MatchDetailPage from "./pages/MatchDetailPage";
 import CalendarPage from "./pages/CalendarPage";
@@ -30,7 +31,8 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<LandingPage />} />
+              <Route path="/" element={<Maintenance />} />
+              <Route path="/landing" element={<LandingPage />} />
               <Route path="/home" element={<HomePage />} />
               <Route path="/matches" element={<MatchesPage />} />
               <Route path="/match/:id" element={<MatchDetailPage />} />
