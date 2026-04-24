@@ -50,6 +50,7 @@ const shortCode = (p: SportmonksParticipant | undefined, fallback: string) => {
 const buildId = (sportmonksId: number) => `sm_${sportmonksId}`;
 
 Deno.serve(async (req) => {
+  console.log(`sync-sportmonks: ${req.method} ${req.url}`);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
