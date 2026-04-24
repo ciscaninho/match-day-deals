@@ -5,8 +5,9 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Max-Age": "86400",
 };
 
 const SPORTMONKS_BASE = "https://api.sportmonks.com/v3/football";
@@ -49,6 +50,7 @@ const shortCode = (p: SportmonksParticipant | undefined, fallback: string) => {
 const buildId = (sportmonksId: number) => `sm_${sportmonksId}`;
 
 Deno.serve(async (req) => {
+  console.log(`sync-sportmonks: ${req.method} ${req.url}`);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
