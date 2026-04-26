@@ -84,38 +84,52 @@ const LandingPage = () => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 6);
 
-  const hotMatches = upcomingMatches.map((m) => ({
-    id: m.id,
-    home: m.homeTeam,
-    away: m.awayTeam,
-    homeShort: m.homeShort,
-    awayShort: m.awayShort,
-    competition: m.competition,
-    startingPrice: m.startingPrice,
-    sources: m.ticketSources?.length ?? 0,
-    date: new Date(m.date).toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }),
-    time: new Date(m.date).toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    venue: [m.stadium, m.city].filter(Boolean).join(", "),
-    status:
-      m.ticketStatus === "sold_out"
-        ? t("landing.matches.status.sold_out")
-        : m.ticketStatus === "on_sale"
-          ? t("landing.matches.status.on_sale")
-          : t("landing.matches.status.coming_soon"),
-    statusColor:
-      m.ticketStatus === "sold_out"
-        ? "red"
-        : m.ticketStatus === "on_sale"
-          ? "green"
-          : "amber",
-  }));
+  const hotMatches = upcomingMatches.map((m) => {
+    const matchTime = new Date(m.date).getTime();
+    const daysUntil = Math.ceil((matchTime - now) / (24 * 60 * 60 * 1000));
+    const releaseTime = m.ticketReleaseDate ? new Date(m.ticketReleaseDate).getTime() : null;
+    const releasingSoon =
+      m.ticketStatus === "not_released" &&
+      releaseTime !== null &&
+      releaseTime - now <= 7 * 24 * 60 * 60 * 1000 &&
+      releaseTime - now > 0;
+    const highDemand = m.featured || m.priority || daysUntil <= 7;
+
+    return {
+      id: m.id,
+      home: m.homeTeam,
+      away: m.awayTeam,
+      homeShort: m.homeShort,
+      awayShort: m.awayShort,
+      competition: m.competition,
+      startingPrice: m.startingPrice,
+      sources: m.ticketSources?.length ?? 0,
+      date: new Date(m.date).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }),
+      time: new Date(m.date).toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      venue: [m.stadium, m.city].filter(Boolean).join(", "),
+      status:
+        m.ticketStatus === "sold_out"
+          ? t("landing.matches.status.sold_out")
+          : m.ticketStatus === "on_sale"
+            ? t("landing.matches.status.on_sale")
+            : t("landing.matches.status.coming_soon"),
+      statusColor:
+        m.ticketStatus === "sold_out"
+          ? "red"
+          : m.ticketStatus === "on_sale"
+            ? "green"
+            : "amber",
+      highDemand,
+      releasingSoon,
+    };
+  });
 
   const StatusBadge = ({ status, color }: { status: string; color: string }) => {
     const map: Record<string, string> = {
