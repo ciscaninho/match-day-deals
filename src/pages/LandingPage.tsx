@@ -367,6 +367,27 @@ const LandingPage = () => {
                   </div>
 
                   <div className="px-5 py-6 flex-1 flex flex-col">
+                    {/* Urgency badges */}
+                    {(m.highDemand || m.releasingSoon || m.startingPrice != null) && (
+                      <div className="flex flex-wrap gap-1.5 mb-4 -mt-2">
+                        {m.highDemand && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 text-[10px] font-bold">
+                            🔥 High demand
+                          </span>
+                        )}
+                        {m.releasingSoon && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 text-[10px] font-bold">
+                            ⏳ Tickets opening soon
+                          </span>
+                        )}
+                        {m.startingPrice != null && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#2ECC71]/10 text-[#27ae60] border border-[#2ECC71]/20 px-2 py-0.5 text-[10px] font-bold">
+                            💸 From €{m.startingPrice}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
                         <TeamCrest short={m.homeShort} />
@@ -386,19 +407,16 @@ const LandingPage = () => {
                       {m.venue && <p className="text-xs text-[#2C3E50]/60">{m.venue}</p>}
                     </div>
 
-                    <div className="mt-3 flex items-center gap-3 text-[11px] text-[#2C3E50]/70">
-                      {m.startingPrice != null && (
-                        <span className="font-bold text-[#2ECC71]">From €{m.startingPrice}</span>
-                      )}
-                      {m.sources > 0 && (
-                        <span>{m.sources} official source{m.sources > 1 ? "s" : ""}</span>
-                      )}
-                    </div>
+                    {m.sources > 0 && (
+                      <p className="mt-3 text-[11px] text-[#2C3E50]/60">
+                        {m.sources} official source{m.sources > 1 ? "s" : ""}
+                      </p>
+                    )}
 
                     <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
                       <StatusBadge status={m.status} color={m.statusColor} />
                       <span className="text-xs font-bold text-[#2ECC71] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                        View in app <ArrowRight className="w-3.5 h-3.5" />
+                        Track this match <ArrowRight className="w-3.5 h-3.5" />
                       </span>
                     </div>
                   </div>
