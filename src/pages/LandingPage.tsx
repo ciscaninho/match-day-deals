@@ -310,11 +310,14 @@ const LandingPage = () => {
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71] flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5" /> {t("landing.matches.eyebrow")}
+                <Flame className="w-3.5 h-3.5" /> Next 30 days
               </span>
               <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">
-                {t("landing.matches.title")}
+                Tickets available in the next 30 days
               </h2>
+              <p className="mt-3 text-[#2C3E50]/65 max-w-2xl">
+                A preview of upcoming football matches with confirmed or imminent ticket releases. Open the app for the full list, alerts and official ticket sources.
+              </p>
             </div>
             <Link
               to="/app/matches"
@@ -324,48 +327,65 @@ const LandingPage = () => {
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5">
-            {hotMatches.map((m) => (
-              <Link
-                key={`${m.home}-${m.away}`}
-                to="/app/matches"
-                className="rounded-2xl bg-white border border-slate-200 overflow-hidden hover:border-[#2ECC71]/40 hover:shadow-xl hover:shadow-[#2C3E50]/5 transition-all group block"
-              >
-                <div className="px-5 py-3 bg-[#2C3E50] text-white flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">
-                    {m.competition}
-                  </span>
-                  <Trophy className="w-3.5 h-3.5 text-[#2ECC71]" />
-                </div>
-
-                <div className="px-5 py-7">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex flex-col items-center gap-2 flex-1">
-                      <TeamCrest short={m.homeShort} />
-                      <p className="text-xs font-bold text-[#2C3E50] text-center leading-tight">{m.home}</p>
-                    </div>
-                    <span className="text-xs font-extrabold text-[#2C3E50]/40">VS</span>
-                    <div className="flex flex-col items-center gap-2 flex-1">
-                      <TeamCrest short={m.awayShort} />
-                      <p className="text-xs font-bold text-[#2C3E50] text-center leading-tight">{m.away}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 pt-5 border-t border-slate-100 space-y-1.5">
-                    <p className="text-sm font-bold text-[#2C3E50]">{m.date}</p>
-                    <p className="text-xs text-[#2C3E50]/60">{m.venue}</p>
-                  </div>
-
-                  <div className="mt-5 flex items-center justify-between">
-                    <StatusBadge status={m.status} color={m.statusColor} />
-                    <span className="text-xs font-bold text-[#2ECC71] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                      {t("landing.matches.view_match")} <ArrowRight className="w-3.5 h-3.5" />
+          {hotMatches.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-[#2C3E50]/60">
+              No upcoming matches in the next 30 days yet. Check back soon — or open the app to see the full schedule.
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {hotMatches.map((m) => (
+                <Link
+                  key={m.id}
+                  to={`/app/matches/${m.id}`}
+                  className="rounded-2xl bg-white border border-slate-200 overflow-hidden hover:border-[#2ECC71]/40 hover:shadow-xl hover:shadow-[#2C3E50]/5 transition-all group block flex flex-col"
+                >
+                  <div className="px-5 py-3 bg-[#2C3E50] text-white flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">
+                      {m.competition}
                     </span>
+                    <Trophy className="w-3.5 h-3.5 text-[#2ECC71]" />
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+
+                  <div className="px-5 py-6 flex-1 flex flex-col">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                        <TeamCrest short={m.homeShort} />
+                        <p className="text-xs font-bold text-[#2C3E50] text-center leading-tight truncate w-full">{m.home}</p>
+                      </div>
+                      <span className="text-xs font-extrabold text-[#2C3E50]/40">VS</span>
+                      <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                        <TeamCrest short={m.awayShort} />
+                        <p className="text-xs font-bold text-[#2C3E50] text-center leading-tight truncate w-full">{m.away}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 pt-5 border-t border-slate-100 space-y-1.5">
+                      <p className="text-sm font-bold text-[#2C3E50]">
+                        {m.date} · {m.time}
+                      </p>
+                      {m.venue && <p className="text-xs text-[#2C3E50]/60">{m.venue}</p>}
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-3 text-[11px] text-[#2C3E50]/70">
+                      {m.startingPrice != null && (
+                        <span className="font-bold text-[#2ECC71]">From €{m.startingPrice}</span>
+                      )}
+                      {m.sources > 0 && (
+                        <span>{m.sources} official source{m.sources > 1 ? "s" : ""}</span>
+                      )}
+                    </div>
+
+                    <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+                      <StatusBadge status={m.status} color={m.statusColor} />
+                      <span className="text-xs font-bold text-[#2ECC71] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+                        View in app <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
