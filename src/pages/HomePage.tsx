@@ -43,7 +43,7 @@ const HomePage = () => {
           <p className="text-primary-foreground/50 text-sm mt-2 max-w-xs">
             {t("hero.subtitle")}
           </p>
-          <Button variant="secondary" className="mt-4 gap-2 font-semibold" onClick={() => navigate("/matches")}>
+          <Button variant="secondary" className="mt-4 gap-2 font-semibold" onClick={() => navigate("/app/matches")}>
             <Search className="w-4 h-4" /> {t("hero.cta")}
           </Button>
         </div>
@@ -55,7 +55,7 @@ const HomePage = () => {
       <div className="px-5 mt-4">
         <Card
           className="cursor-pointer border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors overflow-hidden"
-          onClick={() => navigate("/quiz")}
+          onClick={() => navigate("/app/daily-game")}
         >
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
@@ -87,7 +87,7 @@ const HomePage = () => {
       {!isPremium && (
         <div className="px-5 mt-3">
           <button
-            onClick={() => navigate("/premium")}
+            onClick={() => navigate("/app/premium")}
             className="w-full rounded-lg gradient-gold p-3 flex items-center gap-3"
           >
             <Crown className="w-5 h-5 text-accent-foreground" />
@@ -136,7 +136,7 @@ const HomePage = () => {
             <Zap className="w-4 h-4 text-accent" />
             <h2 className="text-base font-bold text-foreground">{t("home.trending")}</h2>
           </div>
-          <button onClick={() => navigate("/matches")} className="text-xs font-medium text-primary flex items-center gap-1">
+          <button onClick={() => navigate("/app/matches")} className="text-xs font-medium text-primary flex items-center gap-1">
             {t("home.view_all")} <ArrowRight className="w-3 h-3" />
           </button>
         </div>
@@ -156,7 +156,7 @@ const HomePage = () => {
           </div>
           <div className="space-y-2">
             {upcomingReleases.map((m) => (
-              <Card key={m.id} className="cursor-pointer border-border/50 hover:border-accent/30 transition-colors" onClick={() => navigate(`/match/${m.id}`)}>
+              <Card key={m.id} className="cursor-pointer border-border/50 hover:border-accent/30 transition-colors" onClick={() => navigate(`/app/matches/${m.id}`)}>
                 <CardContent className="p-3 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-foreground">{m.homeTeam} vs {m.awayTeam}</p>
@@ -190,7 +190,7 @@ const HomePage = () => {
 
       {/* Calendar CTA */}
       <div className="px-5 mt-6 mb-4">
-        <Button className="w-full gap-2" onClick={() => navigate("/calendar")}>
+        <Button className="w-full gap-2" onClick={() => navigate("/app/calendar")}>
           Open Match Calendar
           <ArrowRight className="w-4 h-4" />
         </Button>

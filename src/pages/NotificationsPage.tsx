@@ -34,7 +34,7 @@ const NotificationsPage = () => {
                 className={`cursor-pointer transition-colors ${!n.read ? "border-primary/30 bg-primary/5" : ""}`}
                 onClick={() => {
                   markNotificationRead(n.id);
-                  navigate(`/match/${n.matchId}`);
+                  navigate(`/app/matches/${n.matchId}`);
                 }}
               >
                 <CardContent className="p-4 flex items-start gap-3">

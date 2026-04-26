@@ -57,7 +57,7 @@ const ProfilePage = () => {
                 </p>
               </div>
             </div>
-            <Button size="sm" variant={isPremium ? "outline" : "default"} className="text-xs" onClick={() => navigate("/premium")}>
+            <Button size="sm" variant={isPremium ? "outline" : "default"} className="text-xs" onClick={() => navigate("/app/premium")}>
               {isPremium ? t("profile.manage") : t("profile.upgrade")} <ArrowRight className="w-3 h-3 ml-1" />
             </Button>
           </CardContent>

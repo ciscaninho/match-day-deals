@@ -22,7 +22,7 @@ const AuthPage = () => {
   // Already logged in → go straight to admin
   useEffect(() => {
     if (!sessionLoading && session) {
-      navigate("/admin", { replace: true });
+      navigate("/app/admin", { replace: true });
     }
   }, [session, sessionLoading, navigate]);
 
@@ -43,7 +43,7 @@ const AuthPage = () => {
     }
     console.log("[Auth] Connexion réussie:", data.user?.email);
     toast({ title: "Connecté", description: "Bienvenue !" });
-    navigate("/admin", { replace: true });
+    navigate("/app/admin", { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -70,7 +70,7 @@ const AuthPage = () => {
     console.log("[Auth] Inscription réussie:", data.user?.email, "session:", !!data.session);
     if (data.session) {
       toast({ title: "Compte créé", description: "Connexion automatique..." });
-      navigate("/admin", { replace: true });
+      navigate("/app/admin", { replace: true });
     } else {
       toast({
         title: "Compte créé",

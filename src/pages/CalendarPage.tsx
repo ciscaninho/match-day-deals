@@ -124,7 +124,7 @@ const CalendarPage = () => {
                 dayMatches.map((m) => (
                   <button
                     key={m.id}
-                    onClick={() => navigate(`/match/${m.id}`)}
+                    onClick={() => navigate(`/app/matches/${m.id}`)}
                     className="w-full text-left bg-card border border-border rounded-lg p-3 flex items-center justify-between"
                   >
                     <div>
