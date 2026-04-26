@@ -10,11 +10,11 @@ export const BottomNav = () => {
   const { t } = useLanguage();
 
   const navItems = [
-    { label: t("nav.home"), icon: Home, path: "/" },
-    { label: t("nav.matches"), icon: List, path: "/matches" },
-    { label: t("nav.calendar"), icon: CalendarDays, path: "/calendar" },
-    { label: t("nav.alerts"), icon: Bell, path: "/notifications" },
-    { label: t("nav.profile"), icon: User, path: "/profile" },
+    { label: t("nav.home"), icon: Home, path: "/app" },
+    { label: t("nav.matches"), icon: List, path: "/app/matches" },
+    { label: t("nav.calendar"), icon: CalendarDays, path: "/app/calendar" },
+    { label: t("nav.alerts"), icon: Bell, path: "/app/notifications" },
+    { label: t("nav.profile"), icon: User, path: "/app/profile" },
   ];
 
   return (
@@ -23,8 +23,8 @@ export const BottomNav = () => {
         {navItems.map((item) => {
           const isActive =
             location.pathname === item.path ||
-            (item.path === "/" && location.pathname === "/");
-          const showBadge = item.path === "/notifications" && unreadCount > 0;
+            (item.path === "/app" && location.pathname === "/app");
+          const showBadge = item.path === "/app/notifications" && unreadCount > 0;
 
           return (
             <button

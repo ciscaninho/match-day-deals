@@ -67,16 +67,34 @@ const LandingPage = () => {
     { tag: "🏆", text: t("landing.ticker.item6") },
   ];
 
-  const hotMatches = matches.slice(0, 3).map((m) => ({
+  // Tickets available in the next 30 days
+  const now = Date.now();
+  const in30Days = now + 30 * 24 * 60 * 60 * 1000;
+  const upcomingMatches = matches
+    .filter((m) => {
+      const t = new Date(m.date).getTime();
+      return t >= now && t <= in30Days;
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 6);
+
+  const hotMatches = upcomingMatches.map((m) => ({
+    id: m.id,
     home: m.homeTeam,
     away: m.awayTeam,
     homeShort: m.homeShort,
     awayShort: m.awayShort,
     competition: m.competition,
+    startingPrice: m.startingPrice,
+    sources: m.ticketSources?.length ?? 0,
     date: new Date(m.date).toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
       year: "numeric",
+    }),
+    time: new Date(m.date).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
     }),
     venue: [m.stadium, m.city].filter(Boolean).join(", "),
     status:
@@ -112,7 +130,7 @@ const LandingPage = () => {
       {/* ============ NAV ============ */}
       <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
-          <Link to="/landing" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl bg-[#2ECC71] flex items-center justify-center shadow-md shadow-[#2ECC71]/30">
               <Ticket className="w-5 h-5 text-white" />
             </div>
@@ -127,7 +145,7 @@ const LandingPage = () => {
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
             <Link
-              to="/home"
+              to="/app"
               className="inline-flex items-center gap-1.5 rounded-full bg-[#2C3E50] text-white text-xs font-bold px-4 py-2 hover:bg-[#1f2d3a] transition-colors"
             >
               {t("landing.nav.launch")} <ArrowRight className="w-3.5 h-3.5" />
@@ -168,7 +186,7 @@ const LandingPage = () => {
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3">
             <Link
-              to="/home"
+              to="/app"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold transition-colors shadow-lg shadow-[#2ECC71]/30"
             >
               {t("landing.hero.cta_primary")}
@@ -292,62 +310,82 @@ const LandingPage = () => {
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71] flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5" /> {t("landing.matches.eyebrow")}
+                <Flame className="w-3.5 h-3.5" /> Next 30 days
               </span>
               <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">
-                {t("landing.matches.title")}
+                Tickets available in the next 30 days
               </h2>
+              <p className="mt-3 text-[#2C3E50]/65 max-w-2xl">
+                A preview of upcoming football matches with confirmed or imminent ticket releases. Open the app for the full list, alerts and official ticket sources.
+              </p>
             </div>
             <Link
-              to="/matches"
+              to="/app/matches"
               className="inline-flex items-center gap-1.5 text-sm font-bold text-[#2C3E50] hover:text-[#2ECC71]"
             >
               {t("landing.matches.view_all")} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5">
-            {hotMatches.map((m) => (
-              <Link
-                key={`${m.home}-${m.away}`}
-                to="/matches"
-                className="rounded-2xl bg-white border border-slate-200 overflow-hidden hover:border-[#2ECC71]/40 hover:shadow-xl hover:shadow-[#2C3E50]/5 transition-all group block"
-              >
-                <div className="px-5 py-3 bg-[#2C3E50] text-white flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">
-                    {m.competition}
-                  </span>
-                  <Trophy className="w-3.5 h-3.5 text-[#2ECC71]" />
-                </div>
-
-                <div className="px-5 py-7">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex flex-col items-center gap-2 flex-1">
-                      <TeamCrest short={m.homeShort} />
-                      <p className="text-xs font-bold text-[#2C3E50] text-center leading-tight">{m.home}</p>
-                    </div>
-                    <span className="text-xs font-extrabold text-[#2C3E50]/40">VS</span>
-                    <div className="flex flex-col items-center gap-2 flex-1">
-                      <TeamCrest short={m.awayShort} />
-                      <p className="text-xs font-bold text-[#2C3E50] text-center leading-tight">{m.away}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 pt-5 border-t border-slate-100 space-y-1.5">
-                    <p className="text-sm font-bold text-[#2C3E50]">{m.date}</p>
-                    <p className="text-xs text-[#2C3E50]/60">{m.venue}</p>
-                  </div>
-
-                  <div className="mt-5 flex items-center justify-between">
-                    <StatusBadge status={m.status} color={m.statusColor} />
-                    <span className="text-xs font-bold text-[#2ECC71] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                      {t("landing.matches.view_match")} <ArrowRight className="w-3.5 h-3.5" />
+          {hotMatches.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-[#2C3E50]/60">
+              No upcoming matches in the next 30 days yet. Check back soon — or open the app to see the full schedule.
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {hotMatches.map((m) => (
+                <Link
+                  key={m.id}
+                  to={`/app/matches/${m.id}`}
+                  className="rounded-2xl bg-white border border-slate-200 overflow-hidden hover:border-[#2ECC71]/40 hover:shadow-xl hover:shadow-[#2C3E50]/5 transition-all group block flex flex-col"
+                >
+                  <div className="px-5 py-3 bg-[#2C3E50] text-white flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">
+                      {m.competition}
                     </span>
+                    <Trophy className="w-3.5 h-3.5 text-[#2ECC71]" />
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+
+                  <div className="px-5 py-6 flex-1 flex flex-col">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                        <TeamCrest short={m.homeShort} />
+                        <p className="text-xs font-bold text-[#2C3E50] text-center leading-tight truncate w-full">{m.home}</p>
+                      </div>
+                      <span className="text-xs font-extrabold text-[#2C3E50]/40">VS</span>
+                      <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                        <TeamCrest short={m.awayShort} />
+                        <p className="text-xs font-bold text-[#2C3E50] text-center leading-tight truncate w-full">{m.away}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 pt-5 border-t border-slate-100 space-y-1.5">
+                      <p className="text-sm font-bold text-[#2C3E50]">
+                        {m.date} · {m.time}
+                      </p>
+                      {m.venue && <p className="text-xs text-[#2C3E50]/60">{m.venue}</p>}
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-3 text-[11px] text-[#2C3E50]/70">
+                      {m.startingPrice != null && (
+                        <span className="font-bold text-[#2ECC71]">From €{m.startingPrice}</span>
+                      )}
+                      {m.sources > 0 && (
+                        <span>{m.sources} official source{m.sources > 1 ? "s" : ""}</span>
+                      )}
+                    </div>
+
+                    <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+                      <StatusBadge status={m.status} color={m.statusColor} />
+                      <span className="text-xs font-bold text-[#2ECC71] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+                        View in app <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -366,10 +404,10 @@ const LandingPage = () => {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { to: "/matches", icon: Trophy, title: t("landing.app.card1.title"), desc: t("landing.app.card1.desc") },
-              { to: "/calendar", icon: CalendarIcon, title: t("landing.app.card2.title"), desc: t("landing.app.card2.desc") },
-              { to: "/notifications", icon: BellRing, title: t("landing.app.card3.title"), desc: t("landing.app.card3.desc") },
-              { to: "/quiz", icon: Gamepad2, title: t("landing.app.card4.title"), desc: t("landing.app.card4.desc") },
+              { to: "/app/matches", icon: Trophy, title: t("landing.app.card1.title"), desc: t("landing.app.card1.desc") },
+              { to: "/app/calendar", icon: CalendarIcon, title: t("landing.app.card2.title"), desc: t("landing.app.card2.desc") },
+              { to: "/app/notifications", icon: BellRing, title: t("landing.app.card3.title"), desc: t("landing.app.card3.desc") },
+              { to: "/app/daily-game", icon: Gamepad2, title: t("landing.app.card4.title"), desc: t("landing.app.card4.desc") },
             ].map((card) => (
               <Link
                 key={card.to}
@@ -404,14 +442,14 @@ const LandingPage = () => {
               </p>
               <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
-                  to="/home"
+                  to="/app"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold shadow-lg shadow-[#2ECC71]/30"
                 >
                   {t("landing.cta.launch")}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
-                  to="/premium"
+                  to="/app/premium"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 text-white px-6 py-3.5 font-semibold border border-white/15"
                 >
                   {t("landing.cta.premium")}
@@ -469,7 +507,7 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-5 py-14">
           <div className="grid md:grid-cols-4 gap-10">
             <div className="md:col-span-2">
-              <Link to="/landing" className="flex items-center gap-2 mb-4">
+              <Link to="/" className="flex items-center gap-2 mb-4">
                 <div className="w-9 h-9 rounded-xl bg-[#2ECC71] flex items-center justify-center">
                   <Ticket className="w-5 h-5 text-white" />
                 </div>
@@ -488,11 +526,11 @@ const LandingPage = () => {
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">{t("landing.footer.nav")}</h4>
               <ul className="space-y-2.5 text-sm">
-                <li><Link to="/home" className="hover:text-[#2ECC71]">{t("landing.footer.nav.home")}</Link></li>
-                <li><Link to="/matches" className="hover:text-[#2ECC71]">{t("landing.footer.nav.matches")}</Link></li>
-                <li><Link to="/calendar" className="hover:text-[#2ECC71]">{t("landing.footer.nav.calendar")}</Link></li>
-                <li><Link to="/notifications" className="hover:text-[#2ECC71]">{t("landing.footer.nav.notifications")}</Link></li>
-                <li><Link to="/premium" className="hover:text-[#2ECC71]">{t("landing.footer.nav.premium")}</Link></li>
+                <li><Link to="/app" className="hover:text-[#2ECC71]">{t("landing.footer.nav.home")}</Link></li>
+                <li><Link to="/app/matches" className="hover:text-[#2ECC71]">{t("landing.footer.nav.matches")}</Link></li>
+                <li><Link to="/app/calendar" className="hover:text-[#2ECC71]">{t("landing.footer.nav.calendar")}</Link></li>
+                <li><Link to="/app/notifications" className="hover:text-[#2ECC71]">{t("landing.footer.nav.notifications")}</Link></li>
+                <li><Link to="/app/premium" className="hover:text-[#2ECC71]">{t("landing.footer.nav.premium")}</Link></li>
               </ul>
             </div>
 
@@ -505,7 +543,7 @@ const LandingPage = () => {
                   </a>
                 </li>
                 <li><a href={supportMail} className="hover:text-[#2ECC71]">{t("landing.footer.contact_us")}</a></li>
-                <li><Link to="/profile" className="hover:text-[#2ECC71]">{t("landing.footer.profile")}</Link></li>
+                <li><Link to="/app/profile" className="hover:text-[#2ECC71]">{t("landing.footer.profile")}</Link></li>
               </ul>
 
               <h4 className="text-xs font-bold uppercase tracking-wider text-white mt-6 mb-3">{t("landing.footer.info")}</h4>
