@@ -19,13 +19,18 @@ import QuizPage from "./pages/QuizPage";
 import AdminPage from "./pages/AdminPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
+import AboutPage from "./pages/marketing/AboutPage";
+import PricingPage from "./pages/marketing/PricingPage";
+import FAQPage from "./pages/marketing/FAQPage";
+import PrivacyPage from "./pages/marketing/PrivacyPage";
+import TermsPage from "./pages/marketing/TermsPage";
 import { AIAssistantWidget } from "./components/AIAssistantWidget";
 import { RequireAdmin } from "./components/RequireAdmin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 30, // 30s — keep data fresh
+      staleTime: 1000 * 30,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
@@ -41,27 +46,39 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/landing" element={<LandingPage />} />
+              {/* ========== PUBLIC MARKETING WEBSITE ========== */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/legal/privacy" element={<PrivacyPage />} />
+              <Route path="/legal/terms" element={<TermsPage />} />
               <Route path="/maintenance" element={<Maintenance />} />
-              <Route path="/home" element={<HomePage />} />
-              <Route path="/matches" element={<MatchesPage />} />
-              <Route path="/match/:id" element={<MatchDetailPage />} />
-              <Route path="/calendar" element={<CalendarPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/premium" element={<PremiumPage />} />
-              <Route path="/polls" element={<PollsPage />} />
-              <Route path="/quiz" element={<QuizPage />} />
               <Route path="/auth" element={<AuthPage />} />
+
+              {/* ========== FULL APPLICATION ========== */}
+              <Route path="/app" element={<HomePage />} />
+              <Route path="/app/matches" element={<MatchesPage />} />
+              <Route path="/app/matches/:id" element={<MatchDetailPage />} />
+              {/* legacy match detail path */}
+              <Route path="/app/match/:id" element={<MatchDetailPage />} />
+              <Route path="/app/calendar" element={<CalendarPage />} />
+              <Route path="/app/notifications" element={<NotificationsPage />} />
+              <Route path="/app/favorites" element={<NotificationsPage />} />
+              <Route path="/app/daily-game" element={<QuizPage />} />
+              <Route path="/app/rewards" element={<QuizPage />} />
+              <Route path="/app/polls" element={<PollsPage />} />
+              <Route path="/app/profile" element={<ProfilePage />} />
+              <Route path="/app/premium" element={<PremiumPage />} />
               <Route
-                path="/admin"
+                path="/app/admin"
                 element={
                   <RequireAdmin>
                     <AdminPage />
                   </RequireAdmin>
                 }
               />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AIAssistantWidget />
