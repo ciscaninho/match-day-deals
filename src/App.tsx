@@ -17,8 +17,10 @@ import PremiumPage from "./pages/PremiumPage";
 import PollsPage from "./pages/PollsPage";
 import QuizPage from "./pages/QuizPage";
 import AdminPage from "./pages/AdminPage";
+import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import { AIAssistantWidget } from "./components/AIAssistantWidget";
+import { RequireAdmin } from "./components/RequireAdmin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,7 +53,15 @@ const App = () => (
               <Route path="/premium" element={<PremiumPage />} />
               <Route path="/polls" element={<PollsPage />} />
               <Route path="/quiz" element={<QuizPage />} />
-              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route
+                path="/admin"
+                element={
+                  <RequireAdmin>
+                    <AdminPage />
+                  </RequireAdmin>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AIAssistantWidget />
