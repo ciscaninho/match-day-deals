@@ -18,6 +18,12 @@ import {
   Flame,
   Calendar as CalendarIcon,
   Gamepad2,
+  Search,
+  TrendingUp,
+  Bell,
+  Sparkles,
+  Crown,
+  MessageCircle,
 } from "lucide-react";
 
 /**
