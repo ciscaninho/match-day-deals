@@ -86,8 +86,8 @@ const ProfilePage = () => {
         {/* Quick links */}
         <div className="mt-4 space-y-2">
           {[
-            { label: t("notifications.title"), path: "/notifications", icon: Bell },
-            { label: t("polls.title"), path: "/polls", icon: Star },
+            { label: t("notifications.title"), path: "/app/notifications", icon: Bell },
+            { label: t("polls.title"), path: "/app/polls", icon: Star },
           ].map((item) => (
             <Card key={item.path} className="cursor-pointer border-border/50" onClick={() => navigate(item.path)}>
               <CardContent className="p-4 flex items-center justify-between">
