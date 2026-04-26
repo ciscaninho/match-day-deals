@@ -29,16 +29,19 @@ const AuthPage = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    console.log("[Auth] Tentative de connexion pour:", email);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setSubmitting(false);
     if (error) {
+      console.error("[Auth] Erreur de connexion:", error);
       toast({
         title: "Connexion impossible",
-        description: error.message,
+        description: `${error.message}${error.status ? ` (code ${error.status})` : ""}`,
         variant: "destructive",
       });
       return;
     }
+    console.log("[Auth] Connexion réussie:", data.user?.email);
     toast({ title: "Connecté", description: "Bienvenue !" });
     navigate("/admin", { replace: true });
   };
@@ -46,7 +49,8 @@ const AuthPage = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const { error } = await supabase.auth.signUp({
+    console.log("[Auth] Tentative d'inscription pour:", email);
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -55,17 +59,24 @@ const AuthPage = () => {
     });
     setSubmitting(false);
     if (error) {
+      console.error("[Auth] Erreur d'inscription:", error);
       toast({
         title: "Inscription impossible",
-        description: error.message,
+        description: `${error.message}${error.status ? ` (code ${error.status})` : ""}`,
         variant: "destructive",
       });
       return;
     }
-    toast({
-      title: "Compte créé",
-      description: "Tu peux maintenant te connecter.",
-    });
+    console.log("[Auth] Inscription réussie:", data.user?.email, "session:", !!data.session);
+    if (data.session) {
+      toast({ title: "Compte créé", description: "Connexion automatique..." });
+      navigate("/admin", { replace: true });
+    } else {
+      toast({
+        title: "Compte créé",
+        description: "Tu peux maintenant te connecter.",
+      });
+    }
   };
 
   return (
