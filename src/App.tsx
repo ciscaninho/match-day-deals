@@ -47,7 +47,8 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               {/* ========== PUBLIC MARKETING WEBSITE ========== */}
-              <Route path="/" element={<LandingPage />} />
+              <Route path="/" element={<Maintenance />} />
+              <Route path="/landing" element={<LandingPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/faq" element={<FAQPage />} />
