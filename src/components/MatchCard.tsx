@@ -22,7 +22,7 @@ export const MatchCard = ({ match }: { match: Match }) => {
   return (
     <Card
       className="cursor-pointer hover:border-primary/30 transition-all border-border/50 overflow-hidden group"
-      onClick={() => navigate(`/match/${match.id}`)}
+      onClick={() => navigate(`/app/matches/${match.id}`)}
     >
       <CardContent className="p-0">
         {/* Competition bar */}
