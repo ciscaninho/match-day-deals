@@ -67,16 +67,34 @@ const LandingPage = () => {
     { tag: "🏆", text: t("landing.ticker.item6") },
   ];
 
-  const hotMatches = matches.slice(0, 3).map((m) => ({
+  // Tickets available in the next 30 days
+  const now = Date.now();
+  const in30Days = now + 30 * 24 * 60 * 60 * 1000;
+  const upcomingMatches = matches
+    .filter((m) => {
+      const t = new Date(m.date).getTime();
+      return t >= now && t <= in30Days;
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 6);
+
+  const hotMatches = upcomingMatches.map((m) => ({
+    id: m.id,
     home: m.homeTeam,
     away: m.awayTeam,
     homeShort: m.homeShort,
     awayShort: m.awayShort,
     competition: m.competition,
+    startingPrice: m.startingPrice,
+    sources: m.ticketSources?.length ?? 0,
     date: new Date(m.date).toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
       year: "numeric",
+    }),
+    time: new Date(m.date).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
     }),
     venue: [m.stadium, m.city].filter(Boolean).join(", "),
     status:
