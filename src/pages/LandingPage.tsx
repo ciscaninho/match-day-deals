@@ -18,6 +18,12 @@ import {
   Flame,
   Calendar as CalendarIcon,
   Gamepad2,
+  Search,
+  TrendingUp,
+  Bell,
+  Sparkles,
+  Crown,
+  MessageCircle,
 } from "lucide-react";
 
 /**
@@ -78,38 +84,52 @@ const LandingPage = () => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 6);
 
-  const hotMatches = upcomingMatches.map((m) => ({
-    id: m.id,
-    home: m.homeTeam,
-    away: m.awayTeam,
-    homeShort: m.homeShort,
-    awayShort: m.awayShort,
-    competition: m.competition,
-    startingPrice: m.startingPrice,
-    sources: m.ticketSources?.length ?? 0,
-    date: new Date(m.date).toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }),
-    time: new Date(m.date).toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    venue: [m.stadium, m.city].filter(Boolean).join(", "),
-    status:
-      m.ticketStatus === "sold_out"
-        ? t("landing.matches.status.sold_out")
-        : m.ticketStatus === "on_sale"
-          ? t("landing.matches.status.on_sale")
-          : t("landing.matches.status.coming_soon"),
-    statusColor:
-      m.ticketStatus === "sold_out"
-        ? "red"
-        : m.ticketStatus === "on_sale"
-          ? "green"
-          : "amber",
-  }));
+  const hotMatches = upcomingMatches.map((m) => {
+    const matchTime = new Date(m.date).getTime();
+    const daysUntil = Math.ceil((matchTime - now) / (24 * 60 * 60 * 1000));
+    const releaseTime = m.ticketReleaseDate ? new Date(m.ticketReleaseDate).getTime() : null;
+    const releasingSoon =
+      m.ticketStatus === "not_released" &&
+      releaseTime !== null &&
+      releaseTime - now <= 7 * 24 * 60 * 60 * 1000 &&
+      releaseTime - now > 0;
+    const highDemand = m.featured || m.priority || daysUntil <= 7;
+
+    return {
+      id: m.id,
+      home: m.homeTeam,
+      away: m.awayTeam,
+      homeShort: m.homeShort,
+      awayShort: m.awayShort,
+      competition: m.competition,
+      startingPrice: m.startingPrice,
+      sources: m.ticketSources?.length ?? 0,
+      date: new Date(m.date).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }),
+      time: new Date(m.date).toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      venue: [m.stadium, m.city].filter(Boolean).join(", "),
+      status:
+        m.ticketStatus === "sold_out"
+          ? t("landing.matches.status.sold_out")
+          : m.ticketStatus === "on_sale"
+            ? t("landing.matches.status.on_sale")
+            : t("landing.matches.status.coming_soon"),
+      statusColor:
+        m.ticketStatus === "sold_out"
+          ? "red"
+          : m.ticketStatus === "on_sale"
+            ? "green"
+            : "amber",
+      highDemand,
+      releasingSoon,
+    };
+  });
 
   const StatusBadge = ({ status, color }: { status: string; color: string }) => {
     const map: Record<string, string> = {
@@ -347,6 +367,27 @@ const LandingPage = () => {
                   </div>
 
                   <div className="px-5 py-6 flex-1 flex flex-col">
+                    {/* Urgency badges */}
+                    {(m.highDemand || m.releasingSoon || m.startingPrice != null) && (
+                      <div className="flex flex-wrap gap-1.5 mb-4 -mt-2">
+                        {m.highDemand && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 text-[10px] font-bold">
+                            🔥 High demand
+                          </span>
+                        )}
+                        {m.releasingSoon && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 text-[10px] font-bold">
+                            ⏳ Tickets opening soon
+                          </span>
+                        )}
+                        {m.startingPrice != null && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#2ECC71]/10 text-[#27ae60] border border-[#2ECC71]/20 px-2 py-0.5 text-[10px] font-bold">
+                            💸 From €{m.startingPrice}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
                         <TeamCrest short={m.homeShort} />
@@ -366,19 +407,16 @@ const LandingPage = () => {
                       {m.venue && <p className="text-xs text-[#2C3E50]/60">{m.venue}</p>}
                     </div>
 
-                    <div className="mt-3 flex items-center gap-3 text-[11px] text-[#2C3E50]/70">
-                      {m.startingPrice != null && (
-                        <span className="font-bold text-[#2ECC71]">From €{m.startingPrice}</span>
-                      )}
-                      {m.sources > 0 && (
-                        <span>{m.sources} official source{m.sources > 1 ? "s" : ""}</span>
-                      )}
-                    </div>
+                    {m.sources > 0 && (
+                      <p className="mt-3 text-[11px] text-[#2C3E50]/60">
+                        {m.sources} official source{m.sources > 1 ? "s" : ""}
+                      </p>
+                    )}
 
                     <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
                       <StatusBadge status={m.status} color={m.statusColor} />
                       <span className="text-xs font-bold text-[#2ECC71] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                        View in app <ArrowRight className="w-3.5 h-3.5" />
+                        Track this match <ArrowRight className="w-3.5 h-3.5" />
                       </span>
                     </div>
                   </div>
@@ -424,6 +462,212 @@ const LandingPage = () => {
                 </span>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ HOW IT WORKS ============ */}
+      <section id="how" className="py-20 md:py-28 bg-slate-50">
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">In 4 steps</span>
+            <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">How it works</h2>
+            <p className="mt-4 text-[#2C3E50]/65">From kickoff to checkout — never miss a window.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { icon: Search, title: "Find your match", desc: "Browse top European competitions and worldwide fixtures." },
+              { icon: CalendarIcon, title: "Track ticket releases", desc: "Know the exact date tickets go on sale — no more guessing." },
+              { icon: TrendingUp, title: "Compare official platforms", desc: "See verified resellers and partner sources side by side." },
+              { icon: Bell, title: "Get alerts before sell-out", desc: "Push notifications the moment your match opens." },
+            ].map((step, i) => (
+              <div key={step.title} className="relative rounded-2xl bg-white border border-slate-200 p-6">
+                <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-[#2C3E50] text-white flex items-center justify-center text-sm font-extrabold">
+                  {i + 1}
+                </div>
+                <div className="w-11 h-11 rounded-xl bg-[#2ECC71]/10 flex items-center justify-center mb-4">
+                  <step.icon className="w-5 h-5 text-[#2ECC71]" />
+                </div>
+                <h3 className="font-extrabold text-base text-[#2C3E50]">{step.title}</h3>
+                <p className="mt-1.5 text-sm text-[#2C3E50]/65 leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-10 text-center">
+            <Link
+              to="/app/matches"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2C3E50] hover:bg-[#1f2d3a] text-white px-6 py-3 font-semibold text-sm"
+            >
+              Find a match <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ DAILY GAME ============ */}
+      <section className="py-20 md:py-24 bg-white">
+        <div className="max-w-5xl mx-auto px-5">
+          <div className="rounded-3xl bg-gradient-to-br from-[#2ECC71] to-[#27ae60] text-white p-10 md:p-14 grid md:grid-cols-2 gap-8 items-center overflow-hidden relative">
+            <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-white/10 blur-3xl" />
+            <div className="relative">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider">
+                <Gamepad2 className="w-3.5 h-3.5" /> Daily engagement
+              </span>
+              <h2 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight">Play daily. Earn rewards.</h2>
+              <p className="mt-3 text-white/85 max-w-md">
+                Answer daily football quizzes, build your streak, and unlock exclusive perks inside the app.
+              </p>
+              <Link
+                to="/app/daily-game"
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white text-[#2C3E50] hover:bg-white/90 px-6 py-3 font-bold text-sm"
+              >
+                Play today <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="relative flex items-center justify-center">
+              <div className="rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 p-6 w-full max-w-xs">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider opacity-90 mb-3">
+                  <Trophy className="w-4 h-4" /> Today's quiz
+                </div>
+                <p className="text-base font-bold leading-snug">Who won the 2023 Champions League final?</p>
+                <div className="mt-4 space-y-2 text-sm">
+                  <div className="rounded-lg bg-white/10 px-3 py-2">Manchester City</div>
+                  <div className="rounded-lg bg-white/10 px-3 py-2">Inter Milan</div>
+                  <div className="rounded-lg bg-white/10 px-3 py-2">Real Madrid</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ GLOBAL COVERAGE ============ */}
+      <section className="py-20 md:py-24 bg-slate-50">
+        <div className="max-w-6xl mx-auto px-5 text-center">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">Worldwide</span>
+          <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">All competitions. One place.</h2>
+          <p className="mt-4 text-[#2C3E50]/65 max-w-2xl mx-auto">
+            From Champions League nights to local derbies — track matches across the world's top leagues.
+          </p>
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
+            {[
+              "Premier League",
+              "La Liga",
+              "Serie A",
+              "Bundesliga",
+              "Ligue 1",
+              "Champions League",
+              "Europa League",
+              "World Cup",
+            ].map((league) => (
+              <span
+                key={league}
+                className="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-4 py-2 text-sm font-semibold text-[#2C3E50] hover:border-[#2ECC71]/40 transition-colors"
+              >
+                <Globe2 className="w-3.5 h-3.5 text-[#2ECC71]" />
+                {league}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ AI ASSISTANT ============ */}
+      <section className="py-20 md:py-24 bg-white">
+        <div className="max-w-5xl mx-auto px-5">
+          <div className="rounded-3xl bg-[#2C3E50] text-white p-10 md:p-14 grid md:grid-cols-5 gap-8 items-center relative overflow-hidden">
+            <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-[#2ECC71]/20 blur-3xl" />
+            <div className="md:col-span-3 relative">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-[#2ECC71]" /> AI assistant
+              </span>
+              <h2 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight">Need help finding tickets?</h2>
+              <p className="mt-3 text-white/70 max-w-md">
+                Ask our AI assistant anything — from ticket timing to where to buy safely. Built by football fans, for football fans.
+              </p>
+              <Link
+                to="/app"
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3 font-bold text-sm shadow-lg shadow-[#2ECC71]/30"
+              >
+                Ask the assistant <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="md:col-span-2 relative space-y-3">
+              <div className="rounded-2xl bg-white/10 border border-white/15 p-4 text-sm">
+                <p className="text-white/60 text-xs mb-1">You</p>
+                <p>When do Real Madrid vs Barça tickets open?</p>
+              </div>
+              <div className="rounded-2xl bg-[#2ECC71]/15 border border-[#2ECC71]/30 p-4 text-sm">
+                <p className="text-[#2ECC71] text-xs mb-1 inline-flex items-center gap-1">
+                  <MessageCircle className="w-3 h-3" /> Assistant
+                </p>
+                <p>Tickets typically release 4 weeks before kickoff on the official club portal. I'll alert you the moment they go live.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ PREMIUM ============ */}
+      <section className="py-20 md:py-24 bg-slate-50">
+        <div className="max-w-4xl mx-auto px-5">
+          <div className="rounded-3xl bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 p-10 md:p-14 text-center relative overflow-hidden">
+            <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-amber-300/30 blur-3xl" />
+            <div className="relative">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-400 text-white mb-5 shadow-lg shadow-amber-400/40">
+                <Crown className="w-7 h-7" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#2C3E50]">
+                Upgrade your experience
+              </h2>
+              <p className="mt-3 text-[#2C3E50]/70 max-w-md mx-auto">
+                Go premium for a smoother, faster, ad-free experience. Priority alerts and early access to high-demand matches.
+              </p>
+              <Link
+                to="/app/premium"
+                className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#2C3E50] hover:bg-[#1f2d3a] text-white px-6 py-3.5 font-bold text-sm"
+              >
+                Go premium — €2.99/month <ArrowRight className="w-4 h-4" />
+              </Link>
+              <div className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-[#2C3E50]/65">
+                <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-amber-500" /> No ads</span>
+                <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-amber-500" /> Priority alerts</span>
+                <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-amber-500" /> Early access</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FINAL CTA ============ */}
+      <section className="py-20 md:py-24 bg-gradient-to-br from-[#2C3E50] via-[#243342] to-[#1a2530] text-white relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg, #2ECC71 1px, transparent 1px), linear-gradient(#2ECC71 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="relative max-w-3xl mx-auto px-5 text-center">
+          <Flame className="w-10 h-10 text-[#2ECC71] mx-auto mb-5" />
+          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">Don't miss your next match</h2>
+          <p className="mt-4 text-white/70 max-w-xl mx-auto">
+            Thousands of tickets sell out every day. Be ready. Be early.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              to="/app"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-7 py-3.5 font-bold shadow-lg shadow-[#2ECC71]/30"
+            >
+              Open the app <ArrowRight className="w-4 h-4" />
+            </Link>
+            <a
+              href="#matches"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 text-white px-7 py-3.5 font-bold border border-white/15"
+            >
+              See upcoming tickets
+            </a>
           </div>
         </div>
       </section>
