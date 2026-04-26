@@ -65,33 +65,38 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const headers = { "X-Auth-Token": apiKey, Accept: "application/json" };
-    const dateFrom = formatDate(new Date());
-    const dateTo = formatDate(new Date(Date.now() + DAYS_AHEAD * 86400000));
 
     const matchMap = new Map<number, FdMatch>();
     const errors: string[] = [];
 
+    // Boucle: pour chaque compétition × chaque fenêtre de 10 jours
     // Free plan: ~10 req/min → on espace les requêtes
     for (const code of COMPETITIONS) {
-      const url = `${API_BASE_URL}?competitions=${code}&dateFrom=${dateFrom}&dateTo=${dateTo}`;
-      try {
-        const resp = await fetch(url, { headers });
-        if (!resp.ok) {
-          const txt = await resp.text();
-          errors.push(`[${code} ${resp.status}] ${txt.slice(0, 150)}`);
-          continue;
+      for (let w = 0; w < WINDOWS_COUNT; w++) {
+        const fromOffset = w * WINDOW_DAYS;
+        const toOffset = fromOffset + WINDOW_DAYS;
+        const dateFrom = formatDate(new Date(Date.now() + fromOffset * 86400000));
+        const dateTo = formatDate(new Date(Date.now() + toOffset * 86400000));
+        const url = `${API_BASE_URL}?competitions=${code}&dateFrom=${dateFrom}&dateTo=${dateTo}`;
+        try {
+          const resp = await fetch(url, { headers });
+          if (!resp.ok) {
+            const txt = await resp.text();
+            errors.push(`[${code} ${dateFrom}→${dateTo} ${resp.status}] ${txt.slice(0, 120)}`);
+          } else {
+            const payload = (await resp.json()) as FdResponse;
+            if (payload.errorCode) {
+              errors.push(`[${code} ${dateFrom}] ${payload.message ?? "error"}`);
+            } else {
+              (payload.matches ?? []).forEach((m) => matchMap.set(m.id, m));
+            }
+          }
+        } catch (err) {
+          errors.push(`[${code}] ${err instanceof Error ? err.message : String(err)}`);
         }
-        const payload = (await resp.json()) as FdResponse;
-        if (payload.errorCode) {
-          errors.push(`[${code}] ${payload.message ?? "error"}`);
-          continue;
-        }
-        (payload.matches ?? []).forEach((m) => matchMap.set(m.id, m));
-      } catch (err) {
-        errors.push(`[${code}] ${err instanceof Error ? err.message : String(err)}`);
+        // Délai pour respecter le rate limit (~10 req/min)
+        await new Promise((r) => setTimeout(r, 6500));
       }
-      // Petit délai entre les requêtes pour respecter le rate limit
-      await new Promise((r) => setTimeout(r, 6500));
     }
 
     const matches = Array.from(matchMap.values());
