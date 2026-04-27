@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { getPaddleEnvironment } from "@/lib/paddle";
+import type { User } from "@supabase/supabase-js";
 
 export interface Notification {
   id: string;
@@ -25,7 +28,10 @@ interface UserState {
 }
 
 interface UserContextType extends UserState {
+  user: User | null;
+  authLoading: boolean;
   togglePremium: () => void;
+  refreshSubscription: () => Promise<void>;
   followMatch: (matchId: string) => boolean;
   unfollowMatch: (matchId: string) => void;
   isFollowing: (matchId: string) => boolean;
@@ -81,8 +87,75 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     lastCheckIn: null,
   });
 
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Listen to auth state
+  useEffect(() => {
+    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+    return () => authSub.unsubscribe();
+  }, []);
+
+  const refreshSubscription = useCallback(async () => {
+    if (!user) {
+      setState((s) => ({ ...s, isPremium: false }));
+      return;
+    }
+    const { data } = await supabase
+      .from("subscriptions")
+      .select("status, current_period_end")
+      .eq("user_id", user.id)
+      .eq("environment", getPaddleEnvironment())
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    let active = false;
+    if (data) {
+      const end = data.current_period_end ? new Date(data.current_period_end).getTime() : null;
+      const future = end === null || end > Date.now();
+      if (["active", "trialing", "past_due"].includes(data.status) && future) active = true;
+      else if (data.status === "canceled" && end !== null && end > Date.now()) active = true;
+    }
+    setState((s) => ({ ...s, isPremium: active }));
+  }, [user]);
+
+  // Refetch subscription when user changes
+  useEffect(() => {
+    refreshSubscription();
+  }, [refreshSubscription]);
+
+  // Realtime updates on subscriptions for current user
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`subscriptions:user:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "subscriptions",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => refreshSubscription(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, refreshSubscription]);
+
   const maxFollowed = state.isPremium ? Infinity : 3;
 
+  // Kept for legacy code paths only — premium status is derived from DB.
   const togglePremium = useCallback(() => {
     setState((s) => ({ ...s, isPremium: !s.isPremium }));
   }, []);
@@ -194,7 +267,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     <UserContext.Provider
       value={{
         ...state,
+        user,
+        authLoading,
         togglePremium,
+        refreshSubscription,
         followMatch,
         unfollowMatch,
         isFollowing,
