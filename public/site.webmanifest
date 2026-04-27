@@ -1,0 +1,26 @@
+{
+  "name": "Foot Ticket Finder",
+  "short_name": "FootTicket",
+  "description": "Find & track football tickets across top European matches.",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#1f2d3d",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}
