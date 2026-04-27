@@ -24,6 +24,7 @@ import PricingPage from "./pages/marketing/PricingPage";
 import FAQPage from "./pages/marketing/FAQPage";
 import PrivacyPage from "./pages/marketing/PrivacyPage";
 import TermsPage from "./pages/marketing/TermsPage";
+import RefundPage from "./pages/marketing/RefundPage";
 import { AIAssistantWidget } from "./components/AIAssistantWidget";
 import { RequireAdmin } from "./components/RequireAdmin";
 
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/legal/privacy" element={<PrivacyPage />} />
               <Route path="/legal/terms" element={<TermsPage />} />
+              <Route path="/legal/refund" element={<RefundPage />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/auth" element={<AuthPage />} />
 

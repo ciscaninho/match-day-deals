@@ -3,14 +3,21 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, ArrowLeft } from "lucide-react";
+import { Check, Crown, ArrowLeft, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { supabase } from "@/integrations/supabase/client";
+import { getPaddleEnvironment } from "@/lib/paddle";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 const PremiumPage = () => {
-  const { isPremium, togglePremium } = useUser();
+  const { isPremium, user, refreshSubscription } = useUser();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
+  const [portalLoading, setPortalLoading] = useState(false);
 
   const features = [
     t("premium.feature_1"),
@@ -20,16 +27,55 @@ const PremiumPage = () => {
     t("premium.feature_5"),
   ];
 
-  const handleSubscribe = (plan: string) => {
-    togglePremium();
-    toast.success(`${plan} plan activated! (simulated)`);
+  // Refetch sub on mount in case the user just returned from checkout
+  useEffect(() => {
+    refreshSubscription();
+  }, [refreshSubscription]);
+
+  const handleSubscribe = async (priceId: "premium_monthly" | "premium_yearly") => {
+    if (!user) {
+      toast.error("Please sign in to subscribe");
+      navigate("/auth");
+      return;
+    }
+    try {
+      await openCheckout({
+        priceId,
+        userId: user.id,
+        customerEmail: user.email || undefined,
+        successUrl: `${window.location.origin}/app/premium?checkout=success`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not open checkout. Please try again.");
+    }
+  };
+
+  const handleManage = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal", {
+        body: { environment: getPaddleEnvironment() },
+      });
+      if (error || !data?.url) throw new Error("No portal URL");
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not open the customer portal.");
+    } finally {
+      setPortalLoading(false);
+    }
   };
 
   if (isPremium) {
     return (
       <div className="min-h-screen bg-background pb-20">
+        <PaymentTestModeBanner />
         <div className="px-5 pt-12">
-          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-1 text-sm text-muted-foreground mb-4"
+          >
             <ArrowLeft className="w-4 h-4" /> {t("back")}
           </button>
           <div className="text-center py-12">
@@ -38,8 +84,16 @@ const PremiumPage = () => {
             </div>
             <h1 className="text-xl font-bold text-foreground">{t("premium.you_premium")}</h1>
             <p className="text-sm text-muted-foreground mt-2">{t("premium.enjoy")}</p>
-            <Button variant="outline" className="mt-6 border-border/50" onClick={() => { togglePremium(); toast("Premium deactivated (simulated)"); }}>
-              {t("premium.cancel")}
+            <Button
+              variant="outline"
+              className="mt-6 border-border/50"
+              onClick={handleManage}
+              disabled={portalLoading}
+            >
+              {portalLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              Manage subscription
             </Button>
           </div>
         </div>
@@ -50,8 +104,12 @@ const PremiumPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <PaymentTestModeBanner />
       <div className="px-5 pt-12">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1 text-sm text-muted-foreground mb-4"
+        >
           <ArrowLeft className="w-4 h-4" /> {t("back")}
         </button>
         <div className="text-center mb-6">
@@ -82,8 +140,17 @@ const PremiumPage = () => {
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-foreground">€2.99</p>
-                <Button size="sm" className="mt-1 text-xs" onClick={() => handleSubscribe("Monthly")}>
-                  {t("premium.subscribe")}
+                <Button
+                  size="sm"
+                  className="mt-1 text-xs"
+                  disabled={checkoutLoading}
+                  onClick={() => handleSubscribe("premium_monthly")}
+                >
+                  {checkoutLoading ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    t("premium.subscribe")
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -101,8 +168,17 @@ const PremiumPage = () => {
               <div className="text-right">
                 <p className="text-lg font-bold text-foreground">€29</p>
                 <p className="text-[10px] text-muted-foreground">€2.42/mo</p>
-                <Button size="sm" className="mt-1 text-xs" onClick={() => handleSubscribe("Yearly")}>
-                  {t("premium.subscribe")}
+                <Button
+                  size="sm"
+                  className="mt-1 text-xs"
+                  disabled={checkoutLoading}
+                  onClick={() => handleSubscribe("premium_yearly")}
+                >
+                  {checkoutLoading ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    t("premium.subscribe")
+                  )}
                 </Button>
               </div>
             </CardContent>
