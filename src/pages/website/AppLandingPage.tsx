@@ -17,6 +17,9 @@ import {
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useSEO } from "@/lib/seo";
 import { toast } from "sonner";
+import { useAuthGate } from "@/components/auth/AuthGate";
+import { useUser } from "@/contexts/UserContext";
+import { useNavigate } from "react-router-dom";
 
 interface BIPEvent extends Event {
   prompt: () => Promise<void>;
@@ -26,6 +29,16 @@ interface BIPEvent extends Event {
 const AppLandingPage = () => {
   const [installEvt, setInstallEvt] = useState<BIPEvent | null>(null);
   const [installed, setInstalled] = useState(false);
+  const { requireAuth } = useAuthGate();
+  const { user } = useUser();
+  const navigate = useNavigate();
+
+  const handleEnableAlerts = () => {
+    requireAuth(
+      () => navigate("/app/notifications"),
+      { reason: "to enable price alerts", next: "/app/notifications" }
+    );
+  };
 
   useSEO({
     title: "Get ticket price alerts in real time | Foot Ticket Finder app",
@@ -96,12 +109,13 @@ const AppLandingPage = () => {
               >
                 <Download className="w-4 h-4" /> {installed ? "Installed" : "Install app"}
               </button>
-              <Link
-                to="/app/notifications"
+              <button
+                type="button"
+                onClick={handleEnableAlerts}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 text-white px-6 py-3.5 font-bold transition-colors border border-white/15"
               >
-                <Bell className="w-4 h-4" /> Enable notifications
-              </Link>
+                <Bell className="w-4 h-4" /> Enable price alerts
+              </button>
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-white/60">
