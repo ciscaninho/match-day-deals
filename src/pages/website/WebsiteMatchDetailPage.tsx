@@ -4,7 +4,7 @@ import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatch } from "@/hooks/useMatches";
 import { useTicketOffers } from "@/hooks/useTicketOffers";
 import { useSEO, slugify } from "@/lib/seo";
-import { usePremiumGate } from "@/components/premium/PremiumGate";
+import { useTrackSheet } from "@/components/track/TrackPriceSheet";
 import { useUser } from "@/contexts/UserContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
