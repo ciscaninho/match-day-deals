@@ -152,9 +152,29 @@ const WebsiteMatchDetailPage = () => {
                 <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4" />{[match.stadium, match.city].filter(Boolean).join(", ")}</span>
               )}
             </div>
+
+            {/* Premium CTAs */}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                onClick={handleTrackPrice}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-2.5 font-bold text-sm transition shadow-lg shadow-[#2ECC71]/20"
+              >
+                <TrendingDown className="w-4 h-4" /> Track price
+              </button>
+              <button
+                onClick={handleSaveMatch}
+                className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white px-5 py-2.5 font-bold text-sm transition"
+              >
+                <Heart className="w-4 h-4" /> Save match
+              </button>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* spacer to keep original layout */}
+      <div className="hidden">{`
+{/* end hero */}`}</div>
 
       {/* OFFERS */}
       <section className="max-w-5xl mx-auto px-5 pb-16">
