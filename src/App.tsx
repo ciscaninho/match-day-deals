@@ -25,6 +25,7 @@ import AdminPage from "./pages/AdminPage";
 import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import AlertsPage from "./pages/AlertsPage";
+import PremiumUpsellPage from "./pages/PremiumUpsellPage";
 import NotFound from "./pages/NotFound";
 import AboutPage from "./pages/marketing/AboutPage";
 import PricingPage from "./pages/marketing/PricingPage";
@@ -37,6 +38,7 @@ import { RequireAdmin } from "./components/RequireAdmin";
 import { RequireAuth } from "./components/auth/RequireAuth";
 import { AuthGateProvider } from "./components/auth/AuthGate";
 import { PremiumGateProvider } from "./components/premium/PremiumGate";
+import { TrackPriceSheetProvider } from "./components/track/TrackPriceSheet";
 
 const queryClient = new QueryClient({
   defaultOptions: {
