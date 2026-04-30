@@ -175,6 +175,92 @@ const WebsiteMatchDetailPage = () => {
 
 
 
+      {/* PRICE ALERT CONVERSION SECTION */}
+      <section className="max-w-5xl mx-auto px-5 pb-4">
+        <div className="rounded-3xl border-2 border-[#2ECC71]/20 bg-gradient-to-br from-[#F0FFF6] via-white to-[#FFF8E7] p-6 md:p-10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#2ECC71]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="relative grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#2ECC71]/10 border border-[#2ECC71]/20 px-3 py-1.5 text-[11px] font-bold text-[#27ae60] uppercase tracking-wider">
+                <Bell className="w-3.5 h-3.5" /> Price alerts
+              </div>
+              <h2 className="mt-4 text-3xl md:text-4xl font-extrabold text-[#2C3E50] leading-tight">
+                Never overpay for tickets again
+              </h2>
+              <p className="mt-3 text-[15px] text-[#2C3E50]/70 leading-relaxed">
+                Prices for this match change constantly. Get notified instantly when the best deals appear.
+              </p>
+
+              {/* Price drop example */}
+              <div className="mt-5 rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
+                <div className="flex items-center gap-2 text-[11px] font-bold text-[#2C3E50]/60 uppercase tracking-wider">
+                  <TrendingDown className="w-3.5 h-3.5 text-[#2ECC71]" /> Real example · last 24h
+                </div>
+                <div className="mt-2 flex items-baseline gap-3">
+                  <span className="text-2xl font-extrabold text-slate-400 line-through">€180</span>
+                  <ArrowRight className="w-5 h-5 text-[#2ECC71]" />
+                  <span className="text-3xl font-extrabold text-[#2ECC71]">€120</span>
+                  <span className="text-xs font-bold text-[#27ae60] bg-[#2ECC71]/10 rounded-full px-2 py-0.5">−33%</span>
+                </div>
+                <p className="mt-1 text-xs text-[#2C3E50]/55">This match dropped €60 in 24 hours.</p>
+              </div>
+
+              <ul className="mt-5 space-y-2.5">
+                {[
+                  "Track this match in real time",
+                  "Get instant price alerts",
+                  "Be notified before prices increase",
+                  "Save money by buying at the right moment",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-[#2C3E50]">
+                    <span className="mt-0.5 w-5 h-5 rounded-full bg-[#2ECC71]/15 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-[#27ae60]" strokeWidth={3} />
+                    </span>
+                    <span className="font-medium">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="md:pl-4">
+              <div className="rounded-2xl bg-[#2C3E50] text-white p-6 md:p-7 shadow-xl shadow-[#2C3E50]/10">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-[#FFD93D]/15 border border-[#FFD93D]/30 px-2.5 py-1 text-[10px] font-bold text-[#FFD93D] uppercase tracking-wider">
+                  <Zap className="w-3 h-3" /> Tickets sell fast
+                </div>
+                <p className="mt-3 text-base font-bold leading-snug">
+                  Don't miss your chance — set up alerts in seconds.
+                </p>
+                <p className="mt-2 text-sm text-white/65">
+                  We'll watch every official provider 24/7 and ping you the moment prices drop or new tickets go on sale.
+                </p>
+
+                <button
+                  onClick={handleTrackPrice}
+                  className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-3.5 font-extrabold text-sm transition shadow-lg shadow-[#2ECC71]/20"
+                >
+                  <Bell className="w-4 h-4" /> Start tracking this match
+                </button>
+
+                <p className="mt-3 text-center text-xs text-white/55">
+                  Already have an account?{" "}
+                  <button
+                    onClick={() => navigate("/auth")}
+                    className="text-[#2ECC71] font-bold hover:underline"
+                  >
+                    Sign in
+                  </button>
+                </p>
+
+                <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-center gap-4 text-[11px] text-white/55">
+                  <span className="inline-flex items-center gap-1"><Check className="w-3 h-3 text-[#2ECC71]" /> Free to try</span>
+                  <span className="inline-flex items-center gap-1"><Check className="w-3 h-3 text-[#2ECC71]" /> No spam</span>
+                  <span className="inline-flex items-center gap-1"><TrendingUp className="w-3 h-3 text-[#2ECC71]" /> Save up to 40%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* OFFERS */}
       <section className="max-w-5xl mx-auto px-5 pb-16">
