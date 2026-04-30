@@ -161,6 +161,30 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_matches: {
+        Row: {
+          alerts_enabled: boolean
+          created_at: string
+          id: string
+          match_id: string
+          user_id: string
+        }
+        Insert: {
+          alerts_enabled?: boolean
+          created_at?: string
+          id?: string
+          match_id: string
+          user_id: string
+        }
+        Update: {
+          alerts_enabled?: boolean
+          created_at?: string
+          id?: string
+          match_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -303,6 +327,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          favorite_leagues: string[]
+          favorite_teams: string[]
+          id: string
+          onboarding_completed: boolean
+          onboarding_skipped_at: string | null
+          updated_at: string
+          user_id: string
+          user_intent: string[]
+        }
+        Insert: {
+          created_at?: string
+          favorite_leagues?: string[]
+          favorite_teams?: string[]
+          id?: string
+          onboarding_completed?: boolean
+          onboarding_skipped_at?: string | null
+          updated_at?: string
+          user_id: string
+          user_intent?: string[]
+        }
+        Update: {
+          created_at?: string
+          favorite_leagues?: string[]
+          favorite_teams?: string[]
+          id?: string
+          onboarding_completed?: boolean
+          onboarding_skipped_at?: string | null
+          updated_at?: string
+          user_id?: string
+          user_intent?: string[]
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

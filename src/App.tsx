@@ -23,6 +23,7 @@ import PollsPage from "./pages/PollsPage";
 import QuizPage from "./pages/QuizPage";
 import AdminPage from "./pages/AdminPage";
 import AuthPage from "./pages/AuthPage";
+import OnboardingPage from "./pages/OnboardingPage";
 import NotFound from "./pages/NotFound";
 import AboutPage from "./pages/marketing/AboutPage";
 import PricingPage from "./pages/marketing/PricingPage";
@@ -32,6 +33,8 @@ import TermsPage from "./pages/marketing/TermsPage";
 import RefundPage from "./pages/marketing/RefundPage";
 import { AIAssistantWidget } from "./components/AIAssistantWidget";
 import { RequireAdmin } from "./components/RequireAdmin";
+import { RequireAuth } from "./components/auth/RequireAuth";
+import { AuthGateProvider } from "./components/auth/AuthGate";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,6 +54,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <AuthGateProvider>
             <Routes>
               {/* ========== PUBLIC SEO WEBSITE (no login) ========== */}
               <Route path="/" element={<WebsiteHomePage />} />
@@ -68,21 +72,22 @@ const App = () => (
               <Route path="/legal/refund" element={<RefundPage />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/onboarding" element={<RequireAuth><OnboardingPage /></RequireAuth>} />
 
               {/* ========== FULL APPLICATION (logged-in companion) ========== */}
-              <Route path="/app/home" element={<HomePage />} />
-              <Route path="/app/matches" element={<MatchesPage />} />
-              <Route path="/app/matches/:id" element={<MatchDetailPage />} />
+              <Route path="/app/home" element={<RequireAuth><HomePage /></RequireAuth>} />
+              <Route path="/app/matches" element={<RequireAuth><MatchesPage /></RequireAuth>} />
+              <Route path="/app/matches/:id" element={<RequireAuth><MatchDetailPage /></RequireAuth>} />
               {/* legacy match detail path */}
-              <Route path="/app/match/:id" element={<MatchDetailPage />} />
-              <Route path="/app/calendar" element={<CalendarPage />} />
-              <Route path="/app/notifications" element={<NotificationsPage />} />
-              <Route path="/app/favorites" element={<NotificationsPage />} />
-              <Route path="/app/daily-game" element={<QuizPage />} />
-              <Route path="/app/rewards" element={<QuizPage />} />
-              <Route path="/app/polls" element={<PollsPage />} />
-              <Route path="/app/profile" element={<ProfilePage />} />
-              <Route path="/app/premium" element={<PremiumPage />} />
+              <Route path="/app/match/:id" element={<RequireAuth><MatchDetailPage /></RequireAuth>} />
+              <Route path="/app/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
+              <Route path="/app/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+              <Route path="/app/favorites" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+              <Route path="/app/daily-game" element={<RequireAuth><QuizPage /></RequireAuth>} />
+              <Route path="/app/rewards" element={<RequireAuth><QuizPage /></RequireAuth>} />
+              <Route path="/app/polls" element={<RequireAuth><PollsPage /></RequireAuth>} />
+              <Route path="/app/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+              <Route path="/app/premium" element={<RequireAuth><PremiumPage /></RequireAuth>} />
               <Route
                 path="/app/admin"
                 element={
@@ -95,6 +100,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AIAssistantWidget />
+            </AuthGateProvider>
           </BrowserRouter>
         </UserProvider>
       </LanguageProvider>
