@@ -1,5 +1,5 @@
-import { Link, useParams } from "react-router-dom";
-import { Calendar, MapPin, Trophy, ArrowRight, ExternalLink, ShieldCheck, BellRing, ArrowLeft, TrendingDown, Heart } from "lucide-react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { Calendar, MapPin, Trophy, ArrowRight, ExternalLink, ShieldCheck, BellRing, ArrowLeft, TrendingDown, Heart, Bell, Zap, Check, TrendingUp } from "lucide-react";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatch } from "@/hooks/useMatches";
 import { useTicketOffers } from "@/hooks/useTicketOffers";
