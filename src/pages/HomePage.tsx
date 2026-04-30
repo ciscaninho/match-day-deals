@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useMatches } from "@/hooks/useMatches";
 import { Skeleton } from "@/components/ui/skeleton";
 import { newsItems } from "@/data/news";
+import { OnboardingBanner } from "@/components/OnboardingBanner";
 import { Search, ArrowRight, Crown, Star, Zap, Ticket, Trophy, Flame } from "lucide-react";
 
 const HomePage = () => {
@@ -50,6 +51,10 @@ const HomePage = () => {
       </div>
 
       <AdBanner variant="banner" />
+
+      <div className="px-5 mt-4">
+        <OnboardingBanner />
+      </div>
 
       {/* Daily Quiz CTA */}
       <div className="px-5 mt-4">
