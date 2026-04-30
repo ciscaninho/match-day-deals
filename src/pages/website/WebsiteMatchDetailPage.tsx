@@ -17,6 +17,7 @@ const formatPrice = (price: number | null, currency: string) => {
 
 const WebsiteMatchDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { data: match, isLoading } = useMatch(id);
   const { data: offers = [], isLoading: offersLoading } = useTicketOffers(id);
   const { requirePremium } = usePremiumGate();
