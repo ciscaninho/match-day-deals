@@ -1,9 +1,13 @@
 import { Link, useParams } from "react-router-dom";
-import { Calendar, MapPin, Trophy, ArrowRight, ExternalLink, ShieldCheck, BellRing, ArrowLeft } from "lucide-react";
+import { Calendar, MapPin, Trophy, ArrowRight, ExternalLink, ShieldCheck, BellRing, ArrowLeft, TrendingDown, Heart } from "lucide-react";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatch } from "@/hooks/useMatches";
 import { useTicketOffers } from "@/hooks/useTicketOffers";
 import { useSEO, slugify } from "@/lib/seo";
+import { usePremiumGate } from "@/components/premium/PremiumGate";
+import { useUser } from "@/contexts/UserContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const formatPrice = (price: number | null, currency: string) => {
   if (price == null) return "—";
@@ -15,6 +19,42 @@ const WebsiteMatchDetailPage = () => {
   const { id } = useParams();
   const { data: match, isLoading } = useMatch(id);
   const { data: offers = [], isLoading: offersLoading } = useTicketOffers(id);
+  const { requirePremium } = usePremiumGate();
+  const { user } = useUser();
+
+  const handleTrackPrice = () => {
+    requirePremium(
+      async () => {
+        if (!user || !match) return;
+        const { error } = await supabase
+          .from("saved_matches")
+          .insert({ user_id: user.id, match_id: match.id, alerts_enabled: true });
+        if (error && !error.message.includes("duplicate")) {
+          toast.error("Could not save match.");
+          return;
+        }
+        toast.success("Tracking price for this match!");
+      },
+      { intent: "track" }
+    );
+  };
+
+  const handleSaveMatch = () => {
+    requirePremium(
+      async () => {
+        if (!user || !match) return;
+        const { error } = await supabase
+          .from("saved_matches")
+          .insert({ user_id: user.id, match_id: match.id, alerts_enabled: false });
+        if (error && !error.message.includes("duplicate")) {
+          toast.error("Could not save match.");
+          return;
+        }
+        toast.success("Saved to your favourites!");
+      },
+      { intent: "save" }
+    );
+  };
 
   const cheapest = offers.find((o) => o.price != null && o.inStock);
   const title = match
