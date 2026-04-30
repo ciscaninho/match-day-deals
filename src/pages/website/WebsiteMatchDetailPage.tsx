@@ -172,9 +172,8 @@ const WebsiteMatchDetailPage = () => {
         </div>
       </section>
 
-      {/* spacer to keep original layout */}
-      <div className="hidden">{`
-{/* end hero */}`}</div>
+
+
 
       {/* OFFERS */}
       <section className="max-w-5xl mx-auto px-5 pb-16">
