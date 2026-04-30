@@ -60,6 +60,7 @@ const App = () => (
           <BrowserRouter>
             <AuthGateProvider>
             <PremiumGateProvider>
+            <TrackPriceSheetProvider>
             <Routes>
               {/* ========== PUBLIC SEO WEBSITE (no login) ========== */}
               <Route path="/" element={<WebsiteHomePage />} />
