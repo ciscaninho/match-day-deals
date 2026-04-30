@@ -251,6 +251,59 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_offers: {
+        Row: {
+          category: string | null
+          created_at: string
+          currency: string
+          id: string
+          in_stock: boolean
+          last_checked_at: string
+          match_id: string
+          price: number | null
+          provider: string
+          provider_logo: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          in_stock?: boolean
+          last_checked_at?: string
+          match_id: string
+          price?: number | null
+          provider: string
+          provider_logo?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          in_stock?: boolean
+          last_checked_at?: string
+          match_id?: string
+          price?: number | null
+          provider?: string
+          provider_logo?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_offers_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
