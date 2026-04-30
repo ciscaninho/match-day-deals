@@ -20,9 +20,27 @@ interface Props {
 
 export const AuthModal = ({ open, onOpenChange, reason, onAuthenticated }: Props) => {
   const [tab, setTab] = useState<"signin" | "signup">("signup");
+  const [mode, setMode] = useState<"magic" | "password">("magic");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [magicSent, setMagicSent] = useState(false);
+
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/app/home` },
+    });
+    setSubmitting(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setMagicSent(true);
+    toast.success("Check your email for a sign-in link.");
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
