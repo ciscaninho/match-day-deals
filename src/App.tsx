@@ -107,6 +107,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AIAssistantWidget />
+            </TrackPriceSheetProvider>
             </PremiumGateProvider>
             </AuthGateProvider>
           </BrowserRouter>
