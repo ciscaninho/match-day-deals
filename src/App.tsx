@@ -8,6 +8,11 @@ import { LanguageProvider } from "@/i18n/LanguageContext";
 import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
 import Maintenance from "./pages/Maintenance";
+import WebsiteHomePage from "./pages/website/WebsiteHomePage";
+import WebsiteMatchesPage from "./pages/website/WebsiteMatchesPage";
+import WebsiteMatchDetailPage from "./pages/website/WebsiteMatchDetailPage";
+import WebsiteLeaguesPage, { WebsiteLeaguePage } from "./pages/website/WebsiteLeaguesPage";
+import AppLandingPage from "./pages/website/AppLandingPage";
 import MatchesPage from "./pages/MatchesPage";
 import MatchDetailPage from "./pages/MatchDetailPage";
 import CalendarPage from "./pages/CalendarPage";
@@ -47,8 +52,13 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* ========== PUBLIC MARKETING WEBSITE ========== */}
-              <Route path="/" element={<Maintenance />} />
+              {/* ========== PUBLIC SEO WEBSITE (no login) ========== */}
+              <Route path="/" element={<WebsiteHomePage />} />
+              <Route path="/matches" element={<WebsiteMatchesPage />} />
+              <Route path="/matches/:id" element={<WebsiteMatchDetailPage />} />
+              <Route path="/leagues" element={<WebsiteLeaguesPage />} />
+              <Route path="/leagues/:slug" element={<WebsiteLeaguePage />} />
+              <Route path="/app" element={<AppLandingPage />} />
               <Route path="/landing" element={<LandingPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/pricing" element={<PricingPage />} />
@@ -59,8 +69,8 @@ const App = () => (
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/auth" element={<AuthPage />} />
 
-              {/* ========== FULL APPLICATION ========== */}
-              <Route path="/app" element={<HomePage />} />
+              {/* ========== FULL APPLICATION (logged-in companion) ========== */}
+              <Route path="/app/home" element={<HomePage />} />
               <Route path="/app/matches" element={<MatchesPage />} />
               <Route path="/app/matches/:id" element={<MatchDetailPage />} />
               {/* legacy match detail path */}
