@@ -28,7 +28,7 @@ export const RequireAdmin = ({ children }: RequireAdminProps) => {
   }
 
   if (!isAdmin) {
-    return <Navigate to="/app" replace />;
+    return <Navigate to="/app/home" replace />;
   }
 
   return <>{children}</>;
