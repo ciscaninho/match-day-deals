@@ -25,6 +25,7 @@ import AdminPage from "./pages/AdminPage";
 import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import AlertsPage from "./pages/AlertsPage";
+import PremiumUpsellPage from "./pages/PremiumUpsellPage";
 import NotFound from "./pages/NotFound";
 import AboutPage from "./pages/marketing/AboutPage";
 import PricingPage from "./pages/marketing/PricingPage";
@@ -37,6 +38,7 @@ import { RequireAdmin } from "./components/RequireAdmin";
 import { RequireAuth } from "./components/auth/RequireAuth";
 import { AuthGateProvider } from "./components/auth/AuthGate";
 import { PremiumGateProvider } from "./components/premium/PremiumGate";
+import { TrackPriceSheetProvider } from "./components/track/TrackPriceSheet";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +60,7 @@ const App = () => (
           <BrowserRouter>
             <AuthGateProvider>
             <PremiumGateProvider>
+            <TrackPriceSheetProvider>
             <Routes>
               {/* ========== PUBLIC SEO WEBSITE (no login) ========== */}
               <Route path="/" element={<WebsiteHomePage />} />
@@ -86,6 +89,7 @@ const App = () => (
               <Route path="/app/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
               <Route path="/app/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
               <Route path="/app/alerts" element={<RequireAuth><AlertsPage /></RequireAuth>} />
+              <Route path="/app/upsell" element={<RequireAuth><PremiumUpsellPage /></RequireAuth>} />
               <Route path="/app/favorites" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
               <Route path="/app/daily-game" element={<RequireAuth><QuizPage /></RequireAuth>} />
               <Route path="/app/rewards" element={<RequireAuth><QuizPage /></RequireAuth>} />
@@ -104,6 +108,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AIAssistantWidget />
+            </TrackPriceSheetProvider>
             </PremiumGateProvider>
             </AuthGateProvider>
           </BrowserRouter>
