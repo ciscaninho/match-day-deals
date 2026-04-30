@@ -32,7 +32,7 @@ const PremiumPage = () => {
     refreshSubscription();
   }, [refreshSubscription]);
 
-  const handleSubscribe = async (priceId: "premium_monthly" | "premium_yearly") => {
+  const handleSubscribe = async (priceId: "premium_monthly_199" | "premium_yearly") => {
     if (!user) {
       toast.error("Please sign in to subscribe");
       navigate("/auth");
@@ -139,12 +139,12 @@ const PremiumPage = () => {
                 <p className="text-xs text-muted-foreground">{t("premium.billed_monthly")}</p>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-foreground">€2.99</p>
+                <p className="text-lg font-bold text-foreground">€1.99</p>
                 <Button
                   size="sm"
                   className="mt-1 text-xs"
                   disabled={checkoutLoading}
-                  onClick={() => handleSubscribe("premium_monthly")}
+                  onClick={() => handleSubscribe("premium_monthly_199")}
                 >
                   {checkoutLoading ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
