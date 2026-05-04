@@ -27,7 +27,7 @@ const PROVIDERS = ["StubHub", "Viagogo", "Ticketmaster", "Seatpick", "LiveFootba
 
 const WebsiteHomePage = () => {
   const { data: matches = [], isLoading, isError, error } = useMatches();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [q, setQ] = useState("");
 
   if (isError) console.error("[WebsiteHome] matches load error", error);
