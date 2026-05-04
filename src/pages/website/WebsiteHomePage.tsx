@@ -21,12 +21,17 @@ import {
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const PROVIDERS = ["StubHub", "Viagogo", "Ticketmaster", "Seatpick", "LiveFootballTickets", "OneFootball"];
 
 const WebsiteHomePage = () => {
-  const { data: matches = [] } = useMatches();
+  const { data: matches = [], isLoading, isError, error } = useMatches();
+  const { t } = useLanguage();
   const [q, setQ] = useState("");
+
+  if (isError) console.error("[WebsiteHome] matches load error", error);
+  if (!isLoading && !isError) console.log("[WebsiteHome] matches loaded:", matches.length);
 
   useSEO({
     title: "Compare football ticket prices instantly | Foot Ticket Finder",
