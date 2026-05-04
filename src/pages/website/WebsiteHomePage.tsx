@@ -313,20 +313,20 @@ const WebsiteHomePage = () => {
         <div className="relative max-w-6xl mx-auto px-5 grid md:grid-cols-2 gap-12 items-center">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-[#2ECC71]/30 bg-[#2ECC71]/10 px-3 py-1 text-xs font-bold text-[#2ECC71] mb-5">
-              <Bell className="w-3.5 h-3.5" /> Free companion app
+              <Bell className="w-3.5 h-3.5" /> {t("wh.app.badge")}
             </span>
             <h2 className="text-3xl md:text-5xl font-extrabold leading-[1.05]">
-              Never miss a <span className="text-[#2ECC71]">price drop</span>.
+              {t("wh.app.title_1")} <span className="text-[#2ECC71]">{t("wh.app.title_highlight")}</span>{t("wh.app.title_dot")}
             </h2>
             <p className="mt-5 text-white/70 text-base md:text-lg leading-relaxed max-w-lg">
-              Track matches, get instant alerts when prices fall, and save your favorites — all in one place.
+              {t("wh.app.desc")}
             </p>
 
             <ul className="mt-7 space-y-3 text-sm">
               {[
-                { icon: Heart, label: "Track matches & save favorites" },
-                { icon: BellRing, label: "Get instant price-drop alerts" },
-                { icon: Trophy, label: "Be first when tickets go on sale" },
+                { icon: Heart, label: t("wh.app.b1") },
+                { icon: BellRing, label: t("wh.app.b2") },
+                { icon: Trophy, label: t("wh.app.b3") },
               ].map((b) => (
                 <li key={b.label} className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-[#2ECC71]/15 flex items-center justify-center">
@@ -339,10 +339,10 @@ const WebsiteHomePage = () => {
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link to="/app" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-bold transition-colors shadow-lg shadow-[#2ECC71]/30">
-                Get the app <ArrowRight className="w-4 h-4" />
+                {t("wh.app.cta_get")} <ArrowRight className="w-4 h-4" />
               </Link>
               <Link to="/app" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white px-6 py-3.5 font-bold transition">
-                <Bell className="w-4 h-4" /> Enable price alerts
+                <Bell className="w-4 h-4" /> {t("wh.app.cta_alerts")}
               </Link>
             </div>
           </div>
