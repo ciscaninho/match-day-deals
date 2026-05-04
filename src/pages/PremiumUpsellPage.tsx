@@ -1,28 +1,27 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Check, Zap, TrendingDown, Loader2, ArrowLeft } from "lucide-react";
+import { Bell, Check, Zap, Loader2, ArrowLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { supabase } from "@/integrations/supabase/client";
 import { getPendingTrack, clearPendingTrack } from "@/components/track/TrackPriceSheet";
 import { useSEO } from "@/lib/seo";
 import { toast } from "sonner";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const PremiumUpsellPage = () => {
+  const { t, dir } = useLanguage();
   useSEO({ title: "Enable price alerts — Foot Ticket Finder", description: "Activate real-time price alerts for €1.99/month." });
   const navigate = useNavigate();
   const { user, authLoading, isPremium } = useUser();
   const { openCheckout, loading } = usePaddleCheckout();
-  const [pending, setPending] = useState<{ matchId: string; matchLabel?: string } | null>(null);
+  const [, setPending] = useState<{ matchId: string; matchLabel?: string } | null>(null);
   const [savedOnce, setSavedOnce] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth", { replace: true });
-    }
+    if (!authLoading && !user) navigate("/auth", { replace: true });
   }, [user, authLoading, navigate]);
 
-  // Save the pending match (best-effort) on first mount.
   useEffect(() => {
     const p = getPendingTrack();
     setPending(p ? { matchId: p.matchId, matchLabel: p.matchLabel } : null);
@@ -38,7 +37,6 @@ const PremiumUpsellPage = () => {
     })();
   }, [user, savedOnce]);
 
-  // Already premium → skip straight to alerts page
   useEffect(() => {
     if (isPremium) {
       clearPendingTrack();
@@ -57,7 +55,7 @@ const PremiumUpsellPage = () => {
       });
     } catch (e) {
       console.error(e);
-      toast.error("Could not open checkout. Please try again.");
+      toast.error(t("upsell.checkout_error"));
     }
   };
 
@@ -67,48 +65,29 @@ const PremiumUpsellPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white" dir={dir}>
       <div className="max-w-md mx-auto px-5 py-10">
-        <button
-          onClick={handleSkip}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-700"
-        >
-          <ArrowLeft className="w-4 h-4" /> Maybe later
+        <button onClick={handleSkip} className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-700">
+          <ArrowLeft className={`w-4 h-4 ${dir === "rtl" ? "rotate-180" : ""}`} /> {t("upsell.back")}
         </button>
 
-        {/* Confirmation card */}
         <div className="mt-6 rounded-2xl bg-gradient-to-br from-[#F0FFF6] via-white to-white border border-[#2ECC71]/25 p-5 shadow-sm">
           <div className="w-12 h-12 rounded-xl bg-[#2ECC71]/15 flex items-center justify-center">
             <Check className="w-6 h-6 text-[#27ae60]" strokeWidth={3} />
           </div>
-          <h1 className="mt-3 text-2xl font-extrabold text-[#2C3E50] leading-tight">
-            🔔 You're now tracking this match
-          </h1>
-          <p className="mt-1.5 text-sm text-[#2C3E50]/65">
-            Get notified instantly when prices drop.
-          </p>
+          <h1 className="mt-3 text-2xl font-extrabold text-[#2C3E50] leading-tight">{t("upsell.confirm.title")}</h1>
+          <p className="mt-1.5 text-sm text-[#2C3E50]/65">{t("upsell.confirm.desc")}</p>
         </div>
 
-        {/* Urgency */}
         <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-orange-50 border border-orange-200 px-3 py-1.5 text-[11px] font-bold text-orange-700 uppercase tracking-wider">
-          <Zap className="w-3.5 h-3.5" /> Prices change every hour
+          <Zap className="w-3.5 h-3.5" /> {t("upsell.urgency")}
         </div>
 
-        <h2 className="mt-3 text-3xl font-extrabold text-[#2C3E50] tracking-tight leading-tight">
-          Enable price alerts
-        </h2>
-        <p className="mt-2 text-[#2C3E50]/70">
-          Save money by buying at the right time. Real-time alerts the moment prices drop.
-        </p>
+        <h2 className="mt-3 text-3xl font-extrabold text-[#2C3E50] tracking-tight leading-tight">{t("upsell.title")}</h2>
+        <p className="mt-2 text-[#2C3E50]/70">{t("upsell.subtitle")}</p>
 
-        {/* Benefits */}
         <ul className="mt-5 space-y-2.5">
-          {[
-            "Real-time price drop alerts",
-            "Unlimited saved matches",
-            "Track price history & trends",
-            "Cancel anytime — no commitment",
-          ].map((item) => (
+          {[t("upsell.benefit_1"), t("upsell.benefit_2"), t("upsell.benefit_3"), t("upsell.benefit_4")].map((item) => (
             <li key={item} className="flex items-start gap-2.5 text-sm text-[#2C3E50]">
               <span className="mt-0.5 w-5 h-5 rounded-full bg-[#2ECC71]/15 flex items-center justify-center shrink-0">
                 <Check className="w-3 h-3 text-[#27ae60]" strokeWidth={3} />
@@ -118,36 +97,26 @@ const PremiumUpsellPage = () => {
           ))}
         </ul>
 
-        {/* Price card */}
         <div className="mt-6 rounded-2xl border-2 border-[#2ECC71]/30 bg-white p-5 flex items-baseline justify-between shadow-sm">
           <div>
-            <p className="text-xs font-bold text-[#2ECC71] uppercase tracking-wider">Premium</p>
-            <p className="text-xs text-[#2C3E50]/60 mt-0.5">Cancel anytime</p>
+            <p className="text-xs font-bold text-[#2ECC71] uppercase tracking-wider">{t("upsell.plan_label")}</p>
+            <p className="text-xs text-[#2C3E50]/60 mt-0.5">{t("upsell.plan_cancel")}</p>
           </div>
           <p className="text-3xl font-extrabold text-[#2C3E50]">
-            €1.99<span className="text-sm font-medium text-[#2C3E50]/55">/mo</span>
+            €1.99<span className="text-sm font-medium text-[#2C3E50]/55">{t("upsell.price_per_month")}</span>
           </p>
         </div>
 
-        <button
-          onClick={handleSubscribe}
-          disabled={loading}
-          className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] disabled:opacity-60 text-white px-5 py-4 font-extrabold text-base transition shadow-lg shadow-[#2ECC71]/25"
-        >
+        <button onClick={handleSubscribe} disabled={loading} className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] disabled:opacity-60 text-white px-5 py-4 font-extrabold text-base transition shadow-lg shadow-[#2ECC71]/25">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bell className="w-4 h-4" />}
-          Enable price alerts
+          {t("upsell.cta")}
         </button>
 
-        <button
-          onClick={handleSkip}
-          className="mt-3 w-full text-sm font-semibold text-[#2C3E50]/55 hover:text-[#2C3E50]"
-        >
-          Continue with limited alerts
+        <button onClick={handleSkip} className="mt-3 w-full text-sm font-semibold text-[#2C3E50]/55 hover:text-[#2C3E50]">
+          {t("upsell.skip")}
         </button>
 
-        <p className="mt-4 text-center text-[11px] text-[#2C3E50]/45">
-          Secure payment via Paddle. Your match is already saved.
-        </p>
+        <p className="mt-4 text-center text-[11px] text-[#2C3E50]/45">{t("upsell.footer")}</p>
       </div>
     </div>
   );

@@ -102,3 +102,8 @@
     box-shadow: 0 0 30px -5px hsl(var(--pitch) / 0.25);
   }
 }
+
+/* RTL global tweaks for Arabic */
+html[dir="rtl"] body { text-align: right; }
+html[dir="rtl"] .text-left { text-align: right !important; }
+html[dir="rtl"] .text-right { text-align: left !important; }
