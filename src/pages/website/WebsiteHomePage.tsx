@@ -242,9 +242,17 @@ const WebsiteHomePage = () => {
             </Link>
           </div>
 
-          {upcoming.length === 0 ? (
+          {isLoading ? (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-[#2C3E50]/60">
-              No upcoming matches yet. Check back soon.
+              {t("website.matches.loading")}
+            </div>
+          ) : isError ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center text-sm text-rose-700">
+              {t("website.matches.error")}
+            </div>
+          ) : upcoming.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-[#2C3E50]/60">
+              {t("website.matches.empty")}
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
