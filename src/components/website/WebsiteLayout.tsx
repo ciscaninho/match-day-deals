@@ -53,7 +53,7 @@ export const WebsiteLayout = ({ children }: Props) => {
               to="/app"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-[#2C3E50] text-white text-xs font-bold px-4 py-2 hover:bg-[#1f2d3a] transition-colors"
             >
-              <Bell className="w-3.5 h-3.5" /> Get the app
+              <Bell className="w-3.5 h-3.5" /> {t("website.nav.get_app")}
             </Link>
             <button
               type="button"
@@ -84,7 +84,7 @@ export const WebsiteLayout = ({ children }: Props) => {
                 onClick={() => setOpen(false)}
                 className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-full bg-[#2C3E50] text-white text-xs font-bold px-4 py-2.5"
               >
-                <Bell className="w-3.5 h-3.5" /> Get the app
+                <Bell className="w-3.5 h-3.5" /> {t("website.nav.get_app")}
               </Link>
             </div>
           </div>
