@@ -21,12 +21,17 @@ import {
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const PROVIDERS = ["StubHub", "Viagogo", "Ticketmaster", "Seatpick", "LiveFootballTickets", "OneFootball"];
 
 const WebsiteHomePage = () => {
-  const { data: matches = [] } = useMatches();
+  const { data: matches = [], isLoading, isError, error } = useMatches();
+  const { t } = useLanguage();
   const [q, setQ] = useState("");
+
+  if (isError) console.error("[WebsiteHome] matches load error", error);
+  if (!isLoading && !isError) console.log("[WebsiteHome] matches loaded:", matches.length);
 
   useSEO({
     title: "Compare football ticket prices instantly | Foot Ticket Finder",
@@ -237,9 +242,17 @@ const WebsiteHomePage = () => {
             </Link>
           </div>
 
-          {upcoming.length === 0 ? (
+          {isLoading ? (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-[#2C3E50]/60">
-              No upcoming matches yet. Check back soon.
+              {t("website.matches.loading")}
+            </div>
+          ) : isError ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center text-sm text-rose-700">
+              {t("website.matches.error")}
+            </div>
+          ) : upcoming.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-[#2C3E50]/60">
+              {t("website.matches.empty")}
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
