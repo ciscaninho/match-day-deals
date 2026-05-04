@@ -39,13 +39,14 @@ const LEAGUES: { id: string; name: string; flag: string }[] = [
   { id: "world-cup", name: "World Cup", flag: "🌍" },
 ];
 
-const INTENTS: { id: string; title: string; desc: string; icon: typeof Bell }[] = [
-  { id: "alerts", title: "Get price alerts", desc: "Notify me when prices drop", icon: Bell },
-  { id: "tracking", title: "Track matches", desc: "Build a watchlist of upcoming games", icon: Heart },
-  { id: "deals", title: "Find best deals", desc: "Show me cheapest available tickets", icon: TrendingDown },
+const INTENTS: { id: "alerts" | "tracking" | "deals"; icon: typeof Bell }[] = [
+  { id: "alerts", icon: Bell },
+  { id: "tracking", icon: Heart },
+  { id: "deals", icon: TrendingDown },
 ];
 
 const OnboardingPage = () => {
+  const { t, dir } = useLanguage();
   useSEO({ title: "Welcome to Foot Ticket Finder", description: "Personalize your experience" });
   const navigate = useNavigate();
   const { user, authLoading } = useUser();
