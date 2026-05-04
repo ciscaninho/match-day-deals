@@ -11,7 +11,7 @@ interface Props {
 
 export const WebsiteLayout = ({ children }: Props) => {
   const [open, setOpen] = useState(false);
-  const { t } = useLanguage();
+  const { t, dir } = useLanguage();
 
   const navItems = [
     { label: t("website.nav.matches"), to: "/matches" },
@@ -93,7 +93,7 @@ export const WebsiteLayout = ({ children }: Props) => {
 
       <main className="flex-1">{children}</main>
 
-      <footer className="bg-[#2C3E50] text-white/80 mt-16">
+      <footer dir={dir} className="bg-[#2C3E50] text-white/80 mt-16">
         <div className="max-w-6xl mx-auto px-5 py-12 grid md:grid-cols-4 gap-10">
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
@@ -103,31 +103,31 @@ export const WebsiteLayout = ({ children }: Props) => {
               <span className="font-extrabold text-white tracking-tight">Foot Ticket Finder</span>
             </Link>
             <p className="text-sm text-white/60 max-w-sm leading-relaxed">
-              Compare football ticket prices across official providers. Find the best deals before they sell out.
+              {t("website.footer.tagline")}
             </p>
           </div>
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Browse</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">{t("website.footer.browse")}</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link to="/matches" className="hover:text-[#2ECC71]">All matches</Link></li>
-              <li><Link to="/leagues" className="hover:text-[#2ECC71]">Leagues</Link></li>
-              <li><Link to="/about" className="hover:text-[#2ECC71]">How it works</Link></li>
-              <li><Link to="/pricing" className="hover:text-[#2ECC71]">Pricing</Link></li>
-              <li><Link to="/app" className="hover:text-[#2ECC71]">The app</Link></li>
+              <li><Link to="/matches" className="hover:text-[#2ECC71]">{t("website.footer.all_matches")}</Link></li>
+              <li><Link to="/leagues" className="hover:text-[#2ECC71]">{t("website.footer.leagues")}</Link></li>
+              <li><Link to="/about" className="hover:text-[#2ECC71]">{t("website.footer.how")}</Link></li>
+              <li><Link to="/pricing" className="hover:text-[#2ECC71]">{t("website.footer.pricing")}</Link></li>
+              <li><Link to="/app" className="hover:text-[#2ECC71]">{t("website.footer.the_app")}</Link></li>
             </ul>
           </div>
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Legal</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">{t("website.footer.legal")}</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link to="/legal/privacy" className="hover:text-[#2ECC71]">Privacy policy</Link></li>
-              <li><Link to="/legal/terms" className="hover:text-[#2ECC71]">Terms of service</Link></li>
-              <li><Link to="/legal/refund" className="hover:text-[#2ECC71]">Refund policy</Link></li>
+              <li><Link to="/legal/privacy" className="hover:text-[#2ECC71]">{t("website.footer.privacy")}</Link></li>
+              <li><Link to="/legal/terms" className="hover:text-[#2ECC71]">{t("website.footer.terms")}</Link></li>
+              <li><Link to="/legal/refund" className="hover:text-[#2ECC71]">{t("website.footer.refund")}</Link></li>
             </ul>
           </div>
         </div>
         <div className="border-t border-white/10">
           <div className="max-w-6xl mx-auto px-5 py-5 text-xs text-white/50 text-center">
-            © {new Date().getFullYear()} Foot Ticket Finder. We compare official sources — we do not sell tickets.
+            {t("website.footer.copyright", { year: new Date().getFullYear() })}
           </div>
         </div>
       </footer>
