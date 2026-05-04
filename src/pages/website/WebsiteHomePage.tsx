@@ -357,8 +357,8 @@ const WebsiteHomePage = () => {
                   <span className="text-[10px] font-bold text-[#2C3E50]">●●● 5G</span>
                 </div>
                 <div className="px-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#2ECC71]">Price alerts</p>
-                  <h3 className="text-[#2C3E50] font-extrabold text-lg leading-tight mt-0.5">Your matches</h3>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#2ECC71]">{t("wh.app.phone_eyebrow")}</p>
+                  <h3 className="text-[#2C3E50] font-extrabold text-lg leading-tight mt-0.5">{t("wh.app.phone_title")}</h3>
                 </div>
                 <div className="px-4 mt-4 space-y-2.5">
                   {[
@@ -372,7 +372,7 @@ const WebsiteHomePage = () => {
                         <span className="text-[11px] font-extrabold text-[#27ae60]">{row.p}</span>
                       </div>
                       <div className="flex items-center justify-between mt-1">
-                        <span className="text-[9px] text-[#2C3E50]/50">12 providers</span>
+                        <span className="text-[9px] text-[#2C3E50]/50">{t("wh.app.phone_providers")}</span>
                         <span className={`text-[9px] font-bold ${row.ok ? "text-emerald-600" : "text-rose-500"}`}>{row.d}</span>
                       </div>
                     </div>
@@ -381,7 +381,7 @@ const WebsiteHomePage = () => {
                 <div className="px-4 mt-4">
                   <div className="rounded-xl bg-[#2ECC71]/10 border border-[#2ECC71]/20 p-2.5 flex items-center gap-2">
                     <Bell className="w-3.5 h-3.5 text-[#2ECC71]" />
-                    <span className="text-[10px] font-bold text-[#2C3E50]">Price drop alert · Liverpool – Man Utd</span>
+                    <span className="text-[10px] font-bold text-[#2C3E50]">{t("wh.app.phone_alert")}</span>
                   </div>
                 </div>
               </div>
