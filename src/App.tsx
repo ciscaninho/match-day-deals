@@ -63,7 +63,7 @@ const App = () => (
             <TrackPriceSheetProvider>
             <Routes>
               {/* ========== PUBLIC SEO WEBSITE (no login) ========== */}
-              <Route path="/" element={<Maintenance />} />
+              <Route path="/" element={<WebsiteHomePage />} />
               <Route path="/site" element={<WebsiteHomePage />} />
               <Route path="/matches" element={<WebsiteMatchesPage />} />
               <Route path="/matches/:id" element={<WebsiteMatchDetailPage />} />
