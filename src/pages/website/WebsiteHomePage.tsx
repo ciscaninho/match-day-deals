@@ -131,15 +131,13 @@ const WebsiteHomePage = () => {
             </button>
           </form>
 
-          {/* Live example under the search bar */}
-          {heroExample ? (
+          {/* Live featured match under the search bar */}
+          {heroExample && (
             <Link
               to={`/matches/${heroExample.id}`}
               className="mt-4 inline-flex items-center gap-3 max-w-2xl mx-auto rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-4 py-2.5 text-left transition group"
             >
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#2ECC71]">
-                <Sparkles className="w-3 h-3" /> {t("wh.hero.example_label")}
-              </span>
+              <Sparkles className="w-3.5 h-3.5 text-[#2ECC71] shrink-0" />
               <span className="text-sm text-white/85">
                 <span className="font-bold">{heroExample.homeTeam} vs {heroExample.awayTeam}</span>
                 {heroExample.startingPrice != null && (
@@ -149,13 +147,6 @@ const WebsiteHomePage = () => {
               </span>
               <ArrowRight className="w-3.5 h-3.5 text-[#2ECC71] ml-auto group-hover:translate-x-0.5 transition" />
             </Link>
-          ) : (
-            <div className="mt-4 inline-flex items-center gap-3 max-w-2xl mx-auto rounded-xl bg-white/[0.06] border border-white/10 px-4 py-2.5 text-sm text-white/75">
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#2ECC71]">
-                <Sparkles className="w-3 h-3" /> {t("wh.hero.example_label")}
-              </span>
-              <span>{t("wh.hero.example_static")}</span>
-            </div>
           )}
 
           {/* Primary + secondary CTA */}
