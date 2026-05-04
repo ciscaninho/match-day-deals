@@ -1,4 +1,4 @@
-export type Locale = "en" | "fr" | "nl" | "es" | "de" | "it" | "pt";
+export type Locale = "en" | "fr" | "nl" | "es" | "de" | "it" | "pt" | "ar" | "ru";
 
 // Common keys used by the LandingPage. Other app keys can fall back to English.
 const enLanding = {
