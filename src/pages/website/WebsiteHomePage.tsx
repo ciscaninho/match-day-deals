@@ -185,7 +185,7 @@ const WebsiteHomePage = () => {
       {/* TRUST / PROVIDERS */}
       <section className="py-12 bg-white border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-5 text-center">
-          <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]/50">Compare prices from trusted providers</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]/50">{t("wh.providers.eyebrow")}</p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
             {PROVIDERS.map((p) => (
               <span key={p} className="text-[#2C3E50]/40 hover:text-[#2C3E50]/70 transition font-extrabold tracking-tight text-lg md:text-xl">
@@ -195,7 +195,7 @@ const WebsiteHomePage = () => {
           </div>
           <div className="mt-6 inline-flex items-center gap-2 text-xs text-[#2C3E50]/60">
             <Users className="w-4 h-4 text-[#2ECC71]" />
-            <span>Thousands of fans compare prices daily</span>
+            <span>{t("wh.providers.daily")}</span>
           </div>
         </div>
       </section>
@@ -204,14 +204,14 @@ const WebsiteHomePage = () => {
       <section className="py-16 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-5">
           <div className="text-center mb-12">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">How it works</span>
-            <h2 className="mt-2 text-3xl md:text-4xl font-extrabold">Best deals in 3 steps</h2>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">{t("wh.how.eyebrow")}</span>
+            <h2 className="mt-2 text-3xl md:text-4xl font-extrabold">{t("wh.how.title")}</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-5">
             {[
-              { icon: Search, title: "Search your match", desc: "Type a team, league or city. We find every upcoming fixture instantly." },
-              { icon: TrendingDown, title: "Compare prices instantly", desc: "See offers from every official provider, side by side, in real time." },
-              { icon: CheckCircle2, title: "Choose the best deal", desc: "Click through to the cheapest verified provider and buy at source." },
+              { icon: Search, title: t("wh.how.s1.title"), desc: t("wh.how.s1.desc") },
+              { icon: TrendingDown, title: t("wh.how.s2.title"), desc: t("wh.how.s2.desc") },
+              { icon: CheckCircle2, title: t("wh.how.s3.title"), desc: t("wh.how.s3.desc") },
             ].map((s, i) => (
               <div key={s.title} className="relative rounded-2xl border border-slate-200 p-7 hover:border-[#2ECC71]/40 hover:shadow-lg transition">
                 <span className="absolute -top-3 left-7 inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#2ECC71] text-white text-xs font-extrabold shadow-md">
@@ -233,12 +233,12 @@ const WebsiteHomePage = () => {
         <div className="max-w-6xl mx-auto px-5">
           <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">Live now</span>
-              <h2 className="mt-2 text-3xl md:text-4xl font-extrabold">Popular matches right now</h2>
-              <p className="text-sm text-[#2C3E50]/60 mt-1">Real prices, updated continuously across providers.</p>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">{t("wh.live.eyebrow")}</span>
+              <h2 className="mt-2 text-3xl md:text-4xl font-extrabold">{t("wh.live.title")}</h2>
+              <p className="text-sm text-[#2C3E50]/60 mt-1">{t("wh.live.subtitle")}</p>
             </div>
             <Link to="/matches" className="text-sm font-bold text-[#2C3E50] hover:text-[#2ECC71] inline-flex items-center gap-1.5">
-              View all matches <ArrowRight className="w-4 h-4" />
+              {t("wh.live.view_all")} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -277,25 +277,25 @@ const WebsiteHomePage = () => {
                     </p>
                     <div className="mt-3 flex items-center gap-3 text-xs text-[#2C3E50]/60">
                       <span className="inline-flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />
-                        {new Date(m.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        {new Date(m.date).toLocaleDateString(locale === "en" ? "en-GB" : locale, { day: "numeric", month: "short", year: "numeric" })}
                       </span>
                       {m.city && <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{m.city}</span>}
                     </div>
 
                     <div className="mt-4 pt-4 border-t border-slate-100 flex items-end justify-between gap-3">
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#2C3E50]/50">Price range</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#2C3E50]/50">{t("wh.live.price_range")}</p>
                         {m.startingPrice != null ? (
                           <p className="mt-0.5 text-sm font-extrabold text-[#27ae60]">
                             €{m.startingPrice} <span className="text-[#2C3E50]/40 font-bold">–</span> €{high}
                           </p>
                         ) : (
-                          <p className="mt-0.5 text-xs text-[#2C3E50]/50">Tickets coming soon</p>
+                          <p className="mt-0.5 text-xs text-[#2C3E50]/50">{t("wh.live.coming_soon")}</p>
                         )}
-                        <p className="text-[11px] text-[#2C3E50]/55 mt-0.5">{providers} providers comparing</p>
+                        <p className="text-[11px] text-[#2C3E50]/55 mt-0.5">{t("wh.live.providers_comparing", { n: providers })}</p>
                       </div>
                       <span className="text-xs font-bold text-white bg-[#2ECC71] group-hover:bg-[#27ae60] inline-flex items-center gap-1 px-3 py-2 rounded-lg transition">
-                        Compare <ArrowRight className="w-3.5 h-3.5" />
+                        {t("wh.live.compare")} <ArrowRight className="w-3.5 h-3.5" />
                       </span>
                     </div>
                   </Link>
