@@ -3,6 +3,7 @@ import { Ticket, ArrowRight, Menu, X, Bell } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { HeaderAuthButton } from "@/components/auth/HeaderAuthButton";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Props {
   children: ReactNode;
@@ -10,13 +11,14 @@ interface Props {
 
 export const WebsiteLayout = ({ children }: Props) => {
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
   const navItems = [
-    { label: "Matches", to: "/matches" },
-    { label: "Leagues", to: "/leagues" },
-    { label: "How it works", to: "/about" },
-    { label: "Pricing", to: "/pricing" },
-    { label: "FAQ", to: "/faq" },
+    { label: t("website.nav.matches"), to: "/matches" },
+    { label: t("website.nav.leagues"), to: "/leagues" },
+    { label: t("website.nav.how"), to: "/about" },
+    { label: t("website.nav.pricing"), to: "/pricing" },
+    { label: t("website.nav.faq"), to: "/faq" },
   ];
 
   return (
