@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { initializePaddle, getPaddlePriceId } from "@/lib/paddle";
+import { toast } from "sonner";
 
 interface OpenCheckoutOptions {
   priceId: string;
@@ -8,30 +8,18 @@ interface OpenCheckoutOptions {
   successUrl?: string;
 }
 
+// Payments are temporarily disabled before launch for security reasons.
+// The original Paddle integration is preserved in git history and will be
+// re-enabled in a future update after full testing.
+export const PAYMENTS_DISABLED = true;
+export const PAYMENTS_DISABLED_MESSAGE = "Paiements bientôt disponibles";
+
 export function usePaddleCheckout() {
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
-  const openCheckout = async (options: OpenCheckoutOptions) => {
-    setLoading(true);
-    try {
-      await initializePaddle();
-      const paddlePriceId = await getPaddlePriceId(options.priceId);
-
-      window.Paddle.Checkout.open({
-        items: [{ priceId: paddlePriceId, quantity: 1 }],
-        customer: options.customerEmail ? { email: options.customerEmail } : undefined,
-        customData: options.userId ? { userId: options.userId } : undefined,
-        settings: {
-          displayMode: "overlay",
-          successUrl:
-            options.successUrl || `${window.location.origin}/app/premium?checkout=success`,
-          allowLogout: false,
-          variant: "one-page",
-        },
-      });
-    } finally {
-      setLoading(false);
-    }
+  const openCheckout = async (_options: OpenCheckoutOptions) => {
+    toast.info(PAYMENTS_DISABLED_MESSAGE);
+    return;
   };
 
   return { openCheckout, loading };

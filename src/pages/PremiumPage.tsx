@@ -52,19 +52,8 @@ const PremiumPage = () => {
   };
 
   const handleManage = async () => {
-    setPortalLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal", {
-        body: { environment: getPaddleEnvironment() },
-      });
-      if (error || !data?.url) throw new Error("No portal URL");
-      window.open(data.url, "_blank", "noopener,noreferrer");
-    } catch (e) {
-      console.error(e);
-      toast.error("Could not open the customer portal.");
-    } finally {
-      setPortalLoading(false);
-    }
+    // Payments temporarily disabled before launch.
+    toast.info("Paiements bientôt disponibles");
   };
 
   if (isPremium) {
