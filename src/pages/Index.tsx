@@ -1,16 +1,34 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+export default function Index() {
+  const [matches, setMatches] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadMatches = async () => {
+      const { data, error } = await supabase.from("matches").select("*");
+
+      if (error) {
+        console.error("Erreur:", error);
+      } else {
+        setMatches(data || []);
+      }
+    };
+
+    loadMatches();
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div style={{ padding: 20 }}>
+      <h1>Matches</h1>
+
+      {matches.length === 0 && <p>Aucun match trouvé</p>}
+
+      {matches.map((m) => (
+        <div key={m.id}>
+          {m.home_team} vs {m.away_team}
+        </div>
+      ))}
     </div>
   );
-};
-
-const Index = PlaceholderIndex;
-
-export default Index;
+}
