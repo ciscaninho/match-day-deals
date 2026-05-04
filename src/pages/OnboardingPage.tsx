@@ -91,11 +91,11 @@ const OnboardingPage = () => {
         onboarding_completed: !skipped,
         onboarding_skipped_at: skipped ? new Date().toISOString() : null,
       });
-      toast.success(skipped ? "You can complete this later" : "All set! Welcome aboard 🎉");
+      toast.success(skipped ? t("onb.toast.skip") : t("onb.toast.success"));
       const pending = getPendingTrack();
       navigate(pending ? "/app/upsell" : "/app/home", { replace: true });
     } catch (e: any) {
-      toast.error(e.message || "Could not save preferences");
+      toast.error(e.message || t("onb.toast.error"));
     } finally {
       setSaving(false);
     }
