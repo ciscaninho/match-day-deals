@@ -1658,6 +1658,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     ...aiNl,
     ...nlLanding,
     ...websiteHomeEn,
+    ...funnelEn,
   },
   es: { "app.name": "Foot Ticket Finder", ...aiEn, ...esLanding, ...websiteHomeEn, ...websiteHomeEs },
   de: { "app.name": "Foot Ticket Finder", ...aiEn, ...deLanding, ...websiteHomeEn, ...websiteHomeDe },
