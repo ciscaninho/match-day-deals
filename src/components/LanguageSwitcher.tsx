@@ -60,9 +60,25 @@ const FlagPT = () => (
   </svg>
 );
 
+const FlagSA = () => (
+  <svg viewBox="0 0 3 2" className="w-5 h-3.5 rounded-sm shadow-sm shrink-0">
+    <rect width="3" height="2" fill="#006C35" />
+    <text x="1.5" y="1.45" textAnchor="middle" fontSize="0.6" fill="#fff" fontFamily="serif">ع</text>
+  </svg>
+);
+const FlagRU = () => (
+  <svg viewBox="0 0 9 6" className="w-5 h-3.5 rounded-sm shadow-sm shrink-0">
+    <rect width="9" height="2" y="0" fill="#FFFFFF" />
+    <rect width="9" height="2" y="2" fill="#0039A6" />
+    <rect width="9" height="2" y="4" fill="#D52B1E" />
+  </svg>
+);
+
 const languages: Record<Locale, { label: string; short: string; Flag: () => JSX.Element }> = {
   fr: { label: "Français", short: "FR", Flag: FlagFR },
   en: { label: "English", short: "EN", Flag: FlagGB },
+  ar: { label: "العربية", short: "AR", Flag: FlagSA },
+  ru: { label: "Русский", short: "RU", Flag: FlagRU },
   nl: { label: "Nederlands", short: "NL", Flag: FlagNL },
   es: { label: "Español", short: "ES", Flag: FlagES },
   de: { label: "Deutsch", short: "DE", Flag: FlagDE },
