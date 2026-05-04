@@ -1700,6 +1700,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     ...enLanding,
     ...websiteHomeEn,
     ...websiteHomeRu,
+    ...funnelEn,
+    ...funnelRu,
     "nav.home": "Главная",
     "nav.matches": "Матчи",
     "nav.calendar": "Календарь",
