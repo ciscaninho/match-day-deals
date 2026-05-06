@@ -9,8 +9,9 @@ import { TicketStatusBadge } from "@/components/TicketStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Calendar, MapPin, Clock, ExternalLink, Ticket, Heart, Mail, Star, HelpCircle, Shield } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Clock, Ticket, Heart, Mail, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
+import { TicketProviders } from "@/components/TicketProviders";
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", {
