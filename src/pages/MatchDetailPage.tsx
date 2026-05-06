@@ -81,42 +81,6 @@ const MatchDetailPage = () => {
     window.open(`mailto:support@footticketfinder.com?subject=${subject}&body=${body}`);
   };
 
-  const officialSources = match.ticketSources.filter((s) => s.type === "official");
-  const resaleSources = match.ticketSources.filter((s) => s.type === "resale");
-  const partnerSources = match.ticketSources.filter((s) => s.type === "partner");
-  const recommended = match.ticketSources.find((s) => s.recommended);
-
-  const renderSources = (sources: typeof match.ticketSources, typeKey: string) => {
-    if (sources.length === 0) return null;
-    const config = sourceTypeLabel[typeKey];
-    return (
-      <>
-        <div className="flex items-center gap-2 mt-2">
-          <span className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${config.color}`}>
-            {config.label}
-          </span>
-        </div>
-        {sources.map((src) => (
-          <Button
-            key={src.url}
-            variant="outline"
-            className="w-full justify-between border-border/50 hover:border-primary/30"
-            onClick={() => window.open(src.url, "_blank")}
-          >
-            <span className="flex items-center gap-2 text-sm">
-              {src.name}
-              {src.recommended && (
-                <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-semibold flex items-center gap-0.5">
-                  <Star className="w-2.5 h-2.5" /> {t("match.recommended")}
-                </span>
-              )}
-            </span>
-            <ExternalLink className="w-4 h-4 text-muted-foreground" />
-          </Button>
-        ))}
-      </>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
