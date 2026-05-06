@@ -331,11 +331,15 @@ const WebsiteHomePage = () => {
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link to="/app" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-bold transition-colors shadow-lg shadow-[#2ECC71]/30">
                 {t("wh.app.cta_get")} <ArrowRight className="w-4 h-4" />
+                <span className="ms-1 rounded-full bg-white/25 px-2 py-0.5 text-[10px] uppercase tracking-wide">
+                  {t("app.coming_soon_short")}
+                </span>
               </Link>
               <Link to="/app" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white px-6 py-3.5 font-bold transition">
                 <Bell className="w-4 h-4" /> {t("wh.app.cta_alerts")}
               </Link>
             </div>
+            <p className="mt-3 text-xs text-white/55">{t("app.coming_soon_desc")}</p>
           </div>
 
           {/* Phone mockup */}
