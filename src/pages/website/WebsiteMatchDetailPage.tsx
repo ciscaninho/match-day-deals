@@ -1,25 +1,19 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { Calendar, MapPin, Trophy, ArrowRight, ExternalLink, ShieldCheck, BellRing, ArrowLeft, TrendingDown, Heart, Bell, Zap, Check, TrendingUp } from "lucide-react";
+import { Calendar, MapPin, Trophy, ArrowRight, ShieldCheck, BellRing, ArrowLeft, TrendingDown, Heart, Bell, Zap, Check } from "lucide-react";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatch } from "@/hooks/useMatches";
-import { useTicketOffers } from "@/hooks/useTicketOffers";
+import { TicketProviders } from "@/components/TicketProviders";
 import { useSEO, slugify } from "@/lib/seo";
 import { useTrackSheet } from "@/components/track/TrackPriceSheet";
 import { useUser } from "@/contexts/UserContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const formatPrice = (price: number | null, currency: string) => {
-  if (price == null) return "—";
-  const symbol = currency === "EUR" ? "€" : currency === "GBP" ? "£" : currency === "USD" ? "$" : currency + " ";
-  return `${symbol}${Number(price).toFixed(2)}`;
-};
 
 const WebsiteMatchDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: match, isLoading } = useMatch(id);
-  const { data: offers = [], isLoading: offersLoading } = useTicketOffers(id);
   const { openTrackSheet } = useTrackSheet();
   const { user } = useUser();
 
@@ -41,7 +35,6 @@ const WebsiteMatchDetailPage = () => {
     });
   };
 
-  const cheapest = offers.find((o) => o.price != null && o.inStock);
   const title = match
     ? `${match.homeTeam} vs ${match.awayTeam} tickets — ${match.competition} | Foot Ticket Finder`
     : "Match tickets | Foot Ticket Finder";
@@ -69,17 +62,6 @@ const WebsiteMatchDetailPage = () => {
           },
           homeTeam: { "@type": "SportsTeam", name: match.homeTeam },
           awayTeam: { "@type": "SportsTeam", name: match.awayTeam },
-          ...(cheapest?.price != null
-            ? {
-                offers: {
-                  "@type": "Offer",
-                  price: cheapest.price,
-                  priceCurrency: cheapest.currency,
-                  availability: "https://schema.org/InStock",
-                  url: cheapest.url,
-                },
-              }
-            : {}),
         }
       : undefined,
   });
@@ -104,8 +86,6 @@ const WebsiteMatchDetailPage = () => {
       </WebsiteLayout>
     );
   }
-
-  const fallbackOffers = match.ticketSources ?? [];
 
   return (
     <WebsiteLayout>
@@ -241,84 +221,11 @@ const WebsiteMatchDetailPage = () => {
         <div className="flex items-end justify-between mb-5 flex-wrap gap-3">
           <div>
             <h2 className="text-2xl font-extrabold text-[#2C3E50]">Ticket offers</h2>
-            <p className="text-sm text-[#2C3E50]/60 mt-1">Compare prices across official providers.</p>
+            <p className="text-sm text-[#2C3E50]/60 mt-1">Compare across trusted ticket marketplaces.</p>
           </div>
-          {cheapest?.price != null && (
-            <span className="text-xs font-bold rounded-full bg-[#2ECC71]/10 text-[#27ae60] border border-[#2ECC71]/20 px-3 py-1.5">
-              Best price: {formatPrice(cheapest.price, cheapest.currency)}
-            </span>
-          )}
         </div>
 
-        {offersLoading ? (
-          <p className="text-sm text-[#2C3E50]/60">Loading offers…</p>
-        ) : offers.length > 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden divide-y divide-slate-100">
-            {offers.map((o) => (
-              <div key={o.id} className="p-4 md:p-5 flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-3 flex-1 min-w-[180px]">
-                  {o.providerLogo ? (
-                    <img src={o.providerLogo} alt={o.provider} className="w-10 h-10 rounded-lg object-contain bg-slate-50 border border-slate-200" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-[#2C3E50]/5 flex items-center justify-center text-xs font-extrabold text-[#2C3E50]">
-                      {o.provider.slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <p className="font-bold text-[#2C3E50] text-sm">{o.provider}</p>
-                    {o.category && <p className="text-xs text-[#2C3E50]/55">{o.category}</p>}
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <p className="text-xl font-extrabold text-[#2C3E50]">
-                    {formatPrice(o.price, o.currency)}
-                  </p>
-                  <p className={`text-[10px] font-bold uppercase tracking-wider ${o.inStock ? "text-[#27ae60]" : "text-red-500"}`}>
-                    {o.inStock ? "Available" : "Sold out"}
-                  </p>
-                </div>
-
-                <a
-                  href={o.url}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 font-bold text-sm transition ${o.inStock ? "bg-[#2ECC71] hover:bg-[#27ae60] text-white" : "bg-slate-100 text-slate-400 pointer-events-none"}`}
-                >
-                  View tickets <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            ))}
-          </div>
-        ) : fallbackOffers.length > 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden divide-y divide-slate-100">
-            {fallbackOffers.map((s, i) => (
-              <div key={i} className="p-4 md:p-5 flex items-center gap-4 flex-wrap">
-                <div className="flex-1">
-                  <p className="font-bold text-[#2C3E50] text-sm">{s.name}</p>
-                  <p className="text-xs text-[#2C3E50]/55 capitalize">{s.type} source{s.recommended ? " · Recommended" : ""}</p>
-                </div>
-                <a
-                  href={s.url}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-2.5 font-bold text-sm transition"
-                >
-                  View tickets <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-            <p className="text-sm text-[#2C3E50]/65 max-w-md mx-auto">
-              No offers available yet. Tickets typically open closer to the match — get notified the moment they go on sale.
-            </p>
-            <Link to="/app" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#2C3E50] hover:bg-[#1f2d3a] text-white px-5 py-3 font-bold text-sm transition">
-              <BellRing className="w-4 h-4" /> Set a price alert
-            </Link>
-          </div>
-        )}
+        <TicketProviders homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
 
         {/* Trust + alert */}
         <div className="mt-10 grid md:grid-cols-2 gap-4">

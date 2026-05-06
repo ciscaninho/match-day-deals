@@ -9,8 +9,9 @@ import { TicketStatusBadge } from "@/components/TicketStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Calendar, MapPin, Clock, ExternalLink, Ticket, Heart, Mail, Star, HelpCircle, Shield } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Clock, Ticket, Heart, Mail, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
+import { TicketProviders } from "@/components/TicketProviders";
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", {
@@ -20,11 +21,6 @@ const formatDate = (iso: string) =>
 const formatTime = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
-const sourceTypeLabel: Record<string, { label: string; color: string }> = {
-  official: { label: "Official", color: "bg-primary/15 text-primary" },
-  resale: { label: "Official Resale", color: "bg-accent/15 text-accent" },
-  partner: { label: "Partner", color: "bg-secondary text-muted-foreground" },
-};
 
 const MatchDetailPage = () => {
   const { id } = useParams();
@@ -80,42 +76,6 @@ const MatchDetailPage = () => {
     window.open(`mailto:support@footticketfinder.com?subject=${subject}&body=${body}`);
   };
 
-  const officialSources = match.ticketSources.filter((s) => s.type === "official");
-  const resaleSources = match.ticketSources.filter((s) => s.type === "resale");
-  const partnerSources = match.ticketSources.filter((s) => s.type === "partner");
-  const recommended = match.ticketSources.find((s) => s.recommended);
-
-  const renderSources = (sources: typeof match.ticketSources, typeKey: string) => {
-    if (sources.length === 0) return null;
-    const config = sourceTypeLabel[typeKey];
-    return (
-      <>
-        <div className="flex items-center gap-2 mt-2">
-          <span className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${config.color}`}>
-            {config.label}
-          </span>
-        </div>
-        {sources.map((src) => (
-          <Button
-            key={src.url}
-            variant="outline"
-            className="w-full justify-between border-border/50 hover:border-primary/30"
-            onClick={() => window.open(src.url, "_blank")}
-          >
-            <span className="flex items-center gap-2 text-sm">
-              {src.name}
-              {src.recommended && (
-                <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-semibold flex items-center gap-0.5">
-                  <Star className="w-2.5 h-2.5" /> {t("match.recommended")}
-                </span>
-              )}
-            </span>
-            <ExternalLink className="w-4 h-4 text-muted-foreground" />
-          </Button>
-        ))}
-      </>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -202,23 +162,14 @@ const MatchDetailPage = () => {
 
         {/* Where to Buy */}
         <Card className="border-border/50">
-          <CardContent className="p-4 space-y-2">
+          <CardContent className="p-4 space-y-3">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Ticket className="w-4 h-4 text-primary" /> {t("match.where_to_buy")}
             </h3>
-            {renderSources(officialSources, "official")}
-            {renderSources(resaleSources, "resale")}
-            {renderSources(partnerSources, "partner")}
+            <TicketProviders homeTeam={match.homeTeam} awayTeam={match.awayTeam} compact />
           </CardContent>
         </Card>
 
-        {/* CTA */}
-        {recommended && (
-          <Button className="w-full gap-2 font-semibold" size="lg" onClick={() => window.open(recommended.url, "_blank")}>
-            <Shield className="w-4 h-4" /> {t("match.go_official")}
-            <ExternalLink className="w-4 h-4" />
-          </Button>
-        )}
 
         <AdBanner variant="detail" />
 
