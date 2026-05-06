@@ -1,11 +1,8 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   Bell,
   Heart,
   TrendingDown,
   Smartphone,
-  ArrowRight,
   Apple,
   CheckCircle2,
   Download,
@@ -18,20 +15,11 @@ import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useSEO } from "@/lib/seo";
 import { toast } from "sonner";
 import { useAuthGate } from "@/components/auth/AuthGate";
-import { useUser } from "@/contexts/UserContext";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 
-interface BIPEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
-
 const AppLandingPage = () => {
-  const [installEvt, setInstallEvt] = useState<BIPEvent | null>(null);
-  const [installed, setInstalled] = useState(false);
   const { requireAuth } = useAuthGate();
-  const { user } = useUser();
   const navigate = useNavigate();
   const { t, dir } = useLanguage();
 
