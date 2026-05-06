@@ -190,29 +190,22 @@ const AppLandingPage = () => {
           </div>
         </section>
 
-        {/* HOW TO INSTALL */}
+        {/* COMING SOON */}
         <section className="py-16 bg-white">
-          <div className="max-w-5xl mx-auto px-5">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-[#2C3E50] text-center">{t("applanding.install.title")}</h2>
-            <div className="mt-8 grid md:grid-cols-2 gap-5">
-              <div className="rounded-2xl border border-slate-200 p-6">
-                <Apple className="w-6 h-6 text-[#2C3E50]" />
-                <h3 className="mt-3 font-extrabold text-[#2C3E50]">{t("applanding.install.iphone")}</h3>
-                <ol className="mt-3 text-sm text-[#2C3E50]/70 space-y-1.5 list-decimal list-inside">
-                  <li>{t("applanding.install.iphone.s1")}</li>
-                  <li>{t("applanding.install.iphone.s2")}</li>
-                  <li>{t("applanding.install.iphone.s3")}</li>
-                </ol>
-              </div>
-              <div className="rounded-2xl border border-slate-200 p-6">
-                <Smartphone className="w-6 h-6 text-[#2C3E50]" />
-                <h3 className="mt-3 font-extrabold text-[#2C3E50]">{t("applanding.install.android")}</h3>
-                <ol className="mt-3 text-sm text-[#2C3E50]/70 space-y-1.5 list-decimal list-inside">
-                  <li>{t("applanding.install.android.s1")}</li>
-                  <li>{t("applanding.install.android.s2")}</li>
-                  <li>{t("applanding.install.android.s3")}</li>
-                </ol>
-              </div>
+          <div className="max-w-3xl mx-auto px-5 text-center">
+            <span className="inline-flex items-center gap-2 rounded-full bg-[#2C3E50]/5 border border-[#2C3E50]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-[#2C3E50]/70">
+              <Smartphone className="w-3.5 h-3.5" />
+              {t("app.coming_soon")}
+            </span>
+            <h2 className="mt-4 text-2xl md:text-3xl font-extrabold text-[#2C3E50]">
+              {t("app.coming_soon")}
+            </h2>
+            <p className="mt-3 text-sm text-[#2C3E50]/65 max-w-xl mx-auto">
+              {t("app.coming_soon_desc")}
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-3 text-[#2C3E50]/40">
+              <Apple className="w-5 h-5" />
+              <Smartphone className="w-5 h-5" />
             </div>
           </div>
         </section>
