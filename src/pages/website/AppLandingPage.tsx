@@ -37,19 +37,7 @@ const AppLandingPage = () => {
     canonical: "https://footticketfinder.com/app",
   });
 
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setInstallEvt(e as BIPEvent);
-    };
-    const installedHandler = () => setInstalled(true);
-    window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", installedHandler);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
-      window.removeEventListener("appinstalled", installedHandler);
-    };
-  }, []);
+
 
   const handleInstall = () => {
     toast.info(t("app.coming_soon"), {
