@@ -219,6 +219,9 @@ const fr: Dict = {
   "applanding.toast.install_title": "Pour installer :",
   "applanding.toast.install_desc":
     "Sur iPhone : Partager → Sur l'écran d'accueil. Sur Android : menu navigateur → Installer l'application.",
+  "app.coming_soon": "Application bientôt disponible",
+  "app.coming_soon_short": "Bientôt disponible",
+  "app.coming_soon_desc": "Notre application mobile arrive bientôt. Restez connecté.",
 };
 
 const es: Dict = {
@@ -326,6 +329,9 @@ const es: Dict = {
   "applanding.toast.install_title": "Para instalar:",
   "applanding.toast.install_desc":
     "En iPhone: Compartir → Añadir a pantalla de inicio. En Android: menú del navegador → Instalar app.",
+  "app.coming_soon": "Aplicación móvil próximamente",
+  "app.coming_soon_short": "Próximamente",
+  "app.coming_soon_desc": "Nuestra app móvil llegará pronto. Mantente atento.",
 };
 
 const de: Dict = {
@@ -433,6 +439,9 @@ const de: Dict = {
   "applanding.toast.install_title": "Zum Installieren:",
   "applanding.toast.install_desc":
     "Auf iPhone: Teilen → Zum Home-Bildschirm. Auf Android: Browsermenü → App installieren.",
+  "app.coming_soon": "Mobile App bald verfügbar",
+  "app.coming_soon_short": "Bald verfügbar",
+  "app.coming_soon_desc": "Unsere mobile App kommt bald. Bleib dran.",
 };
 
 const it: Dict = {
@@ -540,6 +549,9 @@ const it: Dict = {
   "applanding.toast.install_title": "Per installare:",
   "applanding.toast.install_desc":
     "Su iPhone: Condividi → Aggiungi a Home. Su Android: menu del browser → Installa app.",
+  "app.coming_soon": "App mobile in arrivo",
+  "app.coming_soon_short": "In arrivo",
+  "app.coming_soon_desc": "La nostra app mobile arriverà presto. Resta sintonizzato.",
 };
 
 const pt: Dict = {
@@ -647,6 +659,9 @@ const pt: Dict = {
   "applanding.toast.install_title": "Para instalar:",
   "applanding.toast.install_desc":
     "No iPhone: Partilhar → Adicionar ao Ecrã Principal. No Android: menu do browser → Instalar app.",
+  "app.coming_soon": "Aplicação móvel em breve",
+  "app.coming_soon_short": "Em breve",
+  "app.coming_soon_desc": "A nossa app móvel chega em breve. Fique atento.",
 };
 
 const nl: Dict = {
@@ -754,6 +769,9 @@ const nl: Dict = {
   "applanding.toast.install_title": "Om te installeren:",
   "applanding.toast.install_desc":
     "Op iPhone: Delen → Zet op beginscherm. Op Android: browsermenu → App installeren.",
+  "app.coming_soon": "Mobiele app binnenkort beschikbaar",
+  "app.coming_soon_short": "Binnenkort beschikbaar",
+  "app.coming_soon_desc": "Onze mobiele app komt binnenkort. Blijf op de hoogte.",
 };
 
 const ar: Dict = {
@@ -861,6 +879,9 @@ const ar: Dict = {
   "applanding.toast.install_title": "للتثبيت:",
   "applanding.toast.install_desc":
     "على iPhone: مشاركة → إضافة إلى الشاشة الرئيسية. على Android: قائمة المتصفح → تثبيت التطبيق.",
+  "app.coming_soon": "تطبيق الجوال قريباً",
+  "app.coming_soon_short": "قريباً",
+  "app.coming_soon_desc": "تطبيقنا للجوال قادم قريباً. ترقّبوا.",
 };
 
 const ru: Dict = {
@@ -968,6 +989,9 @@ const ru: Dict = {
   "applanding.toast.install_title": "Чтобы установить:",
   "applanding.toast.install_desc":
     "На iPhone: Поделиться → На экран «Домой». На Android: меню браузера → Установить приложение.",
+  "app.coming_soon": "Мобильное приложение скоро",
+  "app.coming_soon_short": "Скоро",
+  "app.coming_soon_desc": "Наше мобильное приложение скоро выйдет. Следите за обновлениями.",
 };
 
 export const marketingPages: Record<Locale, Dict> = {
