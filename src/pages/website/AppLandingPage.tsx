@@ -251,15 +251,12 @@ const AppLandingPage = () => {
             <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={handleInstall}
-                disabled={installed}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] disabled:opacity-60 text-white px-6 py-3.5 font-bold transition-colors shadow-lg shadow-[#2ECC71]/30"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-bold transition-colors shadow-lg shadow-[#2ECC71]/30"
               >
                 <Download className="w-4 h-4" /> {installLabel}
               </button>
-              <Link to="/app/matches" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white px-6 py-3.5 font-bold transition">
-                {t("applanding.cta.open")} <ArrowRight className="w-4 h-4" />
-              </Link>
             </div>
+            <p className="mt-4 text-xs text-white/50">{t("app.coming_soon_desc")}</p>
           </div>
         </section>
       </div>
