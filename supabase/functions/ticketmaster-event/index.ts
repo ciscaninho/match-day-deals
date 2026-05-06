@@ -19,9 +19,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    const url = new URL(req.url);
-    const homeTeam = url.searchParams.get("homeTeam") ?? "";
-    const awayTeam = url.searchParams.get("awayTeam") ?? "";
+    let homeTeam = "";
+    let awayTeam = "";
+    if (req.method === "POST") {
+      try {
+        const body = await req.json();
+        homeTeam = body?.homeTeam ?? "";
+        awayTeam = body?.awayTeam ?? "";
+      } catch {/* ignore */}
+    } else {
+      const url = new URL(req.url);
+      homeTeam = url.searchParams.get("homeTeam") ?? "";
+      awayTeam = url.searchParams.get("awayTeam") ?? "";
+    }
     if (!homeTeam || !awayTeam) {
       return new Response(JSON.stringify({ event: null }), {
         status: 200,

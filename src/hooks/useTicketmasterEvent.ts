@@ -20,9 +20,7 @@ export const useTicketmasterEvent = (homeTeam?: string, awayTeam?: string) => {
     staleTime: 5 * 60 * 1000,
     queryFn: async (): Promise<TicketmasterEvent | null> => {
       const { data, error } = await supabase.functions.invoke("ticketmaster-event", {
-        method: "GET",
-        // @ts-expect-error supabase-js supports query for GET
-        query: { homeTeam: homeTeam!, awayTeam: awayTeam! },
+        body: { homeTeam, awayTeam },
       });
       if (error) return null;
       return (data as { event: TicketmasterEvent | null })?.event ?? null;
