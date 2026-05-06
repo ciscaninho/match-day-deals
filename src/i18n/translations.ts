@@ -1724,7 +1724,9 @@ const funnelRu: Record<string, string> = {
   "onb.toast.error": "Не удалось сохранить настройки",
 };
 
-export const translations: Record<Locale, Record<string, string>> = {
+import { marketingPages } from "./marketingPages";
+
+const _translations: Record<Locale, Record<string, string>> = {
   en: {
     "app.name": "Foot Ticket Finder",
     "hero.title": "Find the best time\nto buy football tickets",
@@ -2095,3 +2097,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     "website.matches.empty": "Нет доступных матчей",
   },
 };
+
+// Merge marketing page translations into each locale.
+export const translations: Record<Locale, Record<string, string>> = (Object.keys(_translations) as Locale[]).reduce(
+  (acc, loc) => {
+    acc[loc] = { ..._translations[loc], ...(marketingPages[loc] || {}) };
+    return acc;
+  },
+  {} as Record<Locale, Record<string, string>>
+);
