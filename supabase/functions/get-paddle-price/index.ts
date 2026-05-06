@@ -1,4 +1,7 @@
-import { corsHeaders } from 'jsr:@supabase/functions-js/cors';
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 import { gatewayFetch, type PaddleEnv } from '../_shared/paddle.ts';
 
 async function resolvePaddlePrice(priceId: string, environment: PaddleEnv): Promise<string> {
