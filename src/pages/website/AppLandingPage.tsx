@@ -107,8 +107,7 @@ const AppLandingPage = () => {
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleInstall}
-                  disabled={installed}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] disabled:opacity-60 text-white px-6 py-3.5 font-bold transition-colors shadow-lg shadow-[#2ECC71]/30"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-bold transition-colors shadow-lg shadow-[#2ECC71]/30"
                 >
                   <Download className="w-4 h-4" /> {installLabel}
                 </button>
