@@ -47,7 +47,11 @@ const AboutPage = () => {
               className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold shadow-lg shadow-[#2ECC71]/30"
             >
               {t("about.cta.button")} <ArrowRight className="w-4 h-4" />
+              <span className="ms-1 rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
+                {t("app.coming_soon_short")}
+              </span>
             </Link>
+            <p className="mt-3 text-xs text-[#2C3E50]/55">{t("app.coming_soon_desc")}</p>
           </div>
         </section>
       </div>

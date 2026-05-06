@@ -1,11 +1,8 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   Bell,
   Heart,
   TrendingDown,
   Smartphone,
-  ArrowRight,
   Apple,
   CheckCircle2,
   Download,
@@ -18,20 +15,11 @@ import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useSEO } from "@/lib/seo";
 import { toast } from "sonner";
 import { useAuthGate } from "@/components/auth/AuthGate";
-import { useUser } from "@/contexts/UserContext";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 
-interface BIPEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
-
 const AppLandingPage = () => {
-  const [installEvt, setInstallEvt] = useState<BIPEvent | null>(null);
-  const [installed, setInstalled] = useState(false);
   const { requireAuth } = useAuthGate();
-  const { user } = useUser();
   const navigate = useNavigate();
   const { t, dir } = useLanguage();
 
@@ -49,34 +37,15 @@ const AppLandingPage = () => {
     canonical: "https://footticketfinder.com/app",
   });
 
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setInstallEvt(e as BIPEvent);
-    };
-    const installedHandler = () => setInstalled(true);
-    window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", installedHandler);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
-      window.removeEventListener("appinstalled", installedHandler);
-    };
-  }, []);
 
-  const handleInstall = async () => {
-    if (!installEvt) {
-      toast.info(t("applanding.toast.install_title"), {
-        description: t("applanding.toast.install_desc"),
-      });
-      return;
-    }
-    await installEvt.prompt();
-    const choice = await installEvt.userChoice;
-    if (choice.outcome === "accepted") setInstalled(true);
-    setInstallEvt(null);
+
+  const handleInstall = () => {
+    toast.info(t("app.coming_soon"), {
+      description: t("app.coming_soon_desc"),
+    });
   };
 
-  const installLabel = installed ? t("applanding.hero.cta_installed") : t("applanding.hero.cta_install");
+  const installLabel = t("app.coming_soon_short");
 
   return (
     <WebsiteLayout>
@@ -96,9 +65,14 @@ const AppLandingPage = () => {
 
           <div className="relative max-w-6xl mx-auto px-5 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
             <div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#2ECC71]/30 bg-[#2ECC71]/10 px-3 py-1 text-xs font-bold text-[#2ECC71] mb-6">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#2ECC71]/30 bg-[#2ECC71]/10 px-3 py-1 text-xs font-bold text-[#2ECC71] mb-3">
                 <Sparkles className="w-3.5 h-3.5" /> {t("applanding.hero.badge")}
               </span>
+              <div className="mb-6">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white/90">
+                  {t("app.coming_soon")}
+                </span>
+              </div>
               <h1 className="text-4xl md:text-5xl font-extrabold leading-[1.05] tracking-tight">
                 {t("applanding.hero.title_1")} <span className="text-[#2ECC71]">{t("applanding.hero.title_highlight")}</span>.
               </h1>
@@ -109,8 +83,7 @@ const AppLandingPage = () => {
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleInstall}
-                  disabled={installed}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] disabled:opacity-60 text-white px-6 py-3.5 font-bold transition-colors shadow-lg shadow-[#2ECC71]/30"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-bold transition-colors shadow-lg shadow-[#2ECC71]/30"
                 >
                   <Download className="w-4 h-4" /> {installLabel}
                 </button>
@@ -217,29 +190,22 @@ const AppLandingPage = () => {
           </div>
         </section>
 
-        {/* HOW TO INSTALL */}
+        {/* COMING SOON */}
         <section className="py-16 bg-white">
-          <div className="max-w-5xl mx-auto px-5">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-[#2C3E50] text-center">{t("applanding.install.title")}</h2>
-            <div className="mt-8 grid md:grid-cols-2 gap-5">
-              <div className="rounded-2xl border border-slate-200 p-6">
-                <Apple className="w-6 h-6 text-[#2C3E50]" />
-                <h3 className="mt-3 font-extrabold text-[#2C3E50]">{t("applanding.install.iphone")}</h3>
-                <ol className="mt-3 text-sm text-[#2C3E50]/70 space-y-1.5 list-decimal list-inside">
-                  <li>{t("applanding.install.iphone.s1")}</li>
-                  <li>{t("applanding.install.iphone.s2")}</li>
-                  <li>{t("applanding.install.iphone.s3")}</li>
-                </ol>
-              </div>
-              <div className="rounded-2xl border border-slate-200 p-6">
-                <Smartphone className="w-6 h-6 text-[#2C3E50]" />
-                <h3 className="mt-3 font-extrabold text-[#2C3E50]">{t("applanding.install.android")}</h3>
-                <ol className="mt-3 text-sm text-[#2C3E50]/70 space-y-1.5 list-decimal list-inside">
-                  <li>{t("applanding.install.android.s1")}</li>
-                  <li>{t("applanding.install.android.s2")}</li>
-                  <li>{t("applanding.install.android.s3")}</li>
-                </ol>
-              </div>
+          <div className="max-w-3xl mx-auto px-5 text-center">
+            <span className="inline-flex items-center gap-2 rounded-full bg-[#2C3E50]/5 border border-[#2C3E50]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-[#2C3E50]/70">
+              <Smartphone className="w-3.5 h-3.5" />
+              {t("app.coming_soon")}
+            </span>
+            <h2 className="mt-4 text-2xl md:text-3xl font-extrabold text-[#2C3E50]">
+              {t("app.coming_soon")}
+            </h2>
+            <p className="mt-3 text-sm text-[#2C3E50]/65 max-w-xl mx-auto">
+              {t("app.coming_soon_desc")}
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-3 text-[#2C3E50]/40">
+              <Apple className="w-5 h-5" />
+              <Smartphone className="w-5 h-5" />
             </div>
           </div>
         </section>
@@ -253,15 +219,12 @@ const AppLandingPage = () => {
             <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={handleInstall}
-                disabled={installed}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] disabled:opacity-60 text-white px-6 py-3.5 font-bold transition-colors shadow-lg shadow-[#2ECC71]/30"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-bold transition-colors shadow-lg shadow-[#2ECC71]/30"
               >
                 <Download className="w-4 h-4" /> {installLabel}
               </button>
-              <Link to="/app/matches" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white px-6 py-3.5 font-bold transition">
-                {t("applanding.cta.open")} <ArrowRight className="w-4 h-4" />
-              </Link>
             </div>
+            <p className="mt-4 text-xs text-white/50">{t("app.coming_soon_desc")}</p>
           </div>
         </section>
       </div>
