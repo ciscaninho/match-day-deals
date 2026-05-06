@@ -1,4 +1,7 @@
-import { corsHeaders } from 'jsr:@supabase/functions-js/cors';
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { getPaddleClient, type PaddleEnv } from '../_shared/paddle.ts';
 
