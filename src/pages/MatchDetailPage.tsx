@@ -21,11 +21,6 @@ const formatDate = (iso: string) =>
 const formatTime = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
-const sourceTypeLabel: Record<string, { label: string; color: string }> = {
-  official: { label: "Official", color: "bg-primary/15 text-primary" },
-  resale: { label: "Official Resale", color: "bg-accent/15 text-accent" },
-  partner: { label: "Partner", color: "bg-secondary text-muted-foreground" },
-};
 
 const MatchDetailPage = () => {
   const { id } = useParams();
