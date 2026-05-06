@@ -2,8 +2,8 @@ import { ExternalLink, Loader2 } from "lucide-react";
 import { useTicketmasterEvent } from "@/hooks/useTicketmasterEvent";
 
 interface Props {
-  homeTeam: string;
-  awayTeam: string;
+  homeTeam?: string | null;
+  awayTeam?: string | null;
   variant?: "light" | "dark";
   compact?: boolean;
 }
@@ -15,9 +15,11 @@ interface Provider {
   meta?: string;
 }
 
-const buildSearchUrl = (homeTeam: string, awayTeam: string) => {
-  const q = encodeURIComponent(`${homeTeam} ${awayTeam}`);
+const buildSearchUrls = (homeTeam: string, awayTeam: string) => {
+  const query = `${homeTeam} ${awayTeam}`.trim();
+  const q = encodeURIComponent(query);
   return {
+    query,
     ticketmaster: `https://www.ticketmaster.com/search?q=${q}`,
     stubhub: `https://www.stubhub.com/search?q=${q}`,
     viagogo: `https://www.viagogo.com/ww/Sports-Tickets?keyword=${q}`,
@@ -26,8 +28,21 @@ const buildSearchUrl = (homeTeam: string, awayTeam: string) => {
 };
 
 export const TicketProviders = ({ homeTeam, awayTeam, variant = "light", compact }: Props) => {
-  const { data: tmEvent, isLoading } = useTicketmasterEvent(homeTeam, awayTeam);
-  const search = buildSearchUrl(homeTeam, awayTeam);
+  const home = (homeTeam ?? "").trim();
+  const away = (awayTeam ?? "").trim();
+  const isDark = variant === "dark";
+
+  const { data: tmEvent, isLoading: tmLoading } = useTicketmasterEvent(home, away);
+
+  if (!home || !away) {
+    return (
+      <div className={`text-xs ${isDark ? "text-white/70" : "text-muted-foreground"}`}>
+        Match details unavailable — providers cannot be loaded.
+      </div>
+    );
+  }
+
+  const search = buildSearchUrls(home, away);
 
   const providers: Provider[] = [
     {
@@ -39,23 +54,14 @@ export const TicketProviders = ({ homeTeam, awayTeam, variant = "light", compact
           ? `From ${tmEvent.currency ?? ""} ${tmEvent.minPrice}`.trim()
           : tmEvent
           ? "Event found"
+          : tmLoading
+          ? "Checking…"
           : undefined,
     },
     { name: "StubHub", url: search.stubhub },
     { name: "Viagogo", url: search.viagogo },
     { name: "Ticombo", url: search.ticombo },
   ];
-
-  const isDark = variant === "dark";
-
-  if (isLoading) {
-    return (
-      <div className={`flex items-center gap-2 text-xs ${isDark ? "text-white/70" : "text-muted-foreground"}`}>
-        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-        Loading ticket providers…
-      </div>
-    );
-  }
 
   return (
     <div className={compact ? "grid grid-cols-2 gap-2" : "grid sm:grid-cols-2 gap-3"}>
@@ -65,6 +71,7 @@ export const TicketProviders = ({ homeTeam, awayTeam, variant = "light", compact
           href={p.url}
           target="_blank"
           rel="noopener noreferrer nofollow"
+          aria-label={`Search ${p.name} tickets for ${search.query}`}
           className={[
             "group flex items-center justify-between gap-3 rounded-xl px-4 py-3 font-bold text-sm transition border",
             isDark
@@ -73,15 +80,20 @@ export const TicketProviders = ({ homeTeam, awayTeam, variant = "light", compact
             p.highlight ? (isDark ? "ring-1 ring-[#2ECC71]/40" : "ring-1 ring-[#2ECC71]/30") : "",
           ].join(" ")}
         >
-          <span className="flex flex-col items-start">
-            <span>{p.name}</span>
+          <span className="flex flex-col items-start min-w-0">
+            <span className="truncate">{p.name}</span>
             {p.meta && (
-              <span className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? "text-[#2ECC71]" : "text-[#27ae60]"}`}>
+              <span
+                className={`text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 ${
+                  isDark ? "text-[#2ECC71]" : "text-[#27ae60]"
+                }`}
+              >
+                {p.name === "Ticketmaster" && tmLoading && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
                 {p.meta}
               </span>
             )}
           </span>
-          <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" />
+          <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 shrink-0" />
         </a>
       ))}
     </div>
