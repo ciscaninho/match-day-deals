@@ -2255,7 +2255,7 @@ const _translations: Record<Locale, Record<string, string>> = {
   },
   ru: {
     "app.name": "Foot Ticket Finder",
-    ...aiEn,
+    ...aiRu,
     ...enLanding,
     ...websiteHomeEn,
     ...websiteHomeRu,
