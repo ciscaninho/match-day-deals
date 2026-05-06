@@ -66,29 +66,36 @@ export const AIAssistantWidget = () => {
 
   const buildContext = () => {
     const now = new Date();
-    const summary = matches
+    const upcoming = matches
       .filter((m) => new Date(m.date) >= now)
-      .slice(0, 20)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 80)
       .map((m) => ({
         id: m.id,
+        homeTeam: m.homeTeam,
+        awayTeam: m.awayTeam,
         match: `${m.homeTeam} vs ${m.awayTeam}`,
         competition: m.competition,
+        country: m.country,
         date: m.date,
         stadium: m.stadium,
         city: m.city,
         startingPrice: m.startingPrice,
         ticketStatus: m.ticketStatus,
         ticketReleaseDate: m.ticketReleaseDate,
-        official: m.ticketSources.find((s) => s.type === "official")?.url || null,
-        resale: m.ticketSources.find((s) => s.type === "resale")?.url || null,
+        featured: m.featured,
+        priority: m.priority,
+        url: `/matches/${m.id}`,
+        providers: m.ticketSources.map((s) => ({ type: s.type, name: s.name, url: s.url })),
       }));
     return {
       currentPage: location.pathname,
       userType: isPremium ? "premium" : "free",
+      nowIso: now.toISOString(),
       matchInfo: currentMatch
         ? `${currentMatch.homeTeam} vs ${currentMatch.awayTeam} (${currentMatch.competition}, ${currentMatch.date})`
         : null,
-      matchesSummary: JSON.stringify(summary),
+      matchesSummary: JSON.stringify(upcoming),
     };
   };
 
