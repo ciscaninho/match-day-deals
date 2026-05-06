@@ -109,6 +109,9 @@ const en: Dict = {
   "applanding.toast.install_title": "To install:",
   "applanding.toast.install_desc":
     "On iPhone: Share → Add to Home Screen. On Android: browser menu → Install app.",
+  "app.coming_soon": "Mobile app coming soon",
+  "app.coming_soon_short": "Coming soon",
+  "app.coming_soon_desc": "Our mobile app is launching soon. Stay tuned.",
 };
 
 const fr: Dict = {
