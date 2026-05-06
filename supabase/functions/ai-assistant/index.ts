@@ -76,10 +76,11 @@ serve(async (req) => {
 
     const langNames: Record<string, string> = {
       en: "English", fr: "French", nl: "Dutch", es: "Spanish",
-      de: "German", it: "Italian", pt: "Portuguese",
+      de: "German", it: "Italian", pt: "Portuguese", ar: "Arabic", ru: "Russian",
     };
+    const langName = langNames[language] || "English";
 
-    const contextBlock = `\n\nCURRENT USER CONTEXT:\n- Language: ${langNames[language] || "English"}\n- Current page: ${context?.currentPage || "unknown"}\n- User type: ${context?.userType || "free"}\n- Timestamp: ${new Date().toISOString()}\n${context?.matchInfo ? `- Viewing match: ${context.matchInfo}` : ""}\n${context?.matchesSummary ? `\nRELEVANT MATCH DATA (JSON):\n${context.matchesSummary}` : ""}`;
+    const contextBlock = `\n\nCURRENT USER CONTEXT:\n- Language: ${langName} (code: ${language || "en"}) — YOU MUST REPLY IN ${langName.toUpperCase()} ONLY.\n- Current page: ${context?.currentPage || "unknown"}\n- User type: ${context?.userType || "free"}\n- Timestamp: ${new Date().toISOString()}\n${context?.matchInfo ? `- Viewing match: ${context.matchInfo}` : ""}\n${context?.matchesSummary ? `\nRELEVANT MATCH DATA (JSON):\n${context.matchesSummary}` : ""}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
