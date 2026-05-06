@@ -2223,7 +2223,7 @@ const _translations: Record<Locale, Record<string, string>> = {
   pt: { "app.name": "Foot Ticket Finder", ...aiPt, ...ptLanding, ...websiteHomeEn, ...websiteHomePt, ...siteFooterEn, ...siteFooterPt, ...funnelEn },
   ar: {
     "app.name": "Foot Ticket Finder",
-    ...aiEn,
+    ...aiAr,
     ...enLanding,
     ...websiteHomeEn,
     ...websiteHomeArFull,
