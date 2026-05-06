@@ -63,20 +63,13 @@ const AppLandingPage = () => {
     };
   }, []);
 
-  const handleInstall = async () => {
-    if (!installEvt) {
-      toast.info(t("applanding.toast.install_title"), {
-        description: t("applanding.toast.install_desc"),
-      });
-      return;
-    }
-    await installEvt.prompt();
-    const choice = await installEvt.userChoice;
-    if (choice.outcome === "accepted") setInstalled(true);
-    setInstallEvt(null);
+  const handleInstall = () => {
+    toast.info(t("app.coming_soon"), {
+      description: t("app.coming_soon_desc"),
+    });
   };
 
-  const installLabel = installed ? t("applanding.hero.cta_installed") : t("applanding.hero.cta_install");
+  const installLabel = t("app.coming_soon_short");
 
   return (
     <WebsiteLayout>
