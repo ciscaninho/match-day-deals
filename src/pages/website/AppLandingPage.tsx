@@ -89,9 +89,14 @@ const AppLandingPage = () => {
 
           <div className="relative max-w-6xl mx-auto px-5 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
             <div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#2ECC71]/30 bg-[#2ECC71]/10 px-3 py-1 text-xs font-bold text-[#2ECC71] mb-6">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#2ECC71]/30 bg-[#2ECC71]/10 px-3 py-1 text-xs font-bold text-[#2ECC71] mb-3">
                 <Sparkles className="w-3.5 h-3.5" /> {t("applanding.hero.badge")}
               </span>
+              <div className="mb-6">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white/90">
+                  {t("app.coming_soon")}
+                </span>
+              </div>
               <h1 className="text-4xl md:text-5xl font-extrabold leading-[1.05] tracking-tight">
                 {t("applanding.hero.title_1")} <span className="text-[#2ECC71]">{t("applanding.hero.title_highlight")}</span>.
               </h1>
