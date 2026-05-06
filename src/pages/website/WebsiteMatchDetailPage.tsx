@@ -1,5 +1,5 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { Calendar, MapPin, Trophy, ArrowRight, ExternalLink, ShieldCheck, BellRing, ArrowLeft, TrendingDown, Heart, Bell, Zap, Check, TrendingUp } from "lucide-react";
+import { Calendar, MapPin, Trophy, ArrowRight, ShieldCheck, BellRing, ArrowLeft, TrendingDown, Heart, Bell, Zap, Check } from "lucide-react";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatch } from "@/hooks/useMatches";
 import { TicketProviders } from "@/components/TicketProviders";
@@ -9,11 +9,6 @@ import { useUser } from "@/contexts/UserContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const formatPrice = (price: number | null, currency: string) => {
-  if (price == null) return "—";
-  const symbol = currency === "EUR" ? "€" : currency === "GBP" ? "£" : currency === "USD" ? "$" : currency + " ";
-  return `${symbol}${Number(price).toFixed(2)}`;
-};
 
 const WebsiteMatchDetailPage = () => {
   const { id } = useParams();
