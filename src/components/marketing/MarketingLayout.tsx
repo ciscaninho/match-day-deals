@@ -55,8 +55,12 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
             <Link
               to="/app"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-[#2C3E50] text-white text-xs font-bold px-4 py-2 hover:bg-[#1f2d3a] transition-colors"
+              aria-label={t("app.coming_soon")}
             >
-              {t("website.nav.get_app")} <ArrowRight className="w-3.5 h-3.5" />
+              {t("website.nav.get_app")}
+              <span className="ms-1 rounded-full bg-[#2ECC71]/20 text-[#2ECC71] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
+                {t("app.coming_soon_short")}
+              </span>
             </Link>
             <button
               type="button"
