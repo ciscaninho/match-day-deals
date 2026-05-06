@@ -87,7 +87,8 @@ serve(async (req) => {
     };
     const langName = langNames[language] || "English";
 
-    const contextBlock = `\n\nCURRENT USER CONTEXT:\n- Language: ${langName} (code: ${language || "en"}) — YOU MUST REPLY IN ${langName.toUpperCase()} ONLY.\n- Current page: ${context?.currentPage || "unknown"}\n- User type: ${context?.userType || "free"}\n- Timestamp: ${new Date().toISOString()}\n${context?.matchInfo ? `- Viewing match: ${context.matchInfo}` : ""}\n${context?.matchesSummary ? `\nRELEVANT MATCH DATA (JSON):\n${context.matchesSummary}` : ""}`;
+    const nowIso = context?.nowIso || new Date().toISOString();
+    const contextBlock = `\n\nCURRENT USER CONTEXT:\n- Language: ${langName} (code: ${language || "en"}) — YOU MUST REPLY IN ${langName.toUpperCase()} ONLY.\n- Current page: ${context?.currentPage || "unknown"}\n- User type: ${context?.userType || "free"}\n- nowIso: ${nowIso}\n${context?.matchInfo ? `- Viewing match: ${context.matchInfo}` : ""}\n${context?.matchesSummary ? `\nUPCOMING MATCHES DATA (JSON array — use this as the source of truth for any recommendation):\n${context.matchesSummary}` : "\n(No upcoming match data was provided.)"}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
