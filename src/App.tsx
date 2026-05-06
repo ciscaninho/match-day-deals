@@ -75,8 +75,12 @@ const App = () => (
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/legal/privacy" element={<PrivacyPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/legal/terms" element={<TermsPage />} />
+              <Route path="/terms" element={<TermsPage />} />
               <Route path="/legal/refund" element={<RefundPage />} />
+              <Route path="/refund-policy" element={<RefundPage />} />
+              <Route path="/how-it-works" element={<AboutPage />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/onboarding" element={<RequireAuth><OnboardingPage /></RequireAuth>} />
