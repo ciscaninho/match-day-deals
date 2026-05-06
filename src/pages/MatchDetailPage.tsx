@@ -167,23 +167,14 @@ const MatchDetailPage = () => {
 
         {/* Where to Buy */}
         <Card className="border-border/50">
-          <CardContent className="p-4 space-y-2">
+          <CardContent className="p-4 space-y-3">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Ticket className="w-4 h-4 text-primary" /> {t("match.where_to_buy")}
             </h3>
-            {renderSources(officialSources, "official")}
-            {renderSources(resaleSources, "resale")}
-            {renderSources(partnerSources, "partner")}
+            <TicketProviders homeTeam={match.homeTeam} awayTeam={match.awayTeam} compact />
           </CardContent>
         </Card>
 
-        {/* CTA */}
-        {recommended && (
-          <Button className="w-full gap-2 font-semibold" size="lg" onClick={() => window.open(recommended.url, "_blank")}>
-            <Shield className="w-4 h-4" /> {t("match.go_official")}
-            <ExternalLink className="w-4 h-4" />
-          </Button>
-        )}
 
         <AdBanner variant="detail" />
 
