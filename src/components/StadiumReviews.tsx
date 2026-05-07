@@ -27,11 +27,11 @@ const Ball = ({ filled, className = "" }: { filled: boolean; className?: string 
 );
 
 const CATS = [
-  { key: "atmosphere", label: "Atmosphere" },
-  { key: "view_rating", label: "View" },
-  { key: "facilities", label: "Facilities" },
-  { key: "accessibility", label: "Accessibility" },
-  { key: "value", label: "Value for Money" },
+  { key: "atmosphere", labelKey: "stadium_reviews.cat_atmosphere" },
+  { key: "view_rating", labelKey: "stadium_reviews.cat_view" },
+  { key: "facilities", labelKey: "stadium_reviews.cat_facilities" },
+  { key: "accessibility", labelKey: "stadium_reviews.cat_accessibility" },
+  { key: "value", labelKey: "stadium_reviews.cat_value" },
 ] as const;
 
 type CatKey = (typeof CATS)[number]["key"];
