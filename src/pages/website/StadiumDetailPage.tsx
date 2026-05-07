@@ -7,6 +7,8 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { useMatches } from "@/hooks/useMatches";
 import { StadiumReviews } from "@/components/StadiumReviews";
 import { StadiumHero } from "@/components/StadiumHero";
+import { StadiumPassportButton } from "@/components/StadiumPassportButton";
+import { StadiumExperienceTips } from "@/components/StadiumExperienceTips";
 import { useSEO } from "@/lib/seo";
 import type { Stadium } from "@/hooks/useStadium";
 
