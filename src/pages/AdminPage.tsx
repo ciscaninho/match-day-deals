@@ -15,6 +15,7 @@ import { useAssistantSettings } from "@/hooks/useAssistantSettings";
 import { syncApiFootballFixtures } from "@/services/apiFootball";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMatches } from "@/hooks/useMatches";
+import { StadiumSuggestionsAdminCard } from "@/components/StadiumSuggestionsAdminCard";
 
 const AdminPage = () => {
   const { data: matches = [] } = useMatches();
