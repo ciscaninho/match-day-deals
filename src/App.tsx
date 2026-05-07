@@ -13,6 +13,8 @@ import WebsiteMatchesPage from "./pages/website/WebsiteMatchesPage";
 import WebsiteMatchDetailPage from "./pages/website/WebsiteMatchDetailPage";
 import WebsiteLeaguesPage, { WebsiteLeaguePage } from "./pages/website/WebsiteLeaguesPage";
 import AppLandingPage from "./pages/website/AppLandingPage";
+import StadiumsPage from "./pages/website/StadiumsPage";
+import StadiumDetailPage from "./pages/website/StadiumDetailPage";
 import MatchesPage from "./pages/MatchesPage";
 import MatchDetailPage from "./pages/MatchDetailPage";
 import CalendarPage from "./pages/CalendarPage";
