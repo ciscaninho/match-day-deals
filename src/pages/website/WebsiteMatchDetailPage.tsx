@@ -115,6 +115,7 @@ const SectionTitle = ({ icon: Icon, title, subtitle }: { icon: any; title: strin
 const WebsiteMatchDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { data: match, isLoading } = useMatch(id);
   const { data: allMatches = [] } = useMatches();
   const { data: offers = [] } = useTicketOffers(id);
