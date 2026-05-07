@@ -21,6 +21,9 @@ export type Stadium = {
   longitude: number | null;
   image_url: string | null;
   background_image_url: string | null;
+  hero_image_url: string | null;
+  thumbnail_image_url: string | null;
+  gallery_images: string[];
   description: string | null;
   best_sections: string[] | null;
   ultras_section: string | null;
