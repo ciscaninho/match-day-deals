@@ -2425,7 +2425,9 @@ const st: Record<Locale, Record<string, string>> = {
 
 const stadiumI18n: Record<Locale, Record<string, string>> = (Object.keys(st) as Locale[]).reduce((acc, loc) => {
   const dict: Record<string, string> = {};
-  for (const k of stadiumKeys) dict[`stadium.${k}`] = (st[loc] as Record<string, string>)[k];
+  const dict: Record<string, string> = {};
+  const merged = { ...(st[loc] as Record<string, string>), ...(stHero[loc] as Record<string, string>) };
+  for (const k of stadiumKeys) dict[`stadium.${k}`] = merged[k];
   acc[loc] = dict;
   return acc;
 }, {} as Record<Locale, Record<string, string>>);
