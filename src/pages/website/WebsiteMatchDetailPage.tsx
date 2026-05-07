@@ -118,6 +118,7 @@ const WebsiteMatchDetailPage = () => {
   const { data: allMatches = [] } = useMatches();
   const { data: offers = [] } = useTicketOffers(id);
   const { data: tmEvent } = useTicketmasterEvent(match?.homeTeam ?? "", match?.awayTeam ?? "");
+  const { data: dbStadium } = useStadium(match?.stadium);
   const { openTrackSheet } = useTrackSheet();
 
   const handleTrack = () => match && openTrackSheet({ intent: "track", matchId: match.id, matchLabel: `${match.homeTeam} vs ${match.awayTeam}` });
