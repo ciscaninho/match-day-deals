@@ -22,7 +22,6 @@ export const TEAM_ALIASES: Record<string, string[]> = {
   cfc: ["chelsea"],
   lfc: ["liverpool"],
   barca: ["barcelona", "fc barcelona"],
-  barça: ["barcelona"],
   "barça": ["barcelona"],
   rma: ["real madrid"],
   real: ["real madrid"],
