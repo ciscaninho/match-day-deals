@@ -116,7 +116,7 @@ const StadiumsPage = () => {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = stadiums.filter((s) => {
-      if (league !== "all" && s.league !== league) return false;
+      if (league !== "all" && (s.league_slug || `${s.country}-${s.league}`.toLowerCase().replace(/[^a-z0-9]+/g, "-")) !== league) return false;
       if (country !== "all" && s.country !== country) return false;
       if (city !== "all" && s.city !== city) return false;
       if (club !== "all" && s.club_name !== club && !s.clubs?.includes(club)) return false;
