@@ -185,6 +185,81 @@ export type Database = {
         }
         Relationships: []
       }
+      stadium_reviews: {
+        Row: {
+          accessibility: number
+          atmosphere: number
+          comment: string | null
+          created_at: string
+          facilities: number
+          id: string
+          section: string | null
+          stadium_name: string
+          stadium_slug: string
+          updated_at: string
+          user_id: string
+          value: number
+          view_rating: number
+        }
+        Insert: {
+          accessibility: number
+          atmosphere: number
+          comment?: string | null
+          created_at?: string
+          facilities: number
+          id?: string
+          section?: string | null
+          stadium_name: string
+          stadium_slug: string
+          updated_at?: string
+          user_id: string
+          value: number
+          view_rating: number
+        }
+        Update: {
+          accessibility?: number
+          atmosphere?: number
+          comment?: string | null
+          created_at?: string
+          facilities?: number
+          id?: string
+          section?: string | null
+          stadium_name?: string
+          stadium_slug?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+          view_rating?: number
+        }
+        Relationships: []
+      }
+      stadium_tips: {
+        Row: {
+          created_at: string
+          id: string
+          stadium_slug: string
+          tip: string
+          upvotes: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          stadium_slug: string
+          tip: string
+          upvotes?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          stadium_slug?: string
+          tip?: string
+          upvotes?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
