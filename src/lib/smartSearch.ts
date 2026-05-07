@@ -373,42 +373,42 @@ export const buildRecommendations = (
 
   // Weekend
   const weekend = upcoming.filter((m) => isWeekend(m.date) && inNextDays(m.date, 10)).slice(0, 6);
-  if (weekend.length) sections.push({ id: "weekend", title: "Weekend recommendations", subtitle: "Top picks for this weekend", matches: weekend });
+  if (weekend.length) sections.push({ id: "weekend", title: "recommendations.weekend", subtitle: "recommendations.weekend_subtitle", matches: weekend });
 
   // Big derbies
   const derbies = upcoming.filter(isDerby).slice(0, 6);
-  if (derbies.length) sections.push({ id: "derbies", title: "Big derbies", subtitle: "Rivalry nights you don't want to miss", matches: derbies });
+  if (derbies.length) sections.push({ id: "derbies", title: "recommendations.derbies", subtitle: "recommendations.derbies_subtitle", matches: derbies });
 
   // Champions League
   const ucl = upcoming.filter((m) => /champions league/i.test(m.competition)).slice(0, 6);
-  if (ucl.length) sections.push({ id: "ucl", title: "Champions League highlights", subtitle: "European nights at iconic stadiums", matches: ucl });
+  if (ucl.length) sections.push({ id: "ucl", title: "recommendations.ucl", subtitle: "recommendations.ucl_subtitle", matches: ucl });
 
   // Cheapest
   const cheapest = [...upcoming]
     .filter((m) => m.startingPrice != null && m.ticketStatus !== "sold_out")
     .sort((a, b) => (a.startingPrice ?? 0) - (b.startingPrice ?? 0))
     .slice(0, 6);
-  if (cheapest.length) sections.push({ id: "cheapest", title: "Cheapest tickets right now", subtitle: "Best prices available today", matches: cheapest });
+  if (cheapest.length) sections.push({ id: "cheapest", title: "recommendations.cheapest", subtitle: "recommendations.cheapest_subtitle", matches: cheapest });
 
   // Best value (mid range at iconic stadiums)
   const value = [...upcoming]
     .filter((m) => m.startingPrice != null && m.startingPrice >= 50 && m.startingPrice <= 120)
     .slice(0, 6);
-  if (value.length) sections.push({ id: "value", title: "Best value matches", subtitle: "Great atmosphere without breaking the bank", matches: value });
+  if (value.length) sections.push({ id: "value", title: "recommendations.value", subtitle: "recommendations.value_subtitle", matches: value });
 
   // Trending (heuristic: upcoming + on_sale + featured/priority)
   const trending = [...upcoming]
     .filter((m) => m.featured || m.priority || m.ticketStatus === "on_sale")
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 6);
-  if (trending.length) sections.push({ id: "trending", title: "Trending this week", subtitle: "Most popular matches right now", matches: trending });
+  if (trending.length) sections.push({ id: "trending", title: "recommendations.trending", subtitle: "recommendations.trending_subtitle", matches: trending });
 
   // Popular in your country
   if (opts.country) {
     const local = upcoming
       .filter((m) => normalize(m.country ?? "") === normalize(opts.country!))
       .slice(0, 6);
-    if (local.length) sections.push({ id: "local", title: `Popular in ${opts.country}`, subtitle: "Matches close to you", matches: local });
+    if (local.length) sections.push({ id: "local", title: "recommendations.local", subtitle: "recommendations.local_subtitle", matches: local });
   }
 
   return sections;
