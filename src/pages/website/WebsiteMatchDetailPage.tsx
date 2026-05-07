@@ -340,19 +340,76 @@ const WebsiteMatchDetailPage = () => {
         {/* STADIUM EXPERIENCE */}
         <section className="max-w-5xl mx-auto px-5 pb-10">
           <SectionTitle icon={Building2} title="Stadium experience" subtitle={stadium.name} />
-          <div className="grid md:grid-cols-4 gap-3">
+
+          {dbStadium && (
+            <div
+              className="relative overflow-hidden rounded-2xl border border-white/10 mb-3 h-40 md:h-56 bg-cover bg-center"
+              style={dbStadium.background_image_url || dbStadium.image_url
+                ? { backgroundImage: `url(${dbStadium.background_image_url || dbStadium.image_url})` }
+                : { backgroundImage: "linear-gradient(135deg, rgba(46,204,113,0.25), rgba(99,102,241,0.25))" }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0b1220] via-[#0b1220]/40 to-transparent" />
+              <div className="relative h-full flex flex-col justify-end p-4">
+                <div className="text-[10px] uppercase tracking-wider text-white/60 font-bold">{dbStadium.club_name}</div>
+                <div className="text-lg md:text-2xl font-extrabold">{dbStadium.stadium_name}</div>
+                <div className="text-xs text-white/70">
+                  {[dbStadium.city, dbStadium.country].filter(Boolean).join(", ")}
+                  {dbStadium.opened_year ? ` · Opened ${dbStadium.opened_year}` : ""}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Stat label="Capacity" value={stadium.capacity ? stadium.capacity.toLocaleString() : "—"} sub="Total seats" />
             <Stat label="Atmosphere" value={`${stadium.atmosphere?.toFixed(1) ?? "4.3"}/5`} sub="Fan rating" />
-            <Stat label="Best sections" value={stadium.bestSections?.[0] ?? "Behind goal"} sub={stadium.bestSections?.[1] ?? "Loudest area"} />
-            <Stat label="Best value" value={stadium.bestValue ?? "Upper tier"} sub="Great view, mid price" />
+            <Stat
+              label="Accessibility"
+              value={dbStadium?.accessibility_score != null ? `${dbStadium.accessibility_score.toFixed(1)}/10` : "—"}
+              sub="Ease of access"
+            />
+            <Stat
+              label="Family score"
+              value={dbStadium?.family_friendly_score != null ? `${dbStadium.family_friendly_score.toFixed(1)}/10` : "—"}
+              sub="Family-friendly"
+            />
           </div>
-          <div className="mt-3 rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-start gap-3">
-            <Star className="w-5 h-5 text-amber-300 mt-0.5" />
-            <div>
-              <div className="font-bold">Family-friendly area</div>
-              <div className="text-xs text-white/60 mt-0.5">{stadium.family ?? "Family stand"} — alcohol-free, calmer atmosphere, dedicated facilities.</div>
+
+          {dbStadium?.description && (
+            <div className="mt-3 rounded-2xl bg-white/[0.04] border border-white/10 p-4 text-sm text-white/75 leading-relaxed">
+              {dbStadium.description}
+            </div>
+          )}
+
+          <div className="mt-3 grid md:grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-start gap-3">
+              <Flame className="w-5 h-5 text-red-300 mt-0.5" />
+              <div>
+                <div className="font-bold">Best atmosphere</div>
+                <div className="text-xs text-white/60 mt-0.5">
+                  {dbStadium?.ultras_section ?? stadium.bestSections?.[0] ?? "Behind the goal"} — loudest, most passionate area.
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-start gap-3">
+              <Star className="w-5 h-5 text-amber-300 mt-0.5" />
+              <div>
+                <div className="font-bold">Family-friendly area</div>
+                <div className="text-xs text-white/60 mt-0.5">{stadium.family ?? "Family stand"} — alcohol-free, calmer atmosphere, dedicated facilities.</div>
+              </div>
             </div>
           </div>
+
+          {dbStadium && (
+            <div className="mt-3">
+              <Link
+                to={`/stadiums/${dbStadium.slug}`}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2ECC71] hover:text-[#27ae60]"
+              >
+                View full stadium guide <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          )}
         </section>
 
         {/* AI RECOMMENDATIONS */}
