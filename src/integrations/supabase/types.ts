@@ -275,6 +275,8 @@ export type Database = {
           description: string | null
           family_friendly_score: number | null
           family_section: string | null
+          gallery_images: string[]
+          hero_image_url: string | null
           id: string
           image_url: string | null
           latitude: number | null
@@ -285,6 +287,7 @@ export type Database = {
           popularity_score: number | null
           slug: string
           stadium_name: string
+          thumbnail_image_url: string | null
           ultras_section: string | null
           updated_at: string
           value_score: number | null
@@ -304,6 +307,8 @@ export type Database = {
           description?: string | null
           family_friendly_score?: number | null
           family_section?: string | null
+          gallery_images?: string[]
+          hero_image_url?: string | null
           id?: string
           image_url?: string | null
           latitude?: number | null
@@ -314,6 +319,7 @@ export type Database = {
           popularity_score?: number | null
           slug: string
           stadium_name: string
+          thumbnail_image_url?: string | null
           ultras_section?: string | null
           updated_at?: string
           value_score?: number | null
@@ -333,6 +339,8 @@ export type Database = {
           description?: string | null
           family_friendly_score?: number | null
           family_section?: string | null
+          gallery_images?: string[]
+          hero_image_url?: string | null
           id?: string
           image_url?: string | null
           latitude?: number | null
@@ -343,6 +351,7 @@ export type Database = {
           popularity_score?: number | null
           slug?: string
           stadium_name?: string
+          thumbnail_image_url?: string | null
           ultras_section?: string | null
           updated_at?: string
           value_score?: number | null
