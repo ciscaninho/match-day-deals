@@ -199,7 +199,7 @@ const StadiumDetailPage = () => {
           )}
         </section>
 
-        <StadiumReviews stadium={stadium.stadium_name} matchDate={null} />
+        <StadiumReviews stadium={stadium.stadium_name} matchDate={undefined} />
       </div>
     </WebsiteLayout>
   );
