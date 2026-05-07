@@ -2402,7 +2402,10 @@ const stadiumKeys = [
   "sort_by", "sort_atmosphere", "sort_capacity", "sort_popularity", "sort_country", "sort_league", "sort_name",
   "results_count", "view_grid", "view_table",
   "quality_missing_image", "quality_missing_coords", "quality_incomplete", "quality_no_reviews", "quality_missing_hero", "quality_complete",
+  "quality_missing_atmosphere", "quality_missing_capacity",
   "col_stadium", "col_clubs", "col_city", "col_country", "col_league", "col_capacity", "col_atmosphere", "col_popularity", "col_quality",
+  "qf_label", "qf_all", "qf_missing_image", "qf_missing_hero", "qf_missing_coords", "qf_missing_meta", "qf_no_reviews", "qf_incomplete",
+  "stat_total", "stat_missing_images", "stat_missing_coords", "stat_complete_pct",
 ] as const;
 
 const stHero: Record<Locale, Record<string, string>> = {
