@@ -438,15 +438,15 @@ const WebsiteMatchDetailPage = () => {
         <StadiumReviews stadium={match.stadium} matchDate={match.date} />
         {(related.same.length + related.nearby.length + related.similar.length) > 0 && (
           <section className="max-w-5xl mx-auto px-5 pb-16">
-            <SectionTitle icon={Trophy} title="Related matches" subtitle="You might also like" />
+            <SectionTitle icon={Trophy} title={t("md.related")} subtitle={t("md.related_subtitle")} />
             <div className="grid md:grid-cols-3 gap-3">
               {[...related.similar, ...related.same, ...related.nearby].slice(0, 6).map((m) => (
                 <Link key={m.id} to={`/matches/${m.id}`} className="group rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#2ECC71]/40 hover:bg-white/[0.06] transition">
                   <div className="text-[10px] uppercase tracking-wider text-[#2ECC71] font-bold">{m.competition}</div>
                   <div className="mt-1.5 font-extrabold text-sm">{m.homeTeam} <span className="text-white/40">vs</span> {m.awayTeam}</div>
                   <div className="text-[11px] text-white/55 mt-1 flex items-center gap-1.5"><Calendar className="w-3 h-3" />{fmtShort(m.date)} · <MapPin className="w-3 h-3" />{m.city}</div>
-                  {m.startingPrice && <div className="mt-2 text-xs font-bold text-[#2ECC71]">from €{m.startingPrice}</div>}
-                  <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-white/70 group-hover:gap-2 transition-all">View match <ChevronRight className="w-3 h-3" /></div>
+                  {m.startingPrice && <div className="mt-2 text-xs font-bold text-[#2ECC71]">{t("md.from_price")} €{m.startingPrice}</div>}
+                  <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-white/70 group-hover:gap-2 transition-all">{t("md.view_match")} <ChevronRight className="w-3 h-3" /></div>
                 </Link>
               ))}
             </div>
@@ -458,21 +458,21 @@ const WebsiteMatchDetailPage = () => {
           <div className="rounded-3xl bg-gradient-to-br from-[#2ECC71]/15 via-white/[0.04] to-violet-500/10 border border-white/10 p-6 md:p-8 grid md:grid-cols-[1fr_auto] gap-6 items-center">
             <div>
               <div className="inline-flex items-center gap-1.5 rounded-full bg-[#FFD93D]/15 border border-[#FFD93D]/30 px-2.5 py-1 text-[10px] font-bold text-[#FFD93D] uppercase tracking-wider">
-                <Zap className="w-3 h-3" /> Tickets sell fast
+                <Zap className="w-3 h-3" /> {t("md.tickets_sell_fast")}
               </div>
-              <h3 className="mt-3 text-2xl md:text-3xl font-extrabold">Never miss the best price</h3>
-              <p className="mt-1.5 text-sm text-white/70">Get instant alerts when prices drop or new tickets go on sale.</p>
+              <h3 className="mt-3 text-2xl md:text-3xl font-extrabold">{t("md.never_miss_price")}</h3>
+              <p className="mt-1.5 text-sm text-white/70">{t("md.never_miss_desc")}</p>
               <ul className="mt-3 space-y-1.5 text-sm">
-                {["Free price tracking", "Instant push & email alerts", "Buy at the perfect moment"].map((x) => (
+                {[t("md.bullet_free_tracking"), t("md.bullet_alerts"), t("md.bullet_buy")].map((x) => (
                   <li key={x} className="flex items-center gap-2 text-white/85"><Check className="w-4 h-4 text-[#2ECC71]" />{x}</li>
                 ))}
               </ul>
             </div>
             <div className="flex flex-col gap-2 md:min-w-[220px]">
               <button onClick={handleTrack} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-3.5 font-extrabold text-sm transition shadow-lg shadow-[#2ECC71]/20">
-                <Bell className="w-4 h-4" /> Start tracking
+                <Bell className="w-4 h-4" /> {t("md.start_tracking")}
               </button>
-              <button onClick={() => navigate("/auth")} className="text-xs text-white/60 hover:text-white">Already have an account? Sign in</button>
+              <button onClick={() => navigate("/auth")} className="text-xs text-white/60 hover:text-white">{t("md.have_account")}</button>
             </div>
           </div>
         </section>
