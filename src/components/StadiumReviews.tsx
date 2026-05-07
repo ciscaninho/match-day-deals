@@ -79,7 +79,7 @@ const Rating = ({
   );
 };
 
-export const StadiumReviews = ({ stadium }: { stadium: string }) => {
+export const StadiumReviews = ({ stadium, matchDate }: { stadium: string; matchDate?: string }) => {
   const slug = useMemo(() => slugifyStadium(stadium), [stadium]);
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -95,6 +95,17 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
   const [comment, setComment] = useState("");
   const [tipDraft, setTipDraft] = useState("");
 
+  const matchPlayed = useMemo(() => {
+    if (!matchDate) return true;
+    return new Date(matchDate).getTime() <= Date.now();
+  }, [matchDate]);
+
+  const myReview = useMemo(
+    () => (user ? reviews.find((r) => r.user_id === user.id) : null) ?? null,
+    [reviews, user],
+  );
+  const isEditing = !!myReview;
+
   const load = async () => {
     setLoading(true);
     const [r, t] = await Promise.all([
@@ -108,6 +119,20 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [slug]);
 
+  // Prefill form when opening if user already has a review
+  useEffect(() => {
+    if (showForm && myReview) {
+      setRatings({
+        atmosphere: myReview.atmosphere,
+        view_rating: myReview.view_rating,
+        facilities: myReview.facilities,
+        accessibility: myReview.accessibility,
+        value: myReview.value,
+      });
+      setComment(myReview.comment ?? "");
+    }
+  }, [showForm, myReview]);
+
   const aggregates = useMemo(() => {
     if (!reviews.length) return null;
     const sum: Record<CatKey, number> = { atmosphere: 0, view_rating: 0, facilities: 0, accessibility: 0, value: 0 };
@@ -119,6 +144,7 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
 
   const submitReview = async () => {
     if (!user) return toast.error(tr("sign_in_review"));
+    if (!matchPlayed) return toast.error(tr("match_not_played"));
     if (CATS.some((c) => !ratings[c.key])) return toast.error(tr("rate_all_required"));
     setSubmitting(true);
     const { error } = await supabase.from("stadium_reviews").upsert({
@@ -136,13 +162,12 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
     if (error) return toast.error(error.message);
     toast.success(tr("thanks"));
     setShowForm(false);
-    setComment("");
-    setRatings({ atmosphere: 0, view_rating: 0, facilities: 0, accessibility: 0, value: 0 });
     load();
   };
 
   const submitTip = async () => {
     if (!user) return toast.error(tr("sign_in_tip"));
+    if (!matchPlayed) return toast.error(tr("match_not_played"));
     const v = tipDraft.trim();
     if (v.length < 4) return toast.error(tr("tip_too_short"));
     const { error } = await supabase.from("stadium_tips").insert({
@@ -170,11 +195,23 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
         </div>
         <button
           onClick={() => setShowForm((s) => !s)}
-          className="hidden md:inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 px-3.5 py-2 text-xs font-bold text-white transition shrink-0"
+          disabled={!matchPlayed}
+          className="hidden md:inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed border border-white/15 px-3.5 py-2 text-xs font-bold text-white transition shrink-0"
         >
-          <MessageSquare className="w-3.5 h-3.5" /> {showForm ? tr("close") : tr("write_review")}
+          <MessageSquare className="w-3.5 h-3.5" /> {showForm ? tr("close") : isEditing ? tr("edit_review") : tr("write_review")}
         </button>
       </div>
+
+      {/* Match-not-played notice */}
+      {!matchPlayed && (
+        <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 text-xs text-white/70 flex items-start gap-2">
+          <Star className="w-4 h-4 text-[#FFD93D] shrink-0 mt-0.5" />
+          <div>
+            <div className="font-bold text-white">{tr("match_not_played")}</div>
+            <div className="text-white/55">{tr("match_not_played_desc")}</div>
+          </div>
+        </div>
+      )}
 
       {/* Score summary */}
       <div className="rounded-3xl bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/10 p-5 md:p-6">
@@ -220,9 +257,10 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
       {/* Mobile CTA */}
       <button
         onClick={() => setShowForm((s) => !s)}
-        className="md:hidden mt-3 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 px-3.5 py-2.5 text-xs font-bold text-white transition"
+        disabled={!matchPlayed}
+        className="md:hidden mt-3 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed border border-white/15 px-3.5 py-2.5 text-xs font-bold text-white transition"
       >
-        <MessageSquare className="w-3.5 h-3.5" /> {showForm ? tr("close") : tr("write_review")}
+        <MessageSquare className="w-3.5 h-3.5" /> {showForm ? tr("close") : isEditing ? tr("edit_review") : tr("write_review")}
       </button>
 
       {/* Review form */}
@@ -251,7 +289,7 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
               className="inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] disabled:opacity-50 text-white px-4 py-2.5 text-sm font-extrabold transition"
             >
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              {tr("submit")}
+              {isEditing ? tr("update") : tr("submit")}
             </button>
           </div>
         </div>
