@@ -24,7 +24,6 @@ export const WebsiteLayout = ({ children }: Props) => {
     { label: t("website.nav.leagues"), to: "/leagues" },
     { label: t("website.nav.how"), to: "/how-it-works" },
     { label: t("website.nav.pricing"), to: "/pricing" },
-    { label: t("website.nav.faq"), to: "/faq" },
   ];
 
   const socialLinks = [
@@ -162,6 +161,7 @@ export const WebsiteLayout = ({ children }: Props) => {
               <li><Link to="/leagues" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.leagues")}</Link></li>
               <li><Link to="/how-it-works" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.how")}</Link></li>
               <li><Link to="/pricing" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.pricing")}</Link></li>
+              <li><Link to="/faq" className="hover:text-[#2ECC71] transition-colors">{t("website.nav.faq")}</Link></li>
               <li><Link to="/app" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.the_app")}</Link></li>
             </ul>
           </div>

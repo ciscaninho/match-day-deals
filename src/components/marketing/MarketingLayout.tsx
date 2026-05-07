@@ -22,7 +22,6 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
     { label: t("website.nav.matches") || "Matches", to: "/matches" },
     { label: t("website.footer.how"), to: "/how-it-works" },
     { label: t("website.footer.pricing"), to: "/pricing" },
-    { label: t("website.nav.faq"), to: "/faq" },
   ];
 
   const socialLinks = [
@@ -153,6 +152,7 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
               <li><Link to="/leagues" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.leagues")}</Link></li>
               <li><Link to="/how-it-works" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.how")}</Link></li>
               <li><Link to="/pricing" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.pricing")}</Link></li>
+              <li><Link to="/faq" className="hover:text-[#2ECC71] transition-colors">{t("website.nav.faq")}</Link></li>
               <li><Link to="/app" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.the_app")}</Link></li>
             </ul>
           </div>
