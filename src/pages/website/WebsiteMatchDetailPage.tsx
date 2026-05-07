@@ -387,7 +387,7 @@ const WebsiteMatchDetailPage = () => {
         </section>
 
         {/* STADIUM EXPERIENCE REVIEWS */}
-        <StadiumReviews stadium={match.stadium} />
+        <StadiumReviews stadium={match.stadium} matchDate={match.date} />
         {(related.same.length + related.nearby.length + related.similar.length) > 0 && (
           <section className="max-w-5xl mx-auto px-5 pb-16">
             <SectionTitle icon={Trophy} title="Related matches" subtitle="You might also like" />
