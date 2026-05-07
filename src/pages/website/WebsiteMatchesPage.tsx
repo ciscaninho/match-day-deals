@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, MapPin, Calendar, ArrowRight, Filter } from "lucide-react";
+import { MapPin, Calendar, ArrowRight, Filter } from "lucide-react";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
+import { SmartSearch } from "@/components/SmartSearch";
+import { filterMatchesByQuery } from "@/lib/smartSearch";
 
 const WebsiteMatchesPage = () => {
   const { data: matches = [], isLoading } = useMatches();
@@ -27,17 +29,11 @@ const WebsiteMatchesPage = () => {
   }, [matches]);
 
   const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    return matches
+    const base = matches
       .filter((m) => new Date(m.date).getTime() >= Date.now() - 24 * 3600 * 1000)
-      .filter((m) => !league || m.competition === league)
-      .filter((m) => {
-        if (!term) return true;
-        return [m.homeTeam, m.awayTeam, m.competition, m.city, m.stadium]
-          .filter(Boolean)
-          .some((s) => s.toLowerCase().includes(term));
-      })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .filter((m) => !league || m.competition === league);
+    const searched = q.trim() ? filterMatchesByQuery(base, q) : base;
+    return [...searched].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [matches, q, league]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,22 +53,23 @@ const WebsiteMatchesPage = () => {
             Compare ticket prices for upcoming matches across official providers.
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-6 grid sm:grid-cols-[1fr_auto_auto] gap-2 bg-white rounded-2xl p-2 shadow-md border border-slate-200">
-            <div className="flex items-center gap-2 px-3">
-              <Search className="w-5 h-5 text-[#2C3E50]/40" />
-              <input
-                type="text"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Team, city, stadium…"
-                className="flex-1 py-3 outline-none text-sm"
-                aria-label="Search matches"
+          <div className="mt-6 grid sm:grid-cols-[1fr_auto_auto] gap-2">
+            <div className="sm:col-span-1">
+              <SmartSearch
+                placeholder="Team, city, stadium, league…"
+                onSubmit={(text) => {
+                  setQ(text);
+                  const next = new URLSearchParams();
+                  if (text.trim()) next.set("q", text.trim());
+                  if (league) next.set("league", league);
+                  setParams(next);
+                }}
               />
             </div>
             <select
               value={league}
               onChange={(e) => setLeague(e.target.value)}
-              className="px-3 py-3 text-sm border-l border-slate-100 outline-none bg-white"
+              className="px-3 py-3 text-sm rounded-2xl border border-slate-200 bg-white outline-none"
               aria-label="Filter by league"
             >
               <option value="">All leagues</option>
@@ -81,12 +78,13 @@ const WebsiteMatchesPage = () => {
               ))}
             </select>
             <button
-              type="submit"
-              className="rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-3 font-bold text-sm transition inline-flex items-center justify-center gap-2"
+              type="button"
+              onClick={handleSubmit as unknown as () => void}
+              className="rounded-2xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-3 font-bold text-sm transition inline-flex items-center justify-center gap-2"
             >
               <Filter className="w-4 h-4" /> Filter
             </button>
-          </form>
+          </div>
         </div>
       </section>
 
