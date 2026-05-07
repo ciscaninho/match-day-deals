@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthGate } from "@/components/auth/AuthGate";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { toast } from "sonner";
 import {
@@ -82,6 +83,7 @@ const Rating = ({
 export const StadiumReviews = ({ stadium, matchDate }: { stadium: string; matchDate?: string }) => {
   const slug = useMemo(() => slugifyStadium(stadium), [stadium]);
   const { user } = useAuth();
+  const { openAuth } = useAuthGate();
   const { t } = useLanguage();
   const tr = (k: string, p?: Record<string, string | number>) => t(`stadium_reviews.${k}`, p);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -143,7 +145,7 @@ export const StadiumReviews = ({ stadium, matchDate }: { stadium: string; matchD
   }, [reviews]);
 
   const submitReview = async () => {
-    if (!user) return toast.error(tr("sign_in_review"));
+    if (!user) return openAuth({ reason: tr("sign_in_review") });
     if (!matchPlayed) return toast.error(tr("match_not_played"));
     if (CATS.some((c) => !ratings[c.key])) return toast.error(tr("rate_all_required"));
     setSubmitting(true);
@@ -166,7 +168,7 @@ export const StadiumReviews = ({ stadium, matchDate }: { stadium: string; matchD
   };
 
   const submitTip = async () => {
-    if (!user) return toast.error(tr("sign_in_tip"));
+    if (!user) return openAuth({ reason: tr("sign_in_tip") });
     if (!matchPlayed) return toast.error(tr("match_not_played"));
     const v = tipDraft.trim();
     if (v.length < 4) return toast.error(tr("tip_too_short"));
