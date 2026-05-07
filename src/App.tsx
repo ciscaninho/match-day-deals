@@ -39,6 +39,7 @@ import { RequireAuth } from "./components/auth/RequireAuth";
 import { AuthGateProvider } from "./components/auth/AuthGate";
 import { PremiumGateProvider } from "./components/premium/PremiumGate";
 import { TrackPriceSheetProvider } from "./components/track/TrackPriceSheet";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +59,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <AuthGateProvider>
             <PremiumGateProvider>
             <TrackPriceSheetProvider>
