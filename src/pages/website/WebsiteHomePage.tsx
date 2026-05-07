@@ -275,7 +275,10 @@ const WebsiteHomePage = () => {
         </div>
       </section>
 
-      {/* APP CTA — visually distinct */}
+      {/* RECOMMENDED MATCHES */}
+      <RecommendedSections />
+
+
       <section className="py-16 md:py-24 bg-[#2C3E50] text-white relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-[#2ECC71]/20 blur-3xl" />
         <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-[#2ECC71]/10 blur-3xl" />
