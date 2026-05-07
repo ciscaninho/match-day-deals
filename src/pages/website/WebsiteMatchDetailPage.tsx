@@ -416,7 +416,7 @@ const WebsiteMatchDetailPage = () => {
 
         {/* AI RECOMMENDATIONS */}
         <section className="max-w-5xl mx-auto px-5 pb-10">
-          <SectionTitle icon={Lightbulb} title="AI recommendations" subtitle="Personalized for this match" />
+          <SectionTitle icon={Lightbulb} title={t("recommendations.title")} subtitle={t("recommendations.subtitle")} />
           <div className="grid md:grid-cols-2 gap-3">
             {recos.map((r) => (
               <div key={r.title} className="rounded-2xl bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/10 p-4 flex items-start gap-3 hover:border-[#2ECC71]/40 transition">
