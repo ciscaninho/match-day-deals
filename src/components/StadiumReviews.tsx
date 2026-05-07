@@ -79,7 +79,7 @@ const Rating = ({
   );
 };
 
-export const StadiumReviews = ({ stadium }: { stadium: string }) => {
+export const StadiumReviews = ({ stadium, matchDate }: { stadium: string; matchDate?: string }) => {
   const slug = useMemo(() => slugifyStadium(stadium), [stadium]);
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -95,6 +95,17 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
   const [comment, setComment] = useState("");
   const [tipDraft, setTipDraft] = useState("");
 
+  const matchPlayed = useMemo(() => {
+    if (!matchDate) return true;
+    return new Date(matchDate).getTime() <= Date.now();
+  }, [matchDate]);
+
+  const myReview = useMemo(
+    () => (user ? reviews.find((r) => r.user_id === user.id) : null) ?? null,
+    [reviews, user],
+  );
+  const isEditing = !!myReview;
+
   const load = async () => {
     setLoading(true);
     const [r, t] = await Promise.all([
@@ -108,6 +119,20 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [slug]);
 
+  // Prefill form when opening if user already has a review
+  useEffect(() => {
+    if (showForm && myReview) {
+      setRatings({
+        atmosphere: myReview.atmosphere,
+        view_rating: myReview.view_rating,
+        facilities: myReview.facilities,
+        accessibility: myReview.accessibility,
+        value: myReview.value,
+      });
+      setComment(myReview.comment ?? "");
+    }
+  }, [showForm, myReview]);
+
   const aggregates = useMemo(() => {
     if (!reviews.length) return null;
     const sum: Record<CatKey, number> = { atmosphere: 0, view_rating: 0, facilities: 0, accessibility: 0, value: 0 };
@@ -119,6 +144,7 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
 
   const submitReview = async () => {
     if (!user) return toast.error(tr("sign_in_review"));
+    if (!matchPlayed) return toast.error(tr("match_not_played"));
     if (CATS.some((c) => !ratings[c.key])) return toast.error(tr("rate_all_required"));
     setSubmitting(true);
     const { error } = await supabase.from("stadium_reviews").upsert({
@@ -136,13 +162,12 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
     if (error) return toast.error(error.message);
     toast.success(tr("thanks"));
     setShowForm(false);
-    setComment("");
-    setRatings({ atmosphere: 0, view_rating: 0, facilities: 0, accessibility: 0, value: 0 });
     load();
   };
 
   const submitTip = async () => {
     if (!user) return toast.error(tr("sign_in_tip"));
+    if (!matchPlayed) return toast.error(tr("match_not_played"));
     const v = tipDraft.trim();
     if (v.length < 4) return toast.error(tr("tip_too_short"));
     const { error } = await supabase.from("stadium_tips").insert({
