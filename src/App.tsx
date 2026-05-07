@@ -14,6 +14,7 @@ import WebsiteMatchDetailPage from "./pages/website/WebsiteMatchDetailPage";
 import WebsiteLeaguesPage, { WebsiteLeaguePage } from "./pages/website/WebsiteLeaguesPage";
 import AppLandingPage from "./pages/website/AppLandingPage";
 import StadiumsPage from "./pages/website/StadiumsPage";
+import SuggestStadiumPage from "./pages/website/SuggestStadiumPage";
 import StadiumDetailPage from "./pages/website/StadiumDetailPage";
 import MatchesPage from "./pages/MatchesPage";
 import MatchDetailPage from "./pages/MatchDetailPage";
@@ -75,6 +76,7 @@ const App = () => (
               <Route path="/leagues/:slug" element={<WebsiteLeaguePage />} />
               <Route path="/stadiums" element={<StadiumsPage />} />
               <Route path="/stadium-directory" element={<StadiumsPage />} />
+              <Route path="/stadiums/suggest" element={<SuggestStadiumPage />} />
               <Route path="/stadiums/:slug" element={<StadiumDetailPage />} />
               <Route path="/app" element={<AppLandingPage />} />
               <Route path="/landing" element={<LandingPage />} />

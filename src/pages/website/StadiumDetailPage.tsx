@@ -7,6 +7,8 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { useMatches } from "@/hooks/useMatches";
 import { StadiumReviews } from "@/components/StadiumReviews";
 import { StadiumHero } from "@/components/StadiumHero";
+import { StadiumPassportButton } from "@/components/StadiumPassportButton";
+import { StadiumExperienceTips } from "@/components/StadiumExperienceTips";
 import { useSEO } from "@/lib/seo";
 import type { Stadium } from "@/hooks/useStadium";
 
@@ -86,7 +88,15 @@ const StadiumDetailPage = () => {
       <StadiumHero stadium={stadium} />
 
       <div className="bg-[#0b1220] text-white">
-        <section className="max-w-5xl mx-auto px-5 py-8">
+        <section className="max-w-5xl mx-auto px-5 pt-6 pb-2 flex justify-end">
+          <StadiumPassportButton
+            stadiumSlug={stadium.slug}
+            stadiumName={stadium.stadium_name}
+            city={stadium.city}
+            country={stadium.country}
+          />
+        </section>
+        <section className="max-w-5xl mx-auto px-5 py-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Stat label={t("stadium.capacity")} value={stadium.capacity ? stadium.capacity.toLocaleString() : "—"} sub={t("stadium.capacity")} />
             <Stat label={t("stadium.atmosphere")} value={stadium.atmosphere_score != null ? `${stadium.atmosphere_score.toFixed(1)}/10` : "—"} />
@@ -178,6 +188,7 @@ const StadiumDetailPage = () => {
         </section>
 
         <StadiumReviews stadium={stadium.stadium_name} matchDate={undefined} />
+        <StadiumExperienceTips stadiumSlug={stadium.slug} />
       </div>
     </WebsiteLayout>
   );

@@ -146,6 +146,8 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string | null
+          favorite_atmosphere: string | null
+          favorite_stadium_slug: string | null
           id: string
           updated_at: string
           user_id: string
@@ -155,6 +157,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          favorite_atmosphere?: string | null
+          favorite_stadium_slug?: string | null
           id?: string
           updated_at?: string
           user_id: string
@@ -164,6 +168,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          favorite_atmosphere?: string | null
+          favorite_stadium_slug?: string | null
           id?: string
           updated_at?: string
           user_id?: string
@@ -190,6 +196,39 @@ export type Database = {
           created_at?: string
           id?: string
           match_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stadium_experience_tips: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          stadium_slug: string
+          tip: string
+          updated_at: string
+          upvotes: number
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          stadium_slug: string
+          tip: string
+          updated_at?: string
+          upvotes?: number
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          stadium_slug?: string
+          tip?: string
+          updated_at?: string
+          upvotes?: number
           user_id?: string
         }
         Relationships: []
@@ -242,6 +281,60 @@ export type Database = {
         }
         Relationships: []
       }
+      stadium_suggestions: {
+        Row: {
+          city: string | null
+          club: string | null
+          country: string | null
+          created_at: string
+          id: string
+          league: string | null
+          notes: string | null
+          resulting_stadium_slug: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          stadium_name: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          city?: string | null
+          club?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          league?: string | null
+          notes?: string | null
+          resulting_stadium_slug?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          stadium_name: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          city?: string | null
+          club?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          league?: string | null
+          notes?: string | null
+          resulting_stadium_slug?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          stadium_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       stadium_tips: {
         Row: {
           created_at: string
@@ -269,6 +362,60 @@ export type Database = {
         }
         Relationships: []
       }
+      stadium_visits: {
+        Row: {
+          atmosphere_rating: number | null
+          city: string | null
+          country: string | null
+          created_at: string
+          favorite_section: string | null
+          id: string
+          match_id: string | null
+          match_label: string | null
+          notes: string | null
+          overall_rating: number | null
+          stadium_name: string
+          stadium_slug: string
+          updated_at: string
+          user_id: string
+          visit_date: string | null
+        }
+        Insert: {
+          atmosphere_rating?: number | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          favorite_section?: string | null
+          id?: string
+          match_id?: string | null
+          match_label?: string | null
+          notes?: string | null
+          overall_rating?: number | null
+          stadium_name: string
+          stadium_slug: string
+          updated_at?: string
+          user_id: string
+          visit_date?: string | null
+        }
+        Update: {
+          atmosphere_rating?: number | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          favorite_section?: string | null
+          id?: string
+          match_id?: string | null
+          match_label?: string | null
+          notes?: string | null
+          overall_rating?: number | null
+          stadium_name?: string
+          stadium_slug?: string
+          updated_at?: string
+          user_id?: string
+          visit_date?: string | null
+        }
+        Relationships: []
+      }
       stadiums: {
         Row: {
           accessibility_score: number | null
@@ -279,6 +426,7 @@ export type Database = {
           city: string
           club_name: string | null
           clubs: string[]
+          continent: string | null
           country: string
           created_at: string
           description: string | null
@@ -312,6 +460,7 @@ export type Database = {
           city: string
           club_name?: string | null
           clubs?: string[]
+          continent?: string | null
           country?: string
           created_at?: string
           description?: string | null
@@ -345,6 +494,7 @@ export type Database = {
           city?: string
           club_name?: string | null
           clubs?: string[]
+          continent?: string | null
           country?: string
           created_at?: string
           description?: string | null

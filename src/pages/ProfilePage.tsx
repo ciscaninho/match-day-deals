@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Crown, Star, Heart, Bell, ArrowRight, Globe } from "lucide-react";
+import { StadiumPassportCard } from "@/components/StadiumPassportCard";
 import type { Locale } from "@/i18n/translations";
 
 const ProfilePage = () => {
@@ -82,6 +83,8 @@ const ProfilePage = () => {
             </Select>
           </CardContent>
         </Card>
+
+        <StadiumPassportCard />
 
         {/* Quick links */}
         <div className="mt-4 space-y-2">
