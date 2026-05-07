@@ -118,8 +118,8 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
   }, [reviews]);
 
   const submitReview = async () => {
-    if (!user) return toast.error("Please sign in to leave a review");
-    if (CATS.some((c) => !ratings[c.key])) return toast.error("Please rate every category");
+    if (!user) return toast.error(tr("sign_in_review"));
+    if (CATS.some((c) => !ratings[c.key])) return toast.error(tr("rate_all_required"));
     setSubmitting(true);
     const { error } = await supabase.from("stadium_reviews").upsert({
       user_id: user.id,
@@ -134,7 +134,7 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
     }, { onConflict: "user_id,stadium_slug" });
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    toast.success("Thanks for your review!");
+    toast.success(tr("thanks"));
     setShowForm(false);
     setComment("");
     setRatings({ atmosphere: 0, view_rating: 0, facilities: 0, accessibility: 0, value: 0 });
@@ -142,15 +142,15 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
   };
 
   const submitTip = async () => {
-    if (!user) return toast.error("Please sign in to share a tip");
+    if (!user) return toast.error(tr("sign_in_tip"));
     const v = tipDraft.trim();
-    if (v.length < 4) return toast.error("Tip is too short");
+    if (v.length < 4) return toast.error(tr("tip_too_short"));
     const { error } = await supabase.from("stadium_tips").insert({
       user_id: user.id, stadium_slug: slug, tip: v,
     });
     if (error) return toast.error(error.message);
     setTipDraft("");
-    toast.success("Tip shared with the community!");
+    toast.success(tr("tip_shared"));
     load();
   };
 
