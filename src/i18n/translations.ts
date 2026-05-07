@@ -1930,7 +1930,7 @@ const sr = {
   en: {
     eyebrow: "Stadium experience", title: "Fan reviews & insights",
     subtitle: "Real ratings from fans who've been there",
-    write_review: "Write a review", close: "Close",
+    close: "Close",
     be_first: "Be the first to review this stadium",
     be_first_desc: "Help fellow fans pick the perfect seats",
     review_count: "{count} reviews", review_count_one: "{count} review",
@@ -1959,7 +1959,7 @@ const sr = {
   fr: {
     eyebrow: "Expérience stade", title: "Avis & infos des fans",
     subtitle: "Vrais avis de fans qui y étaient",
-    write_review: "Laisser un avis", close: "Fermer",
+    close: "Fermer",
     be_first: "Soyez le premier à noter ce stade",
     be_first_desc: "Aidez les autres fans à choisir leurs places",
     review_count: "{count} avis", review_count_one: "{count} avis",
@@ -1988,7 +1988,7 @@ const sr = {
   es: {
     eyebrow: "Experiencia del estadio", title: "Reseñas e ideas de fans",
     subtitle: "Valoraciones reales de quienes han estado allí",
-    write_review: "Escribir reseña", close: "Cerrar",
+    close: "Cerrar",
     be_first: "Sé el primero en reseñar este estadio",
     be_first_desc: "Ayuda a otros fans a elegir el asiento perfecto",
     review_count: "{count} reseñas", review_count_one: "{count} reseña",
@@ -2017,7 +2017,7 @@ const sr = {
   de: {
     eyebrow: "Stadion-Erlebnis", title: "Fan-Bewertungen & Tipps",
     subtitle: "Echte Bewertungen von Fans, die dort waren",
-    write_review: "Bewertung schreiben", close: "Schließen",
+    close: "Schließen",
     be_first: "Bewerte dieses Stadion als Erster",
     be_first_desc: "Hilf anderen Fans, die besten Plätze zu finden",
     review_count: "{count} Bewertungen", review_count_one: "{count} Bewertung",
@@ -2046,7 +2046,7 @@ const sr = {
   it: {
     eyebrow: "Esperienza stadio", title: "Recensioni & consigli dei tifosi",
     subtitle: "Valutazioni reali di chi c'è stato",
-    write_review: "Scrivi una recensione", close: "Chiudi",
+    close: "Chiudi",
     be_first: "Sii il primo a recensire questo stadio",
     be_first_desc: "Aiuta gli altri tifosi a scegliere i posti migliori",
     review_count: "{count} recensioni", review_count_one: "{count} recensione",
@@ -2075,7 +2075,7 @@ const sr = {
   pt: {
     eyebrow: "Experiência no estádio", title: "Avaliações & dicas dos fãs",
     subtitle: "Avaliações reais de quem esteve lá",
-    write_review: "Escrever avaliação", close: "Fechar",
+    close: "Fechar",
     be_first: "Seja o primeiro a avaliar este estádio",
     be_first_desc: "Ajude outros fãs a escolher os melhores lugares",
     review_count: "{count} avaliações", review_count_one: "{count} avaliação",
@@ -2104,7 +2104,7 @@ const sr = {
   nl: {
     eyebrow: "Stadionbeleving", title: "Fan-reviews & inzichten",
     subtitle: "Echte beoordelingen van fans die er waren",
-    write_review: "Schrijf een review", close: "Sluiten",
+    close: "Sluiten",
     be_first: "Wees de eerste die dit stadion beoordeelt",
     be_first_desc: "Help andere fans de perfecte plek te kiezen",
     review_count: "{count} reviews", review_count_one: "{count} review",
@@ -2133,7 +2133,7 @@ const sr = {
   ar: {
     eyebrow: "تجربة الملعب", title: "تقييمات المشجعين ونصائحهم",
     subtitle: "تقييمات حقيقية من مشجعين حضروا المباراة",
-    write_review: "اكتب تقييماً", close: "إغلاق",
+    close: "إغلاق",
     be_first: "كن أول من يقيّم هذا الملعب",
     be_first_desc: "ساعد المشجعين الآخرين على اختيار أفضل المقاعد",
     review_count: "{count} تقييم", review_count_one: "{count} تقييم",
@@ -2162,7 +2162,7 @@ const sr = {
   ru: {
     eyebrow: "Опыт стадиона", title: "Отзывы и советы фанатов",
     subtitle: "Реальные оценки от тех, кто был там",
-    write_review: "Написать отзыв", close: "Закрыть",
+    close: "Закрыть",
     be_first: "Будьте первым, кто оценит этот стадион",
     be_first_desc: "Помогите другим выбрать идеальные места",
     review_count: "{count} отзывов", review_count_one: "{count} отзыв",
