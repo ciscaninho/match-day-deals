@@ -120,6 +120,9 @@ Deno.serve(async (req) => {
       featured: false,
       priority: false,
       starting_price: null,
+      verified: true,
+      data_source: "football-data.org",
+      last_synced_at: new Date().toISOString(),
     }));
 
     if (rows.length === 0) {
