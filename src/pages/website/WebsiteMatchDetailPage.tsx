@@ -360,11 +360,7 @@ const WebsiteMatchDetailPage = () => {
           </div>
         </section>
 
-        {/* OFFERS */}
-        <section className="max-w-5xl mx-auto px-5 pb-10">
-          <SectionTitle icon={Ticket} title="Compare ticket offers" subtitle="Trusted marketplaces" />
-          <TicketProviders homeTeam={match.homeTeam} awayTeam={match.awayTeam} variant="dark" />
-        </section>
+
 
         {/* STADIUM EXPERIENCE REVIEWS */}
         <StadiumReviews stadium={match.stadium} matchDate={match.date} />
