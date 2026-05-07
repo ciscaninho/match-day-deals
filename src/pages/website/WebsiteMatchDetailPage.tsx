@@ -274,38 +274,17 @@ const WebsiteMatchDetailPage = () => {
       {/* DARK BODY */}
       <div className="bg-[#0b1220] text-white">
         {/* TICKET INTELLIGENCE */}
-        <section className="max-w-5xl mx-auto px-5 py-10">
-          <SectionTitle icon={Activity} title="Ticket intelligence" subtitle={`Live insights · updated ${fmtRelative(intel.lastChecked)}`} />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Stat label="Cheapest" value={intel.cheapest ? `€${intel.cheapest}` : "—"} sub={intel.cheapestOffer?.provider ?? (intel.cheapest ? "Best available" : "Awaiting sale")} />
-            <Stat label="Average price" value={intel.avg ? `€${intel.avg}` : "—"} sub={intel.allPrices.length ? `${intel.allPrices.length} sources` : "No data yet"} />
-            <Stat label="Availability" value={onSale ? "On sale" : match.ticketStatus === "sold_out" ? "Sold out" : "Not released"} sub={onSale ? "Buy now" : `Opens ${fmtShort(match.ticketReleaseDate)}`} />
-            <Stat label="Official" value={intel.officialOffer ? "Available" : "Pending"} sub={intel.officialOffer?.name ?? "Check club site"} />
-          </div>
-
-          {(intel.cheapestOffer || intel.officialOffer) && (
-            <div className="mt-4 grid md:grid-cols-2 gap-3">
-              {intel.cheapestOffer && (
-                <a href={intel.cheapestOffer.url} target="_blank" rel="noopener noreferrer nofollow"
-                   className="group rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 hover:bg-emerald-500/15 transition">
-                  <div className="flex items-center gap-2"><Chip icon={Sparkles} label="Best Deal" tone="official" /><Chip icon={BadgeCheck} label="Lowest Price" tone="official" /></div>
-                  <div className="mt-3 font-extrabold text-lg">€{intel.cheapestOffer.price} · {intel.cheapestOffer.provider}</div>
-                  <div className="text-xs text-white/65 mt-1">{intel.cheapestOffer.category ?? "Best available"} — tap to view</div>
-                  <div className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-emerald-300 group-hover:gap-2 transition-all">View offer <ChevronRight className="w-3.5 h-3.5" /></div>
-                </a>
-              )}
-              {intel.officialOffer && (
-                <a href={intel.officialOffer.url} target="_blank" rel="noopener noreferrer"
-                   className="group rounded-2xl border border-violet-400/30 bg-violet-500/10 p-4 hover:bg-violet-500/15 transition">
-                  <div className="flex items-center gap-2"><Chip icon={ShieldCheck} label="Official" tone="premium" /><Chip icon={BadgeCheck} label="Trusted Seller" tone="premium" /></div>
-                  <div className="mt-3 font-extrabold text-lg">{intel.officialOffer.name}</div>
-                  <div className="text-xs text-white/65 mt-1">Direct from the club / federation</div>
-                  <div className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-violet-300 group-hover:gap-2 transition-all">Visit official <ChevronRight className="w-3.5 h-3.5" /></div>
-                </a>
-              )}
-            </div>
-          )}
-        </section>
+        <TicketIntelligence
+          match={match}
+          offers={offers}
+          tmEvent={tmEvent ?? null}
+          cheapest={intel.cheapest}
+          avg={intel.avg}
+          lastChecked={intel.lastChecked}
+          derby={derby}
+          isBigMatch={!!(match.featured || match.priority || derby)}
+          stadiumAtmosphere={stadium.atmosphere ?? 4.3}
+        />
 
         {/* OFFICIAL SALES */}
         <section className="max-w-5xl mx-auto px-5 pb-10">
