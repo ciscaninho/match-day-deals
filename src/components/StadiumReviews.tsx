@@ -260,7 +260,7 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
         </div>
         <div className="grid sm:grid-cols-2 gap-2.5">
           {(tips.length ? tips : DEFAULT_TIPS).map((t, i) => (
-            <div key={"id" in t ? t.id : `def-${i}`} className="rounded-xl bg-white/[0.03] border border-white/10 px-3 py-2.5 text-sm text-white/85 hover:border-[#2ECC71]/30 transition">
+            <div key={`tip-${i}`} className="rounded-xl bg-white/[0.03] border border-white/10 px-3 py-2.5 text-sm text-white/85 hover:border-[#2ECC71]/30 transition">
               <span className="text-[#2ECC71] mr-1.5">›</span>{t.tip}
             </div>
           ))}
