@@ -76,6 +76,7 @@ const App = () => (
               <Route path="/leagues/:slug" element={<WebsiteLeaguePage />} />
               <Route path="/stadiums" element={<StadiumsPage />} />
               <Route path="/stadium-directory" element={<StadiumsPage />} />
+              <Route path="/stadiums/suggest" element={<SuggestStadiumPage />} />
               <Route path="/stadiums/:slug" element={<StadiumDetailPage />} />
               <Route path="/app" element={<AppLandingPage />} />
               <Route path="/landing" element={<LandingPage />} />
