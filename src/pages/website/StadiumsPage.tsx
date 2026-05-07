@@ -189,7 +189,7 @@ const StadiumsPage = () => {
           <div className="mt-3 grid grid-cols-2 md:grid-cols-7 gap-2">
             <select value={league} onChange={(e) => setLeague(e.target.value)} className={selectCls}>
               <option value="all">{t("stadium.all_leagues")}</option>
-              {leagues.map((l) => <option key={l} value={l}>{l}</option>)}
+              {leagues.map(([slug, label]) => <option key={slug} value={slug}>{label}</option>)}
             </select>
             <select value={country} onChange={(e) => { setCountry(e.target.value); setCity("all"); }} className={selectCls}>
               <option value="all">{t("stadium.all_countries")}</option>
