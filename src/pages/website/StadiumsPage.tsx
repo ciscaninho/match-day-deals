@@ -160,11 +160,21 @@ const StadiumsPage = () => {
     <WebsiteLayout>
       <section className="bg-gradient-to-br from-[#0b1220] via-[#111a2c] to-[#0b1220] text-white">
         <div className="max-w-7xl mx-auto px-5 pt-8 pb-6">
-          <div className="text-[10px] uppercase tracking-wider text-[#2ECC71] font-bold flex items-center gap-1.5">
-            <Building2 className="w-3.5 h-3.5" /> {t("stadium.directory_title")}
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wider text-[#2ECC71] font-bold flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5" /> {t("stadium.directory_title")}
+              </div>
+              <h1 className="mt-2 text-3xl md:text-5xl font-black">{t("stadium.directory_title")}</h1>
+              <p className="mt-2 text-white/70 text-sm md:text-base max-w-2xl">{t("stadium.directory_subtitle")}</p>
+            </div>
+            <Link
+              to="/stadiums/suggest"
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 px-3.5 py-2 text-xs font-bold text-white transition"
+            >
+              {t("suggest.cta")}
+            </Link>
           </div>
-          <h1 className="mt-2 text-3xl md:text-5xl font-black">{t("stadium.directory_title")}</h1>
-          <p className="mt-2 text-white/70 text-sm md:text-base max-w-2xl">{t("stadium.directory_subtitle")}</p>
 
           {/* Quick stats */}
           <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
