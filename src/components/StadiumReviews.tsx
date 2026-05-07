@@ -82,6 +82,8 @@ const Rating = ({
 export const StadiumReviews = ({ stadium }: { stadium: string }) => {
   const slug = useMemo(() => slugifyStadium(stadium), [stadium]);
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const tr = (k: string, p?: Record<string, string | number>) => t(`stadium_reviews.${k}`, p);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [tips, setTips] = useState<Tip[]>([]);
   const [loading, setLoading] = useState(true);
