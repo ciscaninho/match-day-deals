@@ -75,7 +75,7 @@ const StadiumsPage = () => {
     return [...list].sort(cmp);
   }, [stadiums, query, league, country, city, club, sort]);
 
-  const selectCls = "bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs md:text-sm focus:outline-none focus:border-[#2ECC71]/60 min-w-0";
+  const selectCls = "bg-[#0b1220] text-white border border-white/15 rounded-xl px-3 py-2 text-xs md:text-sm focus:outline-none focus:border-[#2ECC71]/60 min-w-0 [&>option]:bg-[#0b1220] [&>option]:text-white [&>option:checked]:bg-[#2ECC71] [&>option:checked]:text-[#0b1220]";
 
   return (
     <WebsiteLayout>
