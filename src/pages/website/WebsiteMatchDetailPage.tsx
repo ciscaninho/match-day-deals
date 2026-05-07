@@ -210,12 +210,12 @@ const WebsiteMatchDetailPage = () => {
   const sellingFast = onSale && (intel.cheapest ? intel.cheapest > 80 : false);
   const officialAvail = !!intel.officialOffer || !!match.ticketSources?.length;
 
-  // AI recommendations
+  // Recommendations
   const recos = [
-    { icon: Flame, title: "Best atmosphere seats", desc: `${stadium.bestSections?.[0] ?? "Behind the goal"} — loudest, most passionate area.` },
-    { icon: ShieldCheck, title: "Cheapest safe option", desc: intel.cheapest ? `From €${intel.cheapest} via ${intel.cheapestOffer?.provider ?? "official channel"}. Verified seller.` : "Wait for official sale to open for guaranteed delivery." },
-    { icon: Sparkles, title: "Best value tickets", desc: `${stadium.bestValue ?? "Upper tier sides"} — great view, mid-range price.` },
-    { icon: BadgeCheck, title: "Recommended provider", desc: intel.officialOffer ? `${intel.officialOffer.name} (official)` : intel.cheapestOffer?.provider ?? "Ticketmaster (verified)" },
+    { icon: Flame, title: t("recommendations.best_atmosphere"), desc: `${stadium.bestSections?.[0] ?? "Behind the goal"} — loudest, most passionate area.` },
+    { icon: ShieldCheck, title: t("recommendations.best_price"), desc: intel.cheapest ? `From €${intel.cheapest} via ${intel.cheapestOffer?.provider ?? "official channel"}. Verified seller.` : "Wait for official sale to open for guaranteed delivery." },
+    { icon: Sparkles, title: t("recommendations.best_value"), desc: `${stadium.bestValue ?? "Upper tier sides"} — great view, mid-range price.` },
+    { icon: BadgeCheck, title: t("recommendations.official_provider"), desc: intel.officialOffer ? `${intel.officialOffer.name} (official)` : intel.cheapestOffer?.provider ?? "Ticketmaster (verified)" },
   ];
 
   return (
