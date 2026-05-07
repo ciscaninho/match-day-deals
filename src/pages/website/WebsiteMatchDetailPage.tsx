@@ -13,6 +13,7 @@ import { TicketProviders } from "@/components/TicketProviders";
 import { useSEO, slugify } from "@/lib/seo";
 import { useTrackSheet } from "@/components/track/TrackPriceSheet";
 import type { Match } from "@/data/matches";
+import { ClubLogo } from "@/components/ClubLogo";
 
 // ---------- helpers ----------
 const fmtDate = (iso: string) =>
@@ -224,9 +225,7 @@ const WebsiteMatchDetailPage = () => {
           {/* teams */}
           <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4 md:gap-8">
             <div className="flex flex-col items-center text-center animate-fade-in">
-              <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center overflow-hidden">
-                {match.homeLogo ? <img src={match.homeLogo} alt={match.homeTeam} className="w-full h-full object-contain p-2" /> : <span className="text-2xl font-extrabold">{match.homeShort}</span>}
-              </div>
+              <ClubLogo logo={match.homeLogo} name={match.homeTeam} short={match.homeShort} />
               <div className="mt-3 text-sm md:text-base font-extrabold">{match.homeTeam}</div>
               <div className="text-[10px] text-white/50 uppercase tracking-wider">Home</div>
             </div>
@@ -235,9 +234,7 @@ const WebsiteMatchDetailPage = () => {
               <div className="mt-2 text-[11px] text-white/60 font-semibold">{fmtTime(match.date)}</div>
             </div>
             <div className="flex flex-col items-center text-center animate-fade-in">
-              <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center overflow-hidden">
-                {match.awayLogo ? <img src={match.awayLogo} alt={match.awayTeam} className="w-full h-full object-contain p-2" /> : <span className="text-2xl font-extrabold">{match.awayShort}</span>}
-              </div>
+              <ClubLogo logo={match.awayLogo} name={match.awayTeam} short={match.awayShort} />
               <div className="mt-3 text-sm md:text-base font-extrabold">{match.awayTeam}</div>
               <div className="text-[10px] text-white/50 uppercase tracking-wider">Away</div>
             </div>
