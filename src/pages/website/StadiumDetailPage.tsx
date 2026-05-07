@@ -188,6 +188,7 @@ const StadiumDetailPage = () => {
         </section>
 
         <StadiumReviews stadium={stadium.stadium_name} matchDate={undefined} />
+        <StadiumExperienceTips stadiumSlug={stadium.slug} />
       </div>
     </WebsiteLayout>
   );
