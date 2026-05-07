@@ -12,7 +12,7 @@ const API_BASE_URL = "https://api.football-data.org/v4/matches";
 const COMPETITIONS = ["FL1", "PL", "PD", "SA", "BL1", "CL"] as const;
 // Plan gratuit Football-Data: max 10 jours par requête → on découpe en fenêtres
 const WINDOW_DAYS = 10;
-const WINDOWS_COUNT = 4; // 4 × 10 = 40 jours (couvre les finales UCL/UEL fin de saison)
+const WINDOWS_COUNT = 3; // 3 × 10 = 30 jours (couvre finales UCL/UEL — limite rate-limit gratuit)
 const DAYS_AHEAD = WINDOW_DAYS * WINDOWS_COUNT;
 
 interface FdTeam {
