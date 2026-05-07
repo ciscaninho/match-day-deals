@@ -6,8 +6,10 @@ import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
 import { SmartSearch } from "@/components/SmartSearch";
 import { filterMatchesByQuery } from "@/lib/smartSearch";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const WebsiteMatchesPage = () => {
+  const { t } = useLanguage();
   const { data: matches = [], isLoading } = useMatches();
   const [params, setParams] = useSearchParams();
   const initialQ = params.get("q") ?? "";
@@ -48,15 +50,15 @@ const WebsiteMatchesPage = () => {
     <WebsiteLayout>
       <section className="bg-gradient-to-b from-slate-50 to-white border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-5 py-10 md:py-14">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-[#2C3E50]">Browse football matches</h1>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-[#2C3E50]">{t("mp.title")}</h1>
           <p className="mt-2 text-[#2C3E50]/65 max-w-2xl">
-            Compare ticket prices for upcoming matches across official providers.
+            {t("mp.subtitle")}
           </p>
 
           <div className="mt-6 grid sm:grid-cols-[1fr_auto_auto] gap-2">
             <div className="sm:col-span-1">
               <SmartSearch
-                placeholder="Team, city, stadium, league…"
+                placeholder={t("mp.search_placeholder")}
                 onSubmit={(text) => {
                   setQ(text);
                   const next = new URLSearchParams();
@@ -70,9 +72,9 @@ const WebsiteMatchesPage = () => {
               value={league}
               onChange={(e) => setLeague(e.target.value)}
               className="px-3 py-3 text-sm rounded-2xl border border-slate-200 bg-white outline-none"
-              aria-label="Filter by league"
+              aria-label={t("mp.all_leagues")}
             >
-              <option value="">All leagues</option>
+              <option value="">{t("mp.all_leagues")}</option>
               {leagues.map((l) => (
                 <option key={l} value={l}>{l}</option>
               ))}
@@ -82,7 +84,7 @@ const WebsiteMatchesPage = () => {
               onClick={handleSubmit as unknown as () => void}
               className="rounded-2xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-3 font-bold text-sm transition inline-flex items-center justify-center gap-2"
             >
-              <Filter className="w-4 h-4" /> Filter
+              <Filter className="w-4 h-4" /> {t("mp.filter")}
             </button>
           </div>
         </div>
@@ -90,10 +92,10 @@ const WebsiteMatchesPage = () => {
 
       <section className="max-w-6xl mx-auto px-5 py-10">
         {isLoading ? (
-          <p className="text-center text-sm text-[#2C3E50]/60">Loading matches…</p>
+          <p className="text-center text-sm text-[#2C3E50]/60">{t("mp.loading")}</p>
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
-            <p className="text-sm text-[#2C3E50]/60">No matches found. Try a different search.</p>
+            <p className="text-sm text-[#2C3E50]/60">{t("mp.empty")}</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -111,12 +113,12 @@ const WebsiteMatchesPage = () => {
                 </div>
                 <div className="mt-4 flex items-center justify-between">
                   {m.startingPrice != null ? (
-                    <span className="text-sm font-extrabold text-[#27ae60]">From €{m.startingPrice}</span>
+                    <span className="text-sm font-extrabold text-[#27ae60]">{t("mp.from")} €{m.startingPrice}</span>
                   ) : (
-                    <span className="text-xs text-[#2C3E50]/50">Coming soon</span>
+                    <span className="text-xs text-[#2C3E50]/50">{t("mp.coming_soon")}</span>
                   )}
                   <span className="text-xs font-bold text-[#2ECC71] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                    View tickets <ArrowRight className="w-3.5 h-3.5" />
+                    {t("mp.view_tickets")} <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
               </Link>
