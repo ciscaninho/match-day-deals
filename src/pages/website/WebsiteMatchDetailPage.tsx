@@ -14,6 +14,7 @@ import { useSEO, slugify } from "@/lib/seo";
 import { useTrackSheet } from "@/components/track/TrackPriceSheet";
 import type { Match } from "@/data/matches";
 import { ClubLogo } from "@/components/ClubLogo";
+import { StadiumReviews } from "@/components/StadiumReviews";
 
 // ---------- helpers ----------
 const fmtDate = (iso: string) =>
