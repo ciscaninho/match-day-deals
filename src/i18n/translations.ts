@@ -2394,7 +2394,22 @@ const stadiumKeys = [
   "best_sections", "ultras_section", "family_section", "vip_available", "vip_yes", "vip_no",
   "official_provider", "about_stadium", "explore_stadiums", "back_to_stadiums",
   "no_stadiums", "filter_league", "all_leagues",
+  "hero_resident_club", "hero_capacity_short", "hero_atmosphere_short",
+  "hero_overview", "hero_reviews", "hero_matches", "hero_tickets",
+  "gallery_title", "gallery_coming_soon",
 ] as const;
+
+const stHero: Record<Locale, Record<string, string>> = {
+  en: { hero_resident_club: "Resident club", hero_capacity_short: "seats", hero_atmosphere_short: "Atmosphere", hero_overview: "Overview", hero_reviews: "Reviews", hero_matches: "Matches", hero_tickets: "Tickets", gallery_title: "Stadium gallery", gallery_coming_soon: "Photo gallery coming soon" },
+  fr: { hero_resident_club: "Club résident", hero_capacity_short: "places", hero_atmosphere_short: "Ambiance", hero_overview: "Aperçu", hero_reviews: "Avis", hero_matches: "Matchs", hero_tickets: "Billets", gallery_title: "Galerie du stade", gallery_coming_soon: "Galerie photo bientôt disponible" },
+  es: { hero_resident_club: "Club residente", hero_capacity_short: "asientos", hero_atmosphere_short: "Ambiente", hero_overview: "Resumen", hero_reviews: "Opiniones", hero_matches: "Partidos", hero_tickets: "Entradas", gallery_title: "Galería del estadio", gallery_coming_soon: "Galería de fotos próximamente" },
+  de: { hero_resident_club: "Heimverein", hero_capacity_short: "Plätze", hero_atmosphere_short: "Atmosphäre", hero_overview: "Übersicht", hero_reviews: "Bewertungen", hero_matches: "Spiele", hero_tickets: "Tickets", gallery_title: "Stadion-Galerie", gallery_coming_soon: "Fotogalerie folgt bald" },
+  it: { hero_resident_club: "Club residente", hero_capacity_short: "posti", hero_atmosphere_short: "Atmosfera", hero_overview: "Panoramica", hero_reviews: "Recensioni", hero_matches: "Partite", hero_tickets: "Biglietti", gallery_title: "Galleria dello stadio", gallery_coming_soon: "Galleria fotografica in arrivo" },
+  pt: { hero_resident_club: "Clube residente", hero_capacity_short: "lugares", hero_atmosphere_short: "Atmosfera", hero_overview: "Visão geral", hero_reviews: "Avaliações", hero_matches: "Jogos", hero_tickets: "Bilhetes", gallery_title: "Galeria do estádio", gallery_coming_soon: "Galeria de fotos em breve" },
+  nl: { hero_resident_club: "Thuisclub", hero_capacity_short: "plaatsen", hero_atmosphere_short: "Sfeer", hero_overview: "Overzicht", hero_reviews: "Reviews", hero_matches: "Wedstrijden", hero_tickets: "Tickets", gallery_title: "Stadiongalerij", gallery_coming_soon: "Fotogalerij binnenkort" },
+  ar: { hero_resident_club: "النادي المقيم", hero_capacity_short: "مقعد", hero_atmosphere_short: "الأجواء", hero_overview: "نظرة عامة", hero_reviews: "التقييمات", hero_matches: "المباريات", hero_tickets: "التذاكر", gallery_title: "معرض الملعب", gallery_coming_soon: "معرض الصور قريبًا" },
+  ru: { hero_resident_club: "Домашний клуб", hero_capacity_short: "мест", hero_atmosphere_short: "Атмосфера", hero_overview: "Обзор", hero_reviews: "Отзывы", hero_matches: "Матчи", hero_tickets: "Билеты", gallery_title: "Галерея стадиона", gallery_coming_soon: "Фотогалерея скоро появится" },
+};
 
 const st: Record<Locale, Record<string, string>> = {
   en: { directory_title: "Stadium Intelligence", directory_subtitle: "Explore football's most iconic venues", view_guide: "View guide", capacity: "Capacity", opened: "Opened", atmosphere: "Atmosphere", accessibility: "Accessibility", family_friendly: "Family-friendly", popularity: "Popularity", value: "Value", best_sections: "Best sections", ultras_section: "Ultras section", family_section: "Family section", vip_available: "VIP available", vip_yes: "Yes", vip_no: "No", official_provider: "Official provider", about_stadium: "About this stadium", explore_stadiums: "Explore stadiums", back_to_stadiums: "Back to all stadiums", no_stadiums: "No stadiums found", filter_league: "League", all_leagues: "All leagues" },
