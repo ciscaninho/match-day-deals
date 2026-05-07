@@ -414,7 +414,7 @@ const WebsiteMatchDetailPage = () => {
           )}
         </section>
 
-        {/* AI RECOMMENDATIONS */}
+        {/* RECOMMENDATIONS */}
         <section className="max-w-5xl mx-auto px-5 pb-10">
           <SectionTitle icon={Lightbulb} title={t("recommendations.title")} subtitle={t("recommendations.subtitle")} />
           <div className="grid md:grid-cols-2 gap-3">
