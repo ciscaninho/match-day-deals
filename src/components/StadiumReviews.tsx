@@ -289,7 +289,7 @@ export const StadiumReviews = ({ stadium, matchDate }: { stadium: string; matchD
               className="inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] disabled:opacity-50 text-white px-4 py-2.5 text-sm font-extrabold transition"
             >
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              {tr("submit")}
+              {isEditing ? tr("update") : tr("submit")}
             </button>
           </div>
         </div>
