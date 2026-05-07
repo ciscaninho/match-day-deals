@@ -2385,6 +2385,37 @@ const ticketIntel: Record<Locale, Record<string, string>> = (Object.keys(ti) as 
   return acc;
 }, {} as Record<Locale, Record<string, string>>);
 
+// ============================================================================
+// STADIUM INTELLIGENCE TRANSLATIONS
+// ============================================================================
+const stadiumKeys = [
+  "directory_title", "directory_subtitle", "view_guide", "capacity", "opened",
+  "atmosphere", "accessibility", "family_friendly", "popularity", "value",
+  "best_sections", "ultras_section", "family_section", "vip_available", "vip_yes", "vip_no",
+  "official_provider", "about_stadium", "explore_stadiums", "back_to_stadiums",
+  "no_stadiums", "filter_league", "all_leagues",
+] as const;
+
+const st: Record<Locale, Record<string, string>> = {
+  en: { directory_title: "Stadium Intelligence", directory_subtitle: "Explore football's most iconic venues", view_guide: "View guide", capacity: "Capacity", opened: "Opened", atmosphere: "Atmosphere", accessibility: "Accessibility", family_friendly: "Family-friendly", popularity: "Popularity", value: "Value", best_sections: "Best sections", ultras_section: "Ultras section", family_section: "Family section", vip_available: "VIP available", vip_yes: "Yes", vip_no: "No", official_provider: "Official provider", about_stadium: "About this stadium", explore_stadiums: "Explore stadiums", back_to_stadiums: "Back to all stadiums", no_stadiums: "No stadiums found", filter_league: "League", all_leagues: "All leagues" },
+  fr: { directory_title: "Intelligence Stade", directory_subtitle: "Explorez les enceintes mythiques du football", view_guide: "Voir le guide", capacity: "Capacité", opened: "Inauguré", atmosphere: "Ambiance", accessibility: "Accessibilité", family_friendly: "Familial", popularity: "Popularité", value: "Rapport qualité-prix", best_sections: "Meilleures tribunes", ultras_section: "Tribune ultras", family_section: "Tribune famille", vip_available: "VIP disponible", vip_yes: "Oui", vip_no: "Non", official_provider: "Vendeur officiel", about_stadium: "À propos du stade", explore_stadiums: "Explorer les stades", back_to_stadiums: "Retour aux stades", no_stadiums: "Aucun stade trouvé", filter_league: "Championnat", all_leagues: "Tous les championnats" },
+  es: { directory_title: "Inteligencia de Estadios", directory_subtitle: "Explora los recintos más icónicos del fútbol", view_guide: "Ver guía", capacity: "Aforo", opened: "Inaugurado", atmosphere: "Ambiente", accessibility: "Accesibilidad", family_friendly: "Familiar", popularity: "Popularidad", value: "Relación calidad-precio", best_sections: "Mejores zonas", ultras_section: "Zona ultras", family_section: "Zona familiar", vip_available: "VIP disponible", vip_yes: "Sí", vip_no: "No", official_provider: "Vendedor oficial", about_stadium: "Sobre este estadio", explore_stadiums: "Explorar estadios", back_to_stadiums: "Volver a estadios", no_stadiums: "No se encontraron estadios", filter_league: "Liga", all_leagues: "Todas las ligas" },
+  de: { directory_title: "Stadion-Intelligenz", directory_subtitle: "Entdecke die ikonischsten Fußballstadien", view_guide: "Guide anzeigen", capacity: "Kapazität", opened: "Eröffnet", atmosphere: "Atmosphäre", accessibility: "Barrierefreiheit", family_friendly: "Familienfreundlich", popularity: "Beliebtheit", value: "Preis-Leistung", best_sections: "Beste Bereiche", ultras_section: "Ultras-Bereich", family_section: "Familienbereich", vip_available: "VIP verfügbar", vip_yes: "Ja", vip_no: "Nein", official_provider: "Offizieller Anbieter", about_stadium: "Über dieses Stadion", explore_stadiums: "Stadien entdecken", back_to_stadiums: "Zurück zu allen Stadien", no_stadiums: "Keine Stadien gefunden", filter_league: "Liga", all_leagues: "Alle Ligen" },
+  it: { directory_title: "Intelligence Stadi", directory_subtitle: "Esplora gli impianti più iconici del calcio", view_guide: "Vedi guida", capacity: "Capienza", opened: "Inaugurato", atmosphere: "Atmosfera", accessibility: "Accessibilità", family_friendly: "Adatto alle famiglie", popularity: "Popolarità", value: "Rapporto qualità-prezzo", best_sections: "Migliori settori", ultras_section: "Settore ultras", family_section: "Settore famiglia", vip_available: "VIP disponibile", vip_yes: "Sì", vip_no: "No", official_provider: "Venditore ufficiale", about_stadium: "Su questo stadio", explore_stadiums: "Esplora gli stadi", back_to_stadiums: "Torna agli stadi", no_stadiums: "Nessuno stadio trovato", filter_league: "Campionato", all_leagues: "Tutti i campionati" },
+  pt: { directory_title: "Inteligência de Estádios", directory_subtitle: "Explore os recintos mais icônicos do futebol", view_guide: "Ver guia", capacity: "Capacidade", opened: "Inaugurado", atmosphere: "Atmosfera", accessibility: "Acessibilidade", family_friendly: "Para famílias", popularity: "Popularidade", value: "Custo-benefício", best_sections: "Melhores setores", ultras_section: "Setor ultras", family_section: "Setor família", vip_available: "VIP disponível", vip_yes: "Sim", vip_no: "Não", official_provider: "Vendedor oficial", about_stadium: "Sobre o estádio", explore_stadiums: "Explorar estádios", back_to_stadiums: "Voltar aos estádios", no_stadiums: "Nenhum estádio encontrado", filter_league: "Liga", all_leagues: "Todas as ligas" },
+  nl: { directory_title: "Stadion-intelligentie", directory_subtitle: "Verken de meest iconische voetbalstadions", view_guide: "Gids bekijken", capacity: "Capaciteit", opened: "Geopend", atmosphere: "Sfeer", accessibility: "Toegankelijkheid", family_friendly: "Gezinsvriendelijk", popularity: "Populariteit", value: "Prijs-kwaliteit", best_sections: "Beste vakken", ultras_section: "Ultrasvak", family_section: "Familievak", vip_available: "VIP beschikbaar", vip_yes: "Ja", vip_no: "Nee", official_provider: "Officiële aanbieder", about_stadium: "Over dit stadion", explore_stadiums: "Stadions verkennen", back_to_stadiums: "Terug naar stadions", no_stadiums: "Geen stadions gevonden", filter_league: "Competitie", all_leagues: "Alle competities" },
+  ar: { directory_title: "ذكاء الملاعب", directory_subtitle: "استكشف أشهر ملاعب كرة القدم", view_guide: "عرض الدليل", capacity: "السعة", opened: "افتتح", atmosphere: "الأجواء", accessibility: "إمكانية الوصول", family_friendly: "مناسب للعائلات", popularity: "الشعبية", value: "القيمة", best_sections: "أفضل الأقسام", ultras_section: "قسم الألتراس", family_section: "قسم العائلات", vip_available: "VIP متاح", vip_yes: "نعم", vip_no: "لا", official_provider: "البائع الرسمي", about_stadium: "عن هذا الملعب", explore_stadiums: "استكشف الملاعب", back_to_stadiums: "العودة إلى الملاعب", no_stadiums: "لم يتم العثور على ملاعب", filter_league: "الدوري", all_leagues: "كل الدوريات" },
+  ru: { directory_title: "Интеллект стадионов", directory_subtitle: "Откройте самые знаковые футбольные арены", view_guide: "Открыть гид", capacity: "Вместимость", opened: "Открыт", atmosphere: "Атмосфера", accessibility: "Доступность", family_friendly: "Семейный", popularity: "Популярность", value: "Соотношение цена/качество", best_sections: "Лучшие сектора", ultras_section: "Сектор ультрас", family_section: "Семейный сектор", vip_available: "VIP доступен", vip_yes: "Да", vip_no: "Нет", official_provider: "Официальный продавец", about_stadium: "О стадионе", explore_stadiums: "Смотреть стадионы", back_to_stadiums: "Назад к стадионам", no_stadiums: "Стадионы не найдены", filter_league: "Лига", all_leagues: "Все лиги" },
+};
+
+const stadiumI18n: Record<Locale, Record<string, string>> = (Object.keys(st) as Locale[]).reduce((acc, loc) => {
+  const dict: Record<string, string> = {};
+  for (const k of stadiumKeys) dict[`stadium.${k}`] = (st[loc] as Record<string, string>)[k];
+  acc[loc] = dict;
+  return acc;
+}, {} as Record<Locale, Record<string, string>>);
+
+
 const _translations: Record<Locale, Record<string, string>> = {
   en: {
     "app.name": "Foot Ticket Finder",
@@ -2760,7 +2791,7 @@ const _translations: Record<Locale, Record<string, string>> = {
 // Merge marketing page translations into each locale.
 export const translations: Record<Locale, Record<string, string>> = (Object.keys(_translations) as Locale[]).reduce(
   (acc, loc) => {
-    acc[loc] = { ..._translations[loc], ...(marketingPages[loc] || {}), ...(stadiumReviews[loc] || {}), ...(ticketIntel[loc] || {}) };
+    acc[loc] = { ..._translations[loc], ...(marketingPages[loc] || {}), ...(stadiumReviews[loc] || {}), ...(ticketIntel[loc] || {}), ...(stadiumI18n[loc] || {}) };
     return acc;
   },
   {} as Record<Locale, Record<string, string>>

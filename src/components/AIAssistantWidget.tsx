@@ -10,6 +10,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { useUser } from "@/contexts/UserContext";
 import { useAssistantSettings } from "@/hooks/useAssistantSettings";
 import { useMatches } from "@/hooks/useMatches";
+import { useStadiums } from "@/hooks/useStadium";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ export const AIAssistantWidget = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { data: matches = [] } = useMatches();
+  const { data: stadiums = [] } = useStadiums();
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -88,6 +90,21 @@ export const AIAssistantWidget = () => {
         url: `/matches/${m.id}`,
         providers: m.ticketSources.map((s) => ({ type: s.type, name: s.name, url: s.url })),
       }));
+    const stadiumsSummary = stadiums.map((s) => ({
+      name: s.stadium_name,
+      slug: s.slug,
+      city: s.city,
+      country: s.country,
+      league: s.league,
+      club: s.club_name,
+      capacity: s.capacity,
+      atmosphere: s.atmosphere_score,
+      family: s.family_friendly_score,
+      accessibility: s.accessibility_score,
+      popularity: s.popularity_score,
+      value: s.value_score,
+      url: `/stadiums/${s.slug}`,
+    }));
     return {
       currentPage: location.pathname,
       userType: isPremium ? "premium" : "free",
@@ -96,6 +113,7 @@ export const AIAssistantWidget = () => {
         ? `${currentMatch.homeTeam} vs ${currentMatch.awayTeam} (${currentMatch.competition}, ${currentMatch.date})`
         : null,
       matchesSummary: JSON.stringify(upcoming),
+      stadiumsSummary: JSON.stringify(stadiumsSummary),
     };
   };
 
