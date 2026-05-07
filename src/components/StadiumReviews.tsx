@@ -305,11 +305,5 @@ export const StadiumReviews = ({ stadium }: { stadium: string }) => {
   );
 };
 
-const DEFAULT_TIPS: { tip: string }[] = [
-  { tip: "Best atmosphere behind the goal" },
-  { tip: "Great visibility on the lower tier" },
-  { tip: "Family-friendly sections near the corners" },
-  { tip: "Arrive 60 min early to soak up the pre-match buzz" },
-];
 
 export default StadiumReviews;
