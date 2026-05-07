@@ -281,6 +281,7 @@ export type Database = {
           image_url: string | null
           latitude: number | null
           league: string
+          league_slug: string | null
           longitude: number | null
           official_ticket_provider: string | null
           opened_year: number | null
@@ -313,6 +314,7 @@ export type Database = {
           image_url?: string | null
           latitude?: number | null
           league?: string
+          league_slug?: string | null
           longitude?: number | null
           official_ticket_provider?: string | null
           opened_year?: number | null
@@ -345,6 +347,7 @@ export type Database = {
           image_url?: string | null
           latitude?: number | null
           league?: string
+          league_slug?: string | null
           longitude?: number | null
           official_ticket_provider?: string | null
           opened_year?: number | null

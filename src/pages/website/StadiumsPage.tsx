@@ -71,7 +71,16 @@ const StadiumsPage = () => {
     description: "Explore, search and verify football stadiums: capacity, atmosphere, accessibility, coordinates and data quality.",
   });
 
-  const leagues = useMemo(() => Array.from(new Set(stadiums.map((s) => s.league))).sort(), [stadiums]);
+  // Use league_slug to avoid collisions between same-named leagues from different countries
+  // (e.g. Bundesliga DE/AT, Superliga RO/DK). Display label includes country for clarity.
+  const leagues = useMemo(() => {
+    const map = new Map<string, string>();
+    stadiums.forEach((s) => {
+      const slug = s.league_slug || `${s.country}-${s.league}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      if (!map.has(slug)) map.set(slug, `${s.league} (${s.country})`);
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [stadiums]);
   const countries = useMemo(() => Array.from(new Set(stadiums.map((s) => s.country))).sort(), [stadiums]);
   const cities = useMemo(
     () => Array.from(new Set(stadiums.filter((s) => country === "all" || s.country === country).map((s) => s.city))).sort(),
@@ -107,7 +116,7 @@ const StadiumsPage = () => {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = stadiums.filter((s) => {
-      if (league !== "all" && s.league !== league) return false;
+      if (league !== "all" && (s.league_slug || `${s.country}-${s.league}`.toLowerCase().replace(/[^a-z0-9]+/g, "-")) !== league) return false;
       if (country !== "all" && s.country !== country) return false;
       if (city !== "all" && s.city !== city) return false;
       if (club !== "all" && s.club_name !== club && !s.clubs?.includes(club)) return false;
@@ -180,7 +189,7 @@ const StadiumsPage = () => {
           <div className="mt-3 grid grid-cols-2 md:grid-cols-7 gap-2">
             <select value={league} onChange={(e) => setLeague(e.target.value)} className={selectCls}>
               <option value="all">{t("stadium.all_leagues")}</option>
-              {leagues.map((l) => <option key={l} value={l}>{l}</option>)}
+              {leagues.map(([slug, label]) => <option key={slug} value={slug}>{label}</option>)}
             </select>
             <select value={country} onChange={(e) => { setCountry(e.target.value); setCity("all"); }} className={selectCls}>
               <option value="all">{t("stadium.all_countries")}</option>
