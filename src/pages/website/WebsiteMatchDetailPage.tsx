@@ -13,6 +13,7 @@ import { TicketProviders } from "@/components/TicketProviders";
 import { useSEO, slugify } from "@/lib/seo";
 import { useTrackSheet } from "@/components/track/TrackPriceSheet";
 import type { Match } from "@/data/matches";
+import { ClubLogo } from "@/components/ClubLogo";
 
 // ---------- helpers ----------
 const fmtDate = (iso: string) =>
