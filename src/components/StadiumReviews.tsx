@@ -257,9 +257,10 @@ export const StadiumReviews = ({ stadium, matchDate }: { stadium: string; matchD
       {/* Mobile CTA */}
       <button
         onClick={() => setShowForm((s) => !s)}
-        className="md:hidden mt-3 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 px-3.5 py-2.5 text-xs font-bold text-white transition"
+        disabled={!matchPlayed}
+        className="md:hidden mt-3 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed border border-white/15 px-3.5 py-2.5 text-xs font-bold text-white transition"
       >
-        <MessageSquare className="w-3.5 h-3.5" /> {showForm ? tr("close") : tr("write_review")}
+        <MessageSquare className="w-3.5 h-3.5" /> {showForm ? tr("close") : isEditing ? tr("edit_review") : tr("write_review")}
       </button>
 
       {/* Review form */}
