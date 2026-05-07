@@ -16,6 +16,7 @@ import type { Match } from "@/data/matches";
 import { ClubLogo } from "@/components/ClubLogo";
 import { StadiumReviews } from "@/components/StadiumReviews";
 import { TicketIntelligence } from "@/components/TicketIntelligence";
+import { useStadium } from "@/hooks/useStadium";
 
 // ---------- helpers ----------
 const fmtDate = (iso: string) =>
