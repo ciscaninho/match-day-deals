@@ -36,15 +36,15 @@ export const WebsiteLayout = ({ children }: Props) => {
   return (
     <div className="min-h-screen bg-white text-[#2C3E50] font-sans antialiased flex flex-col">
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2" aria-label="Foot Ticket Finder home">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5" aria-label="Foot Ticket Finder home">
             <div className="w-9 h-9 rounded-xl bg-[#2ECC71] flex items-center justify-center shadow-md shadow-[#2ECC71]/30">
               <Ticket className="w-5 h-5 text-white" />
             </div>
             <span className="font-extrabold tracking-tight">Foot Ticket Finder</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-[#2C3E50]/70">
+          <nav className="hidden md:flex items-center gap-10 text-[15px] font-medium text-[#2C3E50]/70">
             {navItems.map((n) => (
               <NavLink
                 key={n.to}
@@ -58,18 +58,15 @@ export const WebsiteLayout = ({ children }: Props) => {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <HeaderAuthButton />
             <Link
               to="/app"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-[#2C3E50] text-white text-xs font-bold px-4 py-2 hover:bg-[#1f2d3a] transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-[#2C3E50]/70 hover:text-[#2ECC71] transition-colors"
               aria-label={t("app.coming_soon")}
             >
-              <Bell className="w-3.5 h-3.5" /> {t("website.nav.get_app")}
-              <span className="ms-1 rounded-full bg-[#2ECC71]/20 text-[#2ECC71] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
-                {t("app.coming_soon_short")}
-              </span>
+              <Bell className="w-3.5 h-3.5" /> {t("website.nav.early_access") || "Early access"}
             </Link>
             <button
               type="button"
