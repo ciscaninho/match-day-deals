@@ -260,6 +260,96 @@ export type Database = {
         }
         Relationships: []
       }
+      stadiums: {
+        Row: {
+          accessibility_score: number | null
+          atmosphere_score: number | null
+          background_image_url: string | null
+          best_sections: string[] | null
+          capacity: number | null
+          city: string
+          club_name: string | null
+          clubs: string[]
+          country: string
+          created_at: string
+          description: string | null
+          family_friendly_score: number | null
+          family_section: string | null
+          id: string
+          image_url: string | null
+          latitude: number | null
+          league: string
+          longitude: number | null
+          official_ticket_provider: string | null
+          opened_year: number | null
+          popularity_score: number | null
+          slug: string
+          stadium_name: string
+          ultras_section: string | null
+          updated_at: string
+          value_score: number | null
+          vip_available: boolean
+        }
+        Insert: {
+          accessibility_score?: number | null
+          atmosphere_score?: number | null
+          background_image_url?: string | null
+          best_sections?: string[] | null
+          capacity?: number | null
+          city: string
+          club_name?: string | null
+          clubs?: string[]
+          country?: string
+          created_at?: string
+          description?: string | null
+          family_friendly_score?: number | null
+          family_section?: string | null
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          league?: string
+          longitude?: number | null
+          official_ticket_provider?: string | null
+          opened_year?: number | null
+          popularity_score?: number | null
+          slug: string
+          stadium_name: string
+          ultras_section?: string | null
+          updated_at?: string
+          value_score?: number | null
+          vip_available?: boolean
+        }
+        Update: {
+          accessibility_score?: number | null
+          atmosphere_score?: number | null
+          background_image_url?: string | null
+          best_sections?: string[] | null
+          capacity?: number | null
+          city?: string
+          club_name?: string | null
+          clubs?: string[]
+          country?: string
+          created_at?: string
+          description?: string | null
+          family_friendly_score?: number | null
+          family_section?: string | null
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          league?: string
+          longitude?: number | null
+          official_ticket_provider?: string | null
+          opened_year?: number | null
+          popularity_score?: number | null
+          slug?: string
+          stadium_name?: string
+          ultras_section?: string | null
+          updated_at?: string
+          value_score?: number | null
+          vip_available?: boolean
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
