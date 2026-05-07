@@ -9,7 +9,7 @@ import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatch, useMatches } from "@/hooks/useMatches";
 import { useTicketOffers } from "@/hooks/useTicketOffers";
 import { useTicketmasterEvent } from "@/hooks/useTicketmasterEvent";
-import { TicketProviders } from "@/components/TicketProviders";
+
 import { useSEO, slugify } from "@/lib/seo";
 import { useTrackSheet } from "@/components/track/TrackPriceSheet";
 import type { Match } from "@/data/matches";
