@@ -176,7 +176,7 @@ const WebsiteMatchDetailPage = () => {
   if (isLoading) {
     return (
       <WebsiteLayout>
-        <div className="max-w-4xl mx-auto px-5 py-20 text-center text-sm text-[#2C3E50]/60">Loading match…</div>
+        <div className="max-w-4xl mx-auto px-5 py-20 text-center text-sm text-[#2C3E50]/60">{t("md.loading")}</div>
       </WebsiteLayout>
     );
   }
@@ -184,9 +184,9 @@ const WebsiteMatchDetailPage = () => {
     return (
       <WebsiteLayout>
         <div className="max-w-4xl mx-auto px-5 py-20 text-center">
-          <h1 className="text-2xl font-extrabold text-[#2C3E50]">Match not found</h1>
+          <h1 className="text-2xl font-extrabold text-[#2C3E50]">{t("md.not_found")}</h1>
           <Link to="/matches" className="mt-4 inline-flex items-center gap-2 text-[#2ECC71] font-bold">
-            <ArrowLeft className="w-4 h-4" /> Back to all matches
+            <ArrowLeft className="w-4 h-4" /> {t("md.back_to_matches")}
           </Link>
         </div>
       </WebsiteLayout>
@@ -228,9 +228,9 @@ const WebsiteMatchDetailPage = () => {
         <div className="relative max-w-5xl mx-auto px-5 pt-6 pb-10">
           {/* breadcrumb */}
           <div className="text-xs text-white/55 mb-5">
-            <Link to="/" className="hover:text-[#2ECC71]">Home</Link>
+            <Link to="/" className="hover:text-[#2ECC71]">{t("md.breadcrumb_home")}</Link>
             <span className="mx-1.5">/</span>
-            <Link to="/matches" className="hover:text-[#2ECC71]">Matches</Link>
+            <Link to="/matches" className="hover:text-[#2ECC71]">{t("md.breadcrumb_matches")}</Link>
             <span className="mx-1.5">/</span>
             <Link to={`/leagues/${slugify(match.competition)}`} className="hover:text-[#2ECC71]">{match.competition}</Link>
           </div>
@@ -244,7 +244,7 @@ const WebsiteMatchDetailPage = () => {
             <div className="flex flex-col items-center text-center animate-fade-in">
               <ClubLogo logo={match.homeLogo} name={match.homeTeam} short={match.homeShort} />
               <div className="mt-3 text-sm md:text-base font-extrabold">{match.homeTeam}</div>
-              <div className="text-[10px] text-white/50 uppercase tracking-wider">Home</div>
+              <div className="text-[10px] text-white/50 uppercase tracking-wider">{t("md.home")}</div>
             </div>
             <div className="text-center">
               <div className="text-2xl md:text-4xl font-black text-white/30">VS</div>
@@ -253,7 +253,7 @@ const WebsiteMatchDetailPage = () => {
             <div className="flex flex-col items-center text-center animate-fade-in">
               <ClubLogo logo={match.awayLogo} name={match.awayTeam} short={match.awayShort} />
               <div className="mt-3 text-sm md:text-base font-extrabold">{match.awayTeam}</div>
-              <div className="text-[10px] text-white/50 uppercase tracking-wider">Away</div>
+              <div className="text-[10px] text-white/50 uppercase tracking-wider">{t("md.away")}</div>
             </div>
           </div>
 
@@ -267,20 +267,20 @@ const WebsiteMatchDetailPage = () => {
 
           {/* demand chips */}
           <div className="mt-5 flex flex-wrap gap-2 justify-center">
-            {sellingFast && <Chip icon={Flame} label="Selling Fast" tone="hot" />}
-            {onSale && <Chip icon={Activity} label="High Demand" tone="hot" />}
-            {derby && <Chip icon={Crown} label="Derby" tone="derby" />}
-            {officialAvail && <Chip icon={ShieldCheck} label="Official Tickets" tone="official" />}
-            {!onSale && <Chip icon={Clock} label="Not on sale yet" tone="neutral" />}
+            {sellingFast && <Chip icon={Flame} label={t("md.selling_fast")} tone="hot" />}
+            {onSale && <Chip icon={Activity} label={t("md.high_demand")} tone="hot" />}
+            {derby && <Chip icon={Crown} label={t("md.derby")} tone="derby" />}
+            {officialAvail && <Chip icon={ShieldCheck} label={t("md.official_tickets")} tone="official" />}
+            {!onSale && <Chip icon={Clock} label={t("md.not_on_sale")} tone="neutral" />}
           </div>
 
           {/* CTAs */}
           <div className="mt-6 flex flex-wrap gap-3 justify-center">
             <button onClick={handleTrack} className="inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-2.5 font-bold text-sm transition shadow-lg shadow-[#2ECC71]/20">
-              <TrendingDown className="w-4 h-4" /> Track price
+              <TrendingDown className="w-4 h-4" /> {t("md.track_price")}
             </button>
             <button onClick={handleSave} className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white px-5 py-2.5 font-bold text-sm transition">
-              <Heart className="w-4 h-4" /> Save match
+              <Heart className="w-4 h-4" /> {t("md.save_match")}
             </button>
           </div>
         </div>
@@ -303,37 +303,37 @@ const WebsiteMatchDetailPage = () => {
 
         {/* OFFICIAL SALES */}
         <section className="max-w-5xl mx-auto px-5 pb-10">
-          <SectionTitle icon={Ticket} title="Official sales information" subtitle="Key dates & priority access" />
+          <SectionTitle icon={Ticket} title={t("md.official_sales")} subtitle={t("md.official_sales_subtitle")} />
           <div className="grid md:grid-cols-3 gap-3">
             <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4">
-              <div className="text-[10px] uppercase tracking-wider text-white/50 font-bold">Members presale</div>
+              <div className="text-[10px] uppercase tracking-wider text-white/50 font-bold">{t("md.members_presale")}</div>
               <div className="mt-1.5 font-extrabold text-white">{fmtShort(new Date(new Date(match.ticketReleaseDate).getTime() - 5 * 86400000).toISOString())}</div>
-              <div className="text-[11px] text-white/55 mt-0.5">Club members & season-ticket holders</div>
+              <div className="text-[11px] text-white/55 mt-0.5">{t("md.members_presale_desc")}</div>
             </div>
             <div className="rounded-2xl bg-emerald-500/10 border border-emerald-400/20 p-4">
-              <div className="text-[10px] uppercase tracking-wider text-emerald-300 font-bold">Public sale</div>
+              <div className="text-[10px] uppercase tracking-wider text-emerald-300 font-bold">{t("md.public_sale")}</div>
               <div className="mt-1.5 font-extrabold text-white">{fmtShort(match.ticketReleaseDate)}</div>
-              <div className="text-[11px] text-white/55 mt-0.5">Open to all fans</div>
+              <div className="text-[11px] text-white/55 mt-0.5">{t("md.public_sale_desc")}</div>
             </div>
             <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4">
-              <div className="text-[10px] uppercase tracking-wider text-white/50 font-bold">Sale closes</div>
+              <div className="text-[10px] uppercase tracking-wider text-white/50 font-bold">{t("md.sale_closes")}</div>
               <div className="mt-1.5 font-extrabold text-white">{fmtShort(match.date)}</div>
-              <div className="text-[11px] text-white/55 mt-0.5">Until kickoff or sold out</div>
+              <div className="text-[11px] text-white/55 mt-0.5">{t("md.sale_closes_desc")}</div>
             </div>
           </div>
           <div className="mt-3 grid md:grid-cols-2 gap-3">
             <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-start gap-3">
               <Crown className="w-5 h-5 text-amber-300 mt-0.5" />
               <div>
-                <div className="font-bold">Hospitality / VIP</div>
-                <div className="text-xs text-white/60 mt-0.5">Premium seating, lounge access, catering. Limited availability — contact the club directly.</div>
+                <div className="font-bold">{t("md.hospitality")}</div>
+                <div className="text-xs text-white/60 mt-0.5">{t("md.hospitality_desc")}</div>
               </div>
             </div>
             <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-start gap-3">
               <Users className="w-5 h-5 text-emerald-300 mt-0.5" />
               <div>
-                <div className="font-bold">Membership priority</div>
-                <div className="text-xs text-white/60 mt-0.5">Members get up to 5 days earlier access and exclusive sections.</div>
+                <div className="font-bold">{t("md.membership_priority")}</div>
+                <div className="text-xs text-white/60 mt-0.5">{t("md.membership_priority_desc")}</div>
               </div>
             </div>
           </div>
@@ -341,7 +341,7 @@ const WebsiteMatchDetailPage = () => {
 
         {/* STADIUM EXPERIENCE */}
         <section className="max-w-5xl mx-auto px-5 pb-10">
-          <SectionTitle icon={Building2} title="Stadium experience" subtitle={stadium.name} />
+          <SectionTitle icon={Building2} title={t("md.stadium_experience")} subtitle={stadium.name} />
 
           {dbStadium && (
             <div
@@ -356,24 +356,24 @@ const WebsiteMatchDetailPage = () => {
                 <div className="text-lg md:text-2xl font-extrabold">{dbStadium.stadium_name}</div>
                 <div className="text-xs text-white/70">
                   {[dbStadium.city, dbStadium.country].filter(Boolean).join(", ")}
-                  {dbStadium.opened_year ? ` · Opened ${dbStadium.opened_year}` : ""}
+                  {dbStadium.opened_year ? ` · ${t("md.opened")} ${dbStadium.opened_year}` : ""}
                 </div>
               </div>
             </div>
           )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Stat label="Capacity" value={stadium.capacity ? stadium.capacity.toLocaleString() : "—"} sub="Total seats" />
-            <Stat label="Atmosphere" value={`${stadium.atmosphere?.toFixed(1) ?? "4.3"}/5`} sub="Fan rating" />
+            <Stat label={t("md.capacity")} value={stadium.capacity ? stadium.capacity.toLocaleString() : "—"} sub={t("md.capacity_sub")} />
+            <Stat label={t("md.atmosphere")} value={`${stadium.atmosphere?.toFixed(1) ?? "4.3"}/5`} sub={t("md.atmosphere_sub")} />
             <Stat
-              label="Accessibility"
+              label={t("md.accessibility")}
               value={dbStadium?.accessibility_score != null ? `${dbStadium.accessibility_score.toFixed(1)}/10` : "—"}
-              sub="Ease of access"
+              sub={t("md.accessibility_sub")}
             />
             <Stat
-              label="Family score"
+              label={t("md.family_score")}
               value={dbStadium?.family_friendly_score != null ? `${dbStadium.family_friendly_score.toFixed(1)}/10` : "—"}
-              sub="Family-friendly"
+              sub={t("md.family_score_sub")}
             />
           </div>
 
@@ -387,17 +387,17 @@ const WebsiteMatchDetailPage = () => {
             <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-start gap-3">
               <Flame className="w-5 h-5 text-red-300 mt-0.5" />
               <div>
-                <div className="font-bold">Best atmosphere</div>
+                <div className="font-bold">{t("md.best_atmosphere")}</div>
                 <div className="text-xs text-white/60 mt-0.5">
-                  {dbStadium?.ultras_section ?? stadium.bestSections?.[0] ?? "Behind the goal"} — loudest, most passionate area.
+                  {dbStadium?.ultras_section ?? stadium.bestSections?.[0] ?? "—"} — {t("md.best_atmosphere_desc")}
                 </div>
               </div>
             </div>
             <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-start gap-3">
               <Star className="w-5 h-5 text-amber-300 mt-0.5" />
               <div>
-                <div className="font-bold">Family-friendly area</div>
-                <div className="text-xs text-white/60 mt-0.5">{stadium.family ?? "Family stand"} — alcohol-free, calmer atmosphere, dedicated facilities.</div>
+                <div className="font-bold">{t("md.family_area")}</div>
+                <div className="text-xs text-white/60 mt-0.5">{stadium.family ?? "—"} — {t("md.family_area_desc")}</div>
               </div>
             </div>
           </div>
@@ -408,7 +408,7 @@ const WebsiteMatchDetailPage = () => {
                 to={`/stadiums/${dbStadium.slug}`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2ECC71] hover:text-[#27ae60]"
               >
-                View full stadium guide <ChevronRight className="w-3.5 h-3.5" />
+                {t("md.full_stadium_guide")} <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           )}
