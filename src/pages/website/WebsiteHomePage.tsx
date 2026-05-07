@@ -22,6 +22,8 @@ import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { SmartSearch } from "@/components/SmartSearch";
+import { RecommendedSections } from "@/components/RecommendedSections";
 
 const PROVIDERS = ["StubHub", "Viagogo", "Ticketmaster", "Seatpick", "LiveFootballTickets", "OneFootball"];
 
@@ -104,32 +106,9 @@ const WebsiteHomePage = () => {
             {t("wh.hero.subtitle")}
           </p>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const url = q.trim() ? `/matches?q=${encodeURIComponent(q.trim())}` : "/matches";
-              window.location.href = url;
-            }}
-            className="mt-8 max-w-2xl mx-auto flex flex-col sm:flex-row gap-2 bg-white rounded-2xl p-2 shadow-2xl shadow-black/30"
-          >
-            <div className="flex-1 flex items-center gap-2 px-3">
-              <Search className="w-5 h-5 text-[#2C3E50]/40" />
-              <input
-                type="text"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={t("wh.hero.search_placeholder")}
-                className="flex-1 py-3 text-[#2C3E50] placeholder:text-[#2C3E50]/40 outline-none text-sm"
-                aria-label={t("wh.hero.search_aria")}
-              />
-            </div>
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3 font-bold text-sm transition-colors"
-            >
-              {t("wh.hero.find_tickets")} <ArrowRight className="w-4 h-4" />
-            </button>
-          </form>
+          <div className="mt-8 max-w-2xl mx-auto">
+            <SmartSearch variant="hero" placeholder={t("wh.hero.search_placeholder")} />
+          </div>
 
           {/* Live featured match under the search bar */}
           {heroExample && (
