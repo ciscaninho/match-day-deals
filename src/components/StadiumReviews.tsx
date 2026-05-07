@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { toast } from "sonner";
 import {
   MessageSquare, Sparkles, Users, Lightbulb, Send, Loader2, Star,
