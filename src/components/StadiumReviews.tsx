@@ -195,11 +195,23 @@ export const StadiumReviews = ({ stadium, matchDate }: { stadium: string; matchD
         </div>
         <button
           onClick={() => setShowForm((s) => !s)}
-          className="hidden md:inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 px-3.5 py-2 text-xs font-bold text-white transition shrink-0"
+          disabled={!matchPlayed}
+          className="hidden md:inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed border border-white/15 px-3.5 py-2 text-xs font-bold text-white transition shrink-0"
         >
-          <MessageSquare className="w-3.5 h-3.5" /> {showForm ? tr("close") : tr("write_review")}
+          <MessageSquare className="w-3.5 h-3.5" /> {showForm ? tr("close") : isEditing ? tr("edit_review") : tr("write_review")}
         </button>
       </div>
+
+      {/* Match-not-played notice */}
+      {!matchPlayed && (
+        <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 text-xs text-white/70 flex items-start gap-2">
+          <Star className="w-4 h-4 text-[#FFD93D] shrink-0 mt-0.5" />
+          <div>
+            <div className="font-bold text-white">{tr("match_not_played")}</div>
+            <div className="text-white/55">{tr("match_not_played_desc")}</div>
+          </div>
+        </div>
+      )}
 
       {/* Score summary */}
       <div className="rounded-3xl bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/10 p-5 md:p-6">
