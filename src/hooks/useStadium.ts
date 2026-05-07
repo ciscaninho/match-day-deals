@@ -8,6 +8,7 @@ export type Stadium = {
   city: string;
   country: string;
   league: string;
+  league_slug: string | null;
   capacity: number | null;
   opened_year: number | null;
   club_name: string | null;
