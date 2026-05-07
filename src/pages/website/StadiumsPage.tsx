@@ -256,16 +256,22 @@ const StadiumsPage = () => {
                   <Link
                     key={s.id}
                     to={`/stadiums/${s.slug}`}
-                    className="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] hover:border-[#2ECC71]/40 transition flex flex-col"
+                    className="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] hover:border-[#2ECC71]/40 hover:-translate-y-0.5 transition-all duration-300 flex flex-col"
                   >
-                    <div
-                      className="h-28 bg-cover bg-center relative"
-                      style={bg
-                        ? { backgroundImage: `url(${bg})` }
-                        : { background: "linear-gradient(135deg, rgba(46,204,113,0.25), rgba(99,102,241,0.25))" }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                      <div className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                    <div className="relative h-32 overflow-hidden bg-gradient-to-br from-[#2ECC71]/25 to-indigo-500/25">
+                      {bg && (
+                        <img
+                          src={bg}
+                          alt={s.stadium_name}
+                          loading="lazy"
+                          decoding="async"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      <div className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
                         <Flame className="w-3 h-3 text-red-300" />
                         {s.atmosphere_score != null ? Number(s.atmosphere_score).toFixed(0) : "—"}
                       </div>
