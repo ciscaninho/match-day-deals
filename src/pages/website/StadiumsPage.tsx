@@ -71,7 +71,16 @@ const StadiumsPage = () => {
     description: "Explore, search and verify football stadiums: capacity, atmosphere, accessibility, coordinates and data quality.",
   });
 
-  const leagues = useMemo(() => Array.from(new Set(stadiums.map((s) => s.league))).sort(), [stadiums]);
+  // Use league_slug to avoid collisions between same-named leagues from different countries
+  // (e.g. Bundesliga DE/AT, Superliga RO/DK). Display label includes country for clarity.
+  const leagues = useMemo(() => {
+    const map = new Map<string, string>();
+    stadiums.forEach((s) => {
+      const slug = s.league_slug || `${s.country}-${s.league}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      if (!map.has(slug)) map.set(slug, `${s.league} (${s.country})`);
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [stadiums]);
   const countries = useMemo(() => Array.from(new Set(stadiums.map((s) => s.country))).sort(), [stadiums]);
   const cities = useMemo(
     () => Array.from(new Set(stadiums.filter((s) => country === "all" || s.country === country).map((s) => s.city))).sort(),
