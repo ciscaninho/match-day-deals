@@ -2397,6 +2397,12 @@ const stadiumKeys = [
   "hero_resident_club", "hero_capacity_short", "hero_atmosphere_short",
   "hero_overview", "hero_reviews", "hero_matches", "hero_tickets",
   "gallery_title", "gallery_coming_soon",
+  "search_placeholder", "filter_country", "filter_city", "filter_club",
+  "all_countries", "all_cities", "all_clubs",
+  "sort_by", "sort_atmosphere", "sort_capacity", "sort_popularity", "sort_country", "sort_league", "sort_name",
+  "results_count", "view_grid", "view_table",
+  "quality_missing_image", "quality_missing_coords", "quality_incomplete", "quality_no_reviews", "quality_missing_hero", "quality_complete",
+  "col_stadium", "col_clubs", "col_city", "col_country", "col_league", "col_capacity", "col_atmosphere", "col_popularity", "col_quality",
 ] as const;
 
 const stHero: Record<Locale, Record<string, string>> = {
