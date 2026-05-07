@@ -82,30 +82,7 @@ const StadiumDetailPage = () => {
 
   return (
     <WebsiteLayout>
-      <section className="relative bg-gradient-to-br from-[#0b1220] via-[#111a2c] to-[#0b1220] text-white overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-40 bg-cover bg-center"
-          style={bgImage ? { backgroundImage: `url(${bgImage})` } : undefined}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b1220] via-[#0b1220]/70 to-[#0b1220]/30" />
-        <div className="relative max-w-5xl mx-auto px-5 pt-6 pb-10">
-          <div className="text-xs text-white/55 mb-5">
-            <Link to="/" className="hover:text-[#2ECC71]">Home</Link>
-            <span className="mx-1.5">/</span>
-            <Link to="/stadiums" className="hover:text-[#2ECC71]">{t("stadium.explore_stadiums")}</Link>
-          </div>
-
-          <div className="text-[10px] uppercase tracking-wider text-[#2ECC71] font-bold flex items-center gap-1.5">
-            <Building2 className="w-3.5 h-3.5" /> {stadium.league}
-          </div>
-          <h1 className="mt-2 text-3xl md:text-5xl font-black">{stadium.stadium_name}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/75">
-            <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4" />{stadium.city}, {stadium.country}</span>
-            {stadium.club_name && <span className="inline-flex items-center gap-1.5"><Users className="w-4 h-4" />{stadium.club_name}</span>}
-            {stadium.opened_year && <span className="text-white/55">· {t("stadium.opened")} {stadium.opened_year}</span>}
-          </div>
-        </div>
-      </section>
+      <StadiumHero stadium={stadium} />
 
       <div className="bg-[#0b1220] text-white">
         <section className="max-w-5xl mx-auto px-5 py-8">
