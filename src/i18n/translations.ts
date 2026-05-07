@@ -1917,12 +1917,13 @@ import { marketingPages } from "./marketingPages";
 
 // Stadium reviews module — keys used by src/components/StadiumReviews.tsx
 const stadiumReviewsKeys = [
-  "eyebrow", "title", "subtitle", "write_review", "close", "be_first", "be_first_desc",
-  "review_count", "review_count_one", "rate_experience", "comment_placeholder", "submit",
+  "eyebrow", "title", "subtitle", "write_review", "edit_review", "close", "be_first", "be_first_desc",
+  "review_count", "review_count_one", "rate_experience", "comment_placeholder", "submit", "update",
   "tip_count", "tip_count_one", "fan_insights", "tip_placeholder", "post_tip",
   "default_tip_1", "default_tip_2", "default_tip_3", "default_tip_4",
   "cat_atmosphere", "cat_view", "cat_facilities", "cat_accessibility", "cat_value",
   "loading", "thanks", "rate_all_required", "sign_in_review", "sign_in_tip", "tip_too_short", "tip_shared",
+  "match_not_played", "match_not_played_desc", "your_review", "verified_attendee_soon",
 ] as const;
 
 const sr = {
