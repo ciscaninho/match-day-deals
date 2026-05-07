@@ -24,7 +24,6 @@ export const WebsiteLayout = ({ children }: Props) => {
     { label: t("website.nav.leagues"), to: "/leagues" },
     { label: t("website.nav.how"), to: "/how-it-works" },
     { label: t("website.nav.pricing"), to: "/pricing" },
-    { label: t("website.nav.faq"), to: "/faq" },
   ];
 
   const socialLinks = [
