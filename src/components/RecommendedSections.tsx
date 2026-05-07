@@ -19,7 +19,7 @@ const providerCount = (id: string) => 6 + ((id.charCodeAt(0) ?? 0) % 9);
 
 export const RecommendedSections = () => {
   const { data: matches = [], isLoading } = useMatches();
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
 
   const sections = useMemo(() => buildRecommendations(matches), [matches]);
 
@@ -30,16 +30,18 @@ export const RecommendedSections = () => {
     <section className="py-14 md:py-20 bg-white">
       <div className="max-w-6xl mx-auto px-5">
         <div className="text-center mb-10">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">Discover</span>
-          <h2 className="mt-2 text-3xl md:text-4xl font-extrabold text-[#2C3E50]">Recommended matches</h2>
+          <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">{t("recommendations.eyebrow")}</span>
+          <h2 className="mt-2 text-3xl md:text-4xl font-extrabold text-[#2C3E50]">{t("recommendations.section_title")}</h2>
           <p className="mt-2 text-sm text-[#2C3E50]/60 max-w-xl mx-auto">
-            Smart picks based on availability, atmosphere and best prices right now.
+            {t("recommendations.section_subtitle")}
           </p>
         </div>
 
         <div className="space-y-12">
           {sections.map((sec) => {
             const Icon = SECTION_ICON[sec.id] ?? Sparkles;
+            const title = sec.id === "local" ? t(sec.title, { country: sec.matches[0]?.country ?? "" }) : t(sec.title);
+            const subtitle = sec.id === "local" ? t(sec.subtitle ?? "") : t(sec.subtitle ?? "");
             return (
               <div key={sec.id}>
                 <div className="flex items-end justify-between mb-5 flex-wrap gap-3">
@@ -48,12 +50,12 @@ export const RecommendedSections = () => {
                       <Icon className="w-5 h-5" />
                     </span>
                     <div>
-                      <h3 className="text-xl md:text-2xl font-extrabold text-[#2C3E50]">{sec.title}</h3>
-                      {sec.subtitle && <p className="text-xs text-[#2C3E50]/55">{sec.subtitle}</p>}
+                      <h3 className="text-xl md:text-2xl font-extrabold text-[#2C3E50]">{title}</h3>
+                      {sec.subtitle && <p className="text-xs text-[#2C3E50]/55">{subtitle}</p>}
                     </div>
                   </div>
                   <Link to="/matches" className="text-xs font-bold text-[#2C3E50] hover:text-[#2ECC71] inline-flex items-center gap-1">
-                    See all <ArrowRight className="w-3.5 h-3.5" />
+                    {t("recommendations.see_all")} <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
 
@@ -71,12 +73,12 @@ export const RecommendedSections = () => {
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[#2C3E50]/50">{m.competition}</span>
                             {m.ticketStatus === "on_sale" && (
                               <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                <Clock className="w-3 h-3" /> On sale
+                                <Clock className="w-3 h-3" /> {t("match.on_sale")}
                               </span>
                             )}
                           </div>
                           <p className="mt-2 font-extrabold text-[#2C3E50] text-base leading-tight">
-                            {m.homeTeam} <span className="text-[#2C3E50]/40 font-bold">vs</span> {m.awayTeam}
+                            {m.homeTeam} <span className="text-[#2C3E50]/40 font-bold">{t("match.vs")}</span> {m.awayTeam}
                           </p>
                           <div className="mt-3 flex items-center gap-3 text-xs text-[#2C3E50]/60 flex-wrap">
                             <span className="inline-flex items-center gap-1">
@@ -93,14 +95,14 @@ export const RecommendedSections = () => {
                           <div className="mt-4 pt-4 border-t border-slate-100 flex items-end justify-between gap-3">
                             <div>
                               {m.startingPrice != null ? (
-                                <p className="text-sm font-extrabold text-[#27ae60]">From €{m.startingPrice}</p>
+                                <p className="text-sm font-extrabold text-[#27ae60]">{t("match.from")} €{m.startingPrice}</p>
                               ) : (
-                                <p className="text-xs text-[#2C3E50]/50">Coming soon</p>
+                                <p className="text-xs text-[#2C3E50]/50">{t("match.coming_soon")}</p>
                               )}
-                              <p className="text-[11px] text-[#2C3E50]/55 mt-0.5">{providers} providers</p>
+                              <p className="text-[11px] text-[#2C3E50]/55 mt-0.5">{providers} {t("recommendations.providers")}</p>
                             </div>
                             <span className="text-xs font-bold text-white bg-[#2ECC71] group-hover:bg-[#27ae60] inline-flex items-center gap-1 px-3 py-2 rounded-lg transition">
-                              View <ArrowRight className="w-3.5 h-3.5" />
+                              {t("recommendations.view")} <ArrowRight className="w-3.5 h-3.5" />
                             </span>
                           </div>
                         </Link>
