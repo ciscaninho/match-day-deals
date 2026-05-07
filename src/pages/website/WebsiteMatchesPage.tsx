@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, MapPin, Calendar, ArrowRight, Filter } from "lucide-react";
+import { MapPin, Calendar, ArrowRight, Filter } from "lucide-react";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
+import { SmartSearch } from "@/components/SmartSearch";
+import { filterMatchesByQuery } from "@/lib/smartSearch";
 
 const WebsiteMatchesPage = () => {
   const { data: matches = [], isLoading } = useMatches();
@@ -27,17 +29,11 @@ const WebsiteMatchesPage = () => {
   }, [matches]);
 
   const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    return matches
+    const base = matches
       .filter((m) => new Date(m.date).getTime() >= Date.now() - 24 * 3600 * 1000)
-      .filter((m) => !league || m.competition === league)
-      .filter((m) => {
-        if (!term) return true;
-        return [m.homeTeam, m.awayTeam, m.competition, m.city, m.stadium]
-          .filter(Boolean)
-          .some((s) => s.toLowerCase().includes(term));
-      })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .filter((m) => !league || m.competition === league);
+    const searched = q.trim() ? filterMatchesByQuery(base, q) : base;
+    return [...searched].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [matches, q, league]);
 
   const handleSubmit = (e: React.FormEvent) => {
