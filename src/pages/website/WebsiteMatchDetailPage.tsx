@@ -191,7 +191,18 @@ const WebsiteMatchDetailPage = () => {
     );
   }
 
-  const stadium = stadiumInfo(match.stadium || "");
+  const fallbackStadium = stadiumInfo(match.stadium || "");
+  const stadium = dbStadium
+    ? {
+        name: dbStadium.stadium_name,
+        capacity: dbStadium.capacity ?? fallbackStadium.capacity,
+        // normalize DB 0-10 score to 0-5 for legacy displays
+        atmosphere: dbStadium.atmosphere_score != null ? dbStadium.atmosphere_score / 2 : fallbackStadium.atmosphere,
+        bestSections: dbStadium.best_sections?.length ? dbStadium.best_sections : fallbackStadium.bestSections,
+        family: dbStadium.family_section ?? fallbackStadium.family,
+        bestValue: fallbackStadium.bestValue,
+      }
+    : fallbackStadium;
   const derby = isDerby(match.homeTeam, match.awayTeam);
   const onSale = match.ticketStatus === "on_sale";
   const sellingFast = onSale && (intel.cheapest ? intel.cheapest > 80 : false);
