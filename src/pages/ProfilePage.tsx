@@ -84,6 +84,8 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
 
+        <StadiumPassportCard />
+
         {/* Quick links */}
         <div className="mt-4 space-y-2">
           {[
