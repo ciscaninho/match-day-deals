@@ -63,12 +63,14 @@ export type Database = {
           competition: string
           country: string
           created_at: string
+          data_source: string | null
           date: string
           featured: boolean
           home_logo: string | null
           home_short: string
           home_team: string
           id: string
+          last_synced_at: string | null
           official_link: string | null
           priority: boolean
           sportmonks_id: number | null
@@ -78,6 +80,7 @@ export type Database = {
           ticket_sources: Json
           ticket_status: string
           updated_at: string
+          verified: boolean
         }
         Insert: {
           away_logo?: string | null
@@ -88,12 +91,14 @@ export type Database = {
           competition: string
           country?: string
           created_at?: string
+          data_source?: string | null
           date: string
           featured?: boolean
           home_logo?: string | null
           home_short: string
           home_team: string
           id: string
+          last_synced_at?: string | null
           official_link?: string | null
           priority?: boolean
           sportmonks_id?: number | null
@@ -103,6 +108,7 @@ export type Database = {
           ticket_sources?: Json
           ticket_status?: string
           updated_at?: string
+          verified?: boolean
         }
         Update: {
           away_logo?: string | null
@@ -113,12 +119,14 @@ export type Database = {
           competition?: string
           country?: string
           created_at?: string
+          data_source?: string | null
           date?: string
           featured?: boolean
           home_logo?: string | null
           home_short?: string
           home_team?: string
           id?: string
+          last_synced_at?: string | null
           official_link?: string | null
           priority?: boolean
           sportmonks_id?: number | null
@@ -128,6 +136,7 @@ export type Database = {
           ticket_sources?: Json
           ticket_status?: string
           updated_at?: string
+          verified?: boolean
         }
         Relationships: []
       }

@@ -12,7 +12,7 @@ const API_BASE_URL = "https://api.football-data.org/v4/matches";
 const COMPETITIONS = ["FL1", "PL", "PD", "SA", "BL1", "CL"] as const;
 // Plan gratuit Football-Data: max 10 jours par requête → on découpe en fenêtres
 const WINDOW_DAYS = 10;
-const WINDOWS_COUNT = 2; // 2 × 10 = 20 jours couverts (timeout edge function ~150s)
+const WINDOWS_COUNT = 3; // 3 × 10 = 30 jours (couvre finales UCL/UEL — limite rate-limit gratuit)
 const DAYS_AHEAD = WINDOW_DAYS * WINDOWS_COUNT;
 
 interface FdTeam {
@@ -120,6 +120,9 @@ Deno.serve(async (req) => {
       featured: false,
       priority: false,
       starting_price: null,
+      verified: true,
+      data_source: "football-data.org",
+      last_synced_at: new Date().toISOString(),
     }));
 
     if (rows.length === 0) {
