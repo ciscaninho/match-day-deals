@@ -19,6 +19,9 @@ import { StadiumReviews } from "@/components/StadiumReviews";
 import { TicketIntelligence } from "@/components/TicketIntelligence";
 import { useStadium } from "@/hooks/useStadium";
 import { MatchContextLinks } from "@/components/match/MatchContextLinks";
+import { ImmersiveMatchHero } from "@/components/match/ImmersiveMatchHero";
+import { MatchEmotionalContext } from "@/components/match/MatchEmotionalContext";
+import { MatchdayExperience } from "@/components/match/MatchdayExperience";
 
 // ---------- helpers ----------
 const fmtDate = (iso: string) =>
