@@ -93,7 +93,8 @@ const StadiumDetailPage = () => {
       <StadiumHero stadium={stadium} />
 
       <div className="bg-[#0b1220] text-white">
-        <section className="max-w-5xl mx-auto px-5 pt-6 pb-2 flex justify-end">
+        <section className="max-w-5xl mx-auto px-5 pt-6 pb-2 flex items-center justify-between gap-3 flex-wrap">
+          <MatchdayVibes vibes={vibesForStadium(stadium)} variant="dark" size="sm" showLabel />
           <StadiumPassportButton
             stadiumSlug={stadium.slug}
             stadiumName={stadium.stadium_name}
