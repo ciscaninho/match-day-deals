@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Flame, MapPin, Quote, Star, TrendingUp, Users } from "lucide-react";
 import { useStadiumSocialProof } from "@/hooks/useStadiumSocialProof";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { stadiumImageFor } from "@/lib/stadiumImages";
 
 type Variant = "light" | "dark";
 
@@ -42,16 +43,22 @@ export const StadiumSocialProof = ({ variant = "light" }: { variant?: Variant })
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               {atmospheric.map((s) => {
-                const bg = s.hero_image_url || s.background_image_url || s.image_url;
+                const bg = stadiumImageFor(s.slug, s.hero_image_url, s.background_image_url, s.image_url);
                 return (
                   <Link
                     key={s.slug}
                     to={`/stadiums/${s.slug}`}
-                    className="group relative rounded-2xl overflow-hidden border border-white/10 bg-gradient-to-br from-[#2ECC71]/30 to-indigo-500/30 aspect-[4/5] hover:-translate-y-0.5 transition-transform"
+                    className="group relative rounded-2xl overflow-hidden border border-white/10 bg-slate-900 aspect-[4/5] hover:-translate-y-0.5 transition-transform"
                   >
-                    {bg && (
-                      <img src={bg} alt={s.stadium_name} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                    )}
+                    <img
+                      src={bg}
+                      alt={s.stadium_name}
+                      loading="lazy"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = stadiumImageFor(`fb-${s.slug}`);
+                      }}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
                     <div className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/65 px-2 py-0.5 text-[10px] font-bold text-white">
                       <Flame className="w-3 h-3 text-red-300" />
