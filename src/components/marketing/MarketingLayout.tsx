@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Ticket, Menu, X, Mail, Twitter, Instagram } from "lucide-react";
+import { Ticket, Menu, X, Mail, Instagram } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -14,6 +14,12 @@ const TikTokIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 );
 
+const XIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
 export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
   const [open, setOpen] = useState(false);
   const { t, dir } = useLanguage();
@@ -25,7 +31,7 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
   ];
 
   const socialLinks = [
-    { label: "X (Twitter)", href: "https://x.com/Footticketfind", icon: Twitter },
+    { label: "X", href: "https://x.com/Footticketfind", icon: XIcon },
     { label: "Instagram", href: "https://www.instagram.com/footticketfinder/", icon: Instagram },
     { label: "TikTok", href: "https://www.tiktok.com/@footticketfinder", icon: TikTokIcon },
   ];
