@@ -14,8 +14,8 @@ type Props = {
     awayTeam: string;
     homeShort: string;
     awayShort: string;
-    homeLogo: string | null;
-    awayLogo: string | null;
+    homeLogo?: string | null;
+    awayLogo?: string | null;
     competition: string;
     date: string;
     stadium: string;
