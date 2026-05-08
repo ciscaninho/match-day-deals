@@ -3,13 +3,22 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, ArrowLeft, Loader2 } from "lucide-react";
+import {
+  Check,
+  Crown,
+  ArrowLeft,
+  Loader2,
+  ShieldCheck,
+  Ticket,
+  Trophy,
+  Sparkles,
+  MapPin,
+  BookOpen,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
-import { supabase } from "@/integrations/supabase/client";
-import { getPaddleEnvironment } from "@/lib/paddle";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 const PremiumPage = () => {
@@ -17,24 +26,24 @@ const PremiumPage = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
-  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalLoading] = useState(false);
 
-  const features = [
-    t("premium.feature_1"),
-    t("premium.feature_2"),
-    t("premium.feature_3"),
-    t("premium.feature_4"),
-    t("premium.feature_5"),
+  const benefits = [
+    { icon: Ticket, label: t("premium.benefits.officialAccess") },
+    { icon: Trophy, label: t("premium.benefits.dreamMatches") },
+    { icon: ShieldCheck, label: t("premium.benefits.trustedBuying") },
+    { icon: MapPin, label: t("premium.benefits.atmosphere") },
+    { icon: BookOpen, label: t("premium.benefits.passport") },
+    { icon: Sparkles, label: t("premium.benefits.adFree") },
   ];
 
-  // Refetch sub on mount in case the user just returned from checkout
   useEffect(() => {
     refreshSubscription();
   }, [refreshSubscription]);
 
   const handleSubscribe = async (priceId: "premium_monthly_199" | "premium_yearly") => {
     if (!user) {
-      toast.error("Please sign in to subscribe");
+      toast.error(t("premium.signin_required") || "Please sign in to subscribe");
       navigate("/auth");
       return;
     }
@@ -52,13 +61,12 @@ const PremiumPage = () => {
   };
 
   const handleManage = async () => {
-    // Payments temporarily disabled before launch.
     toast.info("Paiements bientôt disponibles");
   };
 
   if (isPremium) {
     return (
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-background pb-24">
         <PaymentTestModeBanner />
         <div className="px-5 pt-12">
           <button
@@ -72,16 +80,14 @@ const PremiumPage = () => {
               <Crown className="w-8 h-8 text-accent-foreground" />
             </div>
             <h1 className="text-xl font-bold text-foreground">{t("premium.you_premium")}</h1>
-            <p className="text-sm text-muted-foreground mt-2">{t("premium.enjoy")}</p>
+            <p className="text-sm text-muted-foreground mt-2 px-6">{t("premium.hero.subtitle")}</p>
             <Button
               variant="outline"
               className="mt-6 border-border/50"
               onClick={handleManage}
               disabled={portalLoading}
             >
-              {portalLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : null}
+              {portalLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Manage subscription
             </Button>
           </div>
@@ -92,34 +98,58 @@ const PremiumPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24">
       <PaymentTestModeBanner />
-      <div className="px-5 pt-12">
+
+      {/* Hero */}
+      <div className="gradient-pitch pitch-pattern px-5 pt-12 pb-10 relative overflow-hidden">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1 text-sm text-muted-foreground mb-4"
+          className="flex items-center gap-1 text-sm text-primary-foreground/70 mb-5"
         >
           <ArrowLeft className="w-4 h-4" /> {t("back")}
         </button>
-        <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-full gradient-gold flex items-center justify-center mx-auto mb-3">
-            <Crown className="w-7 h-7 text-accent-foreground" />
+        <div className="relative z-10 text-center">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 px-3 py-1 mb-4">
+            <Crown className="w-3.5 h-3.5 text-accent" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-primary-foreground/80">
+              {t("premium.title")}
+            </span>
           </div>
-          <h1 className="text-xl font-bold text-foreground">{t("premium.title")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t("premium.subtitle")}</p>
+          <h1 className="text-2xl font-extrabold text-primary-foreground leading-tight px-4">
+            {t("premium.hero.title")}
+          </h1>
+          <p className="text-sm text-primary-foreground/75 mt-3 px-4 leading-relaxed">
+            {t("premium.hero.subtitle")}
+          </p>
         </div>
+      </div>
 
-        <Card className="mb-4 border-border/50">
-          <CardContent className="p-4 space-y-2.5">
-            {features.map((f) => (
-              <div key={f} className="flex items-center gap-2.5 text-sm">
-                <Check className="w-4 h-4 text-primary shrink-0" />
-                <span className="text-foreground">{f}</span>
+      <div className="px-5 -mt-6 space-y-5">
+        {/* Benefits */}
+        <Card className="border-border/50 shadow-lg">
+          <CardContent className="p-5 space-y-3.5">
+            {benefits.map((b) => (
+              <div key={b.label} className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <b.icon className="w-4 h-4 text-primary" />
+                </div>
+                <p className="text-sm text-foreground leading-snug pt-1.5 flex-1">{b.label}</p>
+                <Check className="w-4 h-4 text-primary shrink-0 mt-2" />
               </div>
             ))}
           </CardContent>
         </Card>
 
+        {/* Trust strip */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 border border-border/40 rounded-xl px-4 py-3">
+          <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+          <span className="leading-snug">
+            {t("premium.benefits.trustedBuying")}
+          </span>
+        </div>
+
+        {/* Plans */}
         <div className="space-y-3">
           <Card className="border-primary/30 glow-pitch">
             <CardContent className="p-4 flex items-center justify-between">
@@ -173,7 +203,12 @@ const PremiumPage = () => {
             </CardContent>
           </Card>
         </div>
+
+        <p className="text-[11px] text-muted-foreground/80 text-center px-6 pt-2">
+          {t("premium.benefits.adFree")} · {t("premium.benefits.officialAccess")}
+        </p>
       </div>
+
       <BottomNav />
     </div>
   );
