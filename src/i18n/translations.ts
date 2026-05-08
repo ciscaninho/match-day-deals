@@ -3881,9 +3881,11 @@ const clubsI18n: Record<Locale, Record<string, string>> = {
 };
 
 // Merge marketing page translations into each locale.
+import { fanExperienceI18n } from "./fanExperience";
+
 export const translations: Record<Locale, Record<string, string>> = (Object.keys(_translations) as Locale[]).reduce(
   (acc, loc) => {
-    acc[loc] = { ..._translations[loc], ...(marketingPages[loc] || {}), ...(stadiumReviews[loc] || {}), ...(ticketIntel[loc] || {}), ...(stadiumI18n[loc] || {}), ...(recommendationsI18n[loc] || {}), ...(passportI18n[loc] || {}), ...(smartSearchI18n[loc] || {}), ...(clubsI18n[loc] || {}) };
+    acc[loc] = { ..._translations[loc], ...(marketingPages[loc] || {}), ...(stadiumReviews[loc] || {}), ...(ticketIntel[loc] || {}), ...(stadiumI18n[loc] || {}), ...(recommendationsI18n[loc] || {}), ...(passportI18n[loc] || {}), ...(smartSearchI18n[loc] || {}), ...(clubsI18n[loc] || {}), ...(fanExperienceI18n[loc] || {}) };
     return acc;
   },
   {} as Record<Locale, Record<string, string>>

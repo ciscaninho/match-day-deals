@@ -9,6 +9,9 @@ import { StadiumReviews } from "@/components/StadiumReviews";
 import { StadiumHero } from "@/components/StadiumHero";
 import { StadiumPassportButton } from "@/components/StadiumPassportButton";
 import { StadiumExperienceTips } from "@/components/StadiumExperienceTips";
+import { StadiumUpcomingMatches } from "@/components/stadium/StadiumUpcomingMatches";
+import { StadiumRelatedClubs } from "@/components/stadium/StadiumRelatedClubs";
+import { TopFanReviews } from "@/components/stadium/TopFanReviews";
 import { useSEO } from "@/lib/seo";
 import type { Stadium } from "@/hooks/useStadium";
 
@@ -186,6 +189,10 @@ const StadiumDetailPage = () => {
             </div>
           )}
         </section>
+
+        <StadiumRelatedClubs stadiumSlug={stadium.slug} stadiumName={stadium.stadium_name} />
+        <StadiumUpcomingMatches stadiumName={stadium.stadium_name} />
+        <TopFanReviews stadiumSlug={stadium.slug} />
 
         <StadiumReviews stadium={stadium.stadium_name} matchDate={undefined} />
         <StadiumExperienceTips stadiumSlug={stadium.slug} />

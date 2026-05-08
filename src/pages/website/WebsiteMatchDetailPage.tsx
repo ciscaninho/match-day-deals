@@ -18,6 +18,7 @@ import { ClubLogo } from "@/components/ClubLogo";
 import { StadiumReviews } from "@/components/StadiumReviews";
 import { TicketIntelligence } from "@/components/TicketIntelligence";
 import { useStadium } from "@/hooks/useStadium";
+import { MatchContextLinks } from "@/components/match/MatchContextLinks";
 
 // ---------- helpers ----------
 const fmtDate = (iso: string) =>
@@ -299,6 +300,13 @@ const WebsiteMatchDetailPage = () => {
           derby={derby}
           isBigMatch={!!(match.featured || match.priority || derby)}
           stadiumAtmosphere={stadium.atmosphere ?? 4.3}
+        />
+
+        <MatchContextLinks
+          homeTeam={match.homeTeam}
+          awayTeam={match.awayTeam}
+          stadiumName={match.stadium}
+          variant="dark"
         />
 
         {/* OFFICIAL SALES */}
