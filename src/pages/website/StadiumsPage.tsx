@@ -7,6 +7,7 @@ import { useStadiums, type Stadium } from "@/hooks/useStadium";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
+import { stadiumImageFor } from "@/lib/stadiumImages";
 
 type SortKey = "atmosphere" | "capacity" | "popularity" | "country" | "league" | "name";
 type QualityFilter = "all" | "missing_image" | "missing_hero" | "missing_coords" | "missing_meta" | "no_reviews" | "incomplete";
