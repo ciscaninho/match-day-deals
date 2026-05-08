@@ -367,7 +367,7 @@ export const filterMatchesByQuery = (matches: Match[], rawQuery: string): Match[
   const queries = expandQuery(rawQuery);
   if (queries.length === 0) return matches;
   return matches
-    .map((m) => ({ m, s: matchScore(m, queries) }))
+    .map((m) => ({ m, s: Math.max(matchScore(m, queries), multiTokenScore(m, rawQuery)) }))
     .filter((x) => x.s >= 30)
     .sort((a, b) => b.s - a.s)
     .map((x) => x.m);
