@@ -266,7 +266,7 @@ export const buildSuggestions = (matches: Match[], rawQuery: string, limit = 10)
 
   for (const m of matches) {
     const upcoming = new Date(m.date).getTime() >= now - 24 * 3600 * 1000;
-    const sc = matchScore(m, queries);
+    const sc = Math.max(matchScore(m, queries), multiTokenScore(m, rawQuery));
     if (sc >= 30 && upcoming) {
       // Boost: ticket on sale, has price, sooner
       const daysAway = Math.max(1, (new Date(m.date).getTime() - now) / 86400000);
