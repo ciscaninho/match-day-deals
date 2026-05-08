@@ -46,9 +46,7 @@ export const StadiumHero = ({ stadium, showBreadcrumb = true, className }: Props
           <div className="text-xs text-white/55 mb-4 md:mb-6 truncate">
             <Link to="/" className="hover:text-[#2ECC71]">Home</Link>
             <span className="mx-1.5">/</span>
-            <Link to="/stadiums" className="hover:text-[#2ECC71]">
-              {t("stadium.explore_stadiums")}
-            </Link>
+            <span className="text-white/70">{stadium.stadium_name}</span>
           </div>
         )}
 

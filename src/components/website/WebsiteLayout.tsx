@@ -27,7 +27,6 @@ export const WebsiteLayout = ({ children }: Props) => {
 
   const navItems = [
     { label: t("website.nav.matches"), to: "/matches" },
-    { label: t("clubs.nav"), to: "/clubs" },
     { label: t("website.nav.leagues"), to: "/leagues" },
     { label: t("website.nav.how"), to: "/how-it-works" },
     { label: t("website.nav.pricing"), to: "/pricing" },
@@ -165,7 +164,6 @@ export const WebsiteLayout = ({ children }: Props) => {
             </h4>
             <ul className="space-y-2.5 text-sm">
               <li><Link to="/matches" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.all_matches")}</Link></li>
-              <li><Link to="/clubs" className="hover:text-[#2ECC71] transition-colors">{t("clubs.nav")}</Link></li>
               <li><Link to="/leagues" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.leagues")}</Link></li>
               <li><Link to="/how-it-works" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.how")}</Link></li>
               <li><Link to="/pricing" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.pricing")}</Link></li>

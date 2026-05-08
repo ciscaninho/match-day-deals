@@ -60,7 +60,7 @@ const SuggestStadiumPage = () => {
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success(t("suggest.submitted"));
-    navigate("/stadiums");
+    navigate("/");
   };
 
   return (
