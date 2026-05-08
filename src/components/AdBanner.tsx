@@ -8,6 +8,7 @@ export const AdBanner = ({ variant = "banner" }: AdBannerProps) => {
   const { isPremium } = useUser();
   if (isPremium) return null;
 
+  // Hide ad placements on mobile for a cleaner premium feel; show only on md+ screens.
   const styles: Record<string, string> = {
     banner: "h-16 mx-5 mt-4",
     inline: "h-14 my-2",
@@ -16,7 +17,7 @@ export const AdBanner = ({ variant = "banner" }: AdBannerProps) => {
 
   return (
     <div
-      className={`${styles[variant]} rounded-lg bg-muted/60 border border-dashed border-border flex items-center justify-center`}
+      className={`hidden md:flex ${styles[variant]} rounded-lg bg-muted/60 border border-dashed border-border items-center justify-center`}
     >
       <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
         Ad · Go Premium to remove
