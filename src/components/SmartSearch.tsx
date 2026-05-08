@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, Calendar, MapPin, Trophy, Users, Building2, X, Loader2 } from "lucide-react";
 import { useMatches } from "@/hooks/useMatches";
 import { buildSuggestions, type Suggestion } from "@/lib/smartSearch";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Props {
   placeholder?: string;
@@ -19,8 +20,10 @@ const KIND_ICON: Record<Suggestion["kind"], typeof Search> = {
   stadium: Building2,
 };
 
-export const SmartSearch = ({ placeholder = "Team, city, stadium, league…", variant = "inline", autoFocus, onSubmit }: Props) => {
+export const SmartSearch = ({ placeholder, variant = "inline", autoFocus, onSubmit }: Props) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  const ph = placeholder ?? t("smart_search.placeholder");
   const { data: matches = [], isLoading } = useMatches();
   const [q, setQ] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -102,8 +105,8 @@ export const SmartSearch = ({ placeholder = "Team, city, stadium, league…", va
           onFocus={() => q && setOpen(true)}
           onKeyDown={onKeyDown}
           autoFocus={autoFocus}
-          placeholder={placeholder}
-          aria-label="Search matches, teams and cities"
+          placeholder={ph}
+          aria-label={t("smart_search.placeholder")}
           aria-autocomplete="list"
           aria-expanded={open}
           className="flex-1 py-3 text-[#2C3E50] placeholder:text-[#2C3E50]/40 outline-none text-sm bg-transparent"
@@ -116,7 +119,7 @@ export const SmartSearch = ({ placeholder = "Team, city, stadium, league…", va
               setQ("");
               inputRef.current?.focus();
             }}
-            aria-label="Clear search"
+            aria-label={t("smart_search.clear")}
             className="w-7 h-7 rounded-full hover:bg-slate-100 flex items-center justify-center text-[#2C3E50]/50"
           >
             <X className="w-4 h-4" />
@@ -125,11 +128,11 @@ export const SmartSearch = ({ placeholder = "Team, city, stadium, league…", va
         <button
           type="button"
           onClick={() => submit()}
-          aria-label="Search"
+          aria-label={t("smart_search.button")}
           className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-3 sm:px-4 py-2.5 font-bold text-sm transition-colors shrink-0"
         >
           <Search className="w-4 h-4 sm:hidden" />
-          <span className="hidden sm:inline">Search</span>
+          <span className="hidden sm:inline">{t("smart_search.button")}</span>
         </button>
       </div>
 
@@ -140,7 +143,7 @@ export const SmartSearch = ({ placeholder = "Team, city, stadium, league…", va
         >
           {isLoading && suggestions.length === 0 ? (
             <div className="flex items-center gap-2 p-4 text-sm text-[#2C3E50]/60">
-              <Loader2 className="w-4 h-4 animate-spin" /> Searching…
+              <Loader2 className="w-4 h-4 animate-spin" /> {t("smart_search.searching")}
             </div>
           ) : (
             <ul className="max-h-[60vh] overflow-y-auto py-1">
@@ -187,8 +190,8 @@ export const SmartSearch = ({ placeholder = "Team, city, stadium, league…", va
           )}
           <div className="border-t border-slate-100 px-4 py-2.5 text-[11px] text-[#2C3E50]/50 flex items-center justify-between">
             <span>
-              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 font-mono">↑↓</kbd> navigate ·{" "}
-              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 font-mono">↵</kbd> open
+              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 font-mono">↑↓</kbd> {t("smart_search.navigate")} ·{" "}
+              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 font-mono">↵</kbd> {t("smart_search.open")}
             </span>
             <button
               type="button"
@@ -198,7 +201,7 @@ export const SmartSearch = ({ placeholder = "Team, city, stadium, league…", va
               }}
               className="font-bold text-[#2ECC71] hover:underline"
             >
-              See all results →
+              {t("smart_search.see_all")}
             </button>
           </div>
         </div>

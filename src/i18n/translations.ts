@@ -3458,10 +3458,23 @@ const _translations: Record<Locale, Record<string, string>> = {
   },
 };
 
+// Smart search bar i18n
+const smartSearchI18n: Record<Locale, Record<string, string>> = {
+  en: { "smart_search.placeholder": "Search matches, teams and cities", "smart_search.button": "Search", "smart_search.searching": "Searching…", "smart_search.see_all": "See all results →", "smart_search.navigate": "navigate", "smart_search.open": "open", "smart_search.clear": "Clear search" },
+  fr: { "smart_search.placeholder": "Rechercher matchs, équipes et villes", "smart_search.button": "Rechercher", "smart_search.searching": "Recherche…", "smart_search.see_all": "Voir tous les résultats →", "smart_search.navigate": "naviguer", "smart_search.open": "ouvrir", "smart_search.clear": "Effacer la recherche" },
+  es: { "smart_search.placeholder": "Buscar partidos, equipos y ciudades", "smart_search.button": "Buscar", "smart_search.searching": "Buscando…", "smart_search.see_all": "Ver todos los resultados →", "smart_search.navigate": "navegar", "smart_search.open": "abrir", "smart_search.clear": "Borrar búsqueda" },
+  de: { "smart_search.placeholder": "Spiele, Mannschaften und Städte suchen", "smart_search.button": "Suchen", "smart_search.searching": "Suchen…", "smart_search.see_all": "Alle Ergebnisse anzeigen →", "smart_search.navigate": "navigieren", "smart_search.open": "öffnen", "smart_search.clear": "Suche löschen" },
+  it: { "smart_search.placeholder": "Cerca partite, squadre e città", "smart_search.button": "Cerca", "smart_search.searching": "Ricerca…", "smart_search.see_all": "Vedi tutti i risultati →", "smart_search.navigate": "naviga", "smart_search.open": "apri", "smart_search.clear": "Cancella ricerca" },
+  pt: { "smart_search.placeholder": "Pesquisar jogos, equipas e cidades", "smart_search.button": "Pesquisar", "smart_search.searching": "A pesquisar…", "smart_search.see_all": "Ver todos os resultados →", "smart_search.navigate": "navegar", "smart_search.open": "abrir", "smart_search.clear": "Limpar pesquisa" },
+  nl: { "smart_search.placeholder": "Zoek wedstrijden, teams en steden", "smart_search.button": "Zoeken", "smart_search.searching": "Zoeken…", "smart_search.see_all": "Alle resultaten bekijken →", "smart_search.navigate": "navigeren", "smart_search.open": "openen", "smart_search.clear": "Zoekopdracht wissen" },
+  ar: { "smart_search.placeholder": "ابحث عن المباريات والفرق والمدن", "smart_search.button": "بحث", "smart_search.searching": "جارٍ البحث…", "smart_search.see_all": "عرض كل النتائج →", "smart_search.navigate": "تنقل", "smart_search.open": "فتح", "smart_search.clear": "مسح البحث" },
+  ru: { "smart_search.placeholder": "Поиск матчей, команд и городов", "smart_search.button": "Поиск", "smart_search.searching": "Поиск…", "smart_search.see_all": "Показать все результаты →", "smart_search.navigate": "навигация", "smart_search.open": "открыть", "smart_search.clear": "Очистить поиск" },
+};
+
 // Merge marketing page translations into each locale.
 export const translations: Record<Locale, Record<string, string>> = (Object.keys(_translations) as Locale[]).reduce(
   (acc, loc) => {
-    acc[loc] = { ..._translations[loc], ...(marketingPages[loc] || {}), ...(stadiumReviews[loc] || {}), ...(ticketIntel[loc] || {}), ...(stadiumI18n[loc] || {}), ...(recommendationsI18n[loc] || {}), ...(passportI18n[loc] || {}) };
+    acc[loc] = { ..._translations[loc], ...(marketingPages[loc] || {}), ...(stadiumReviews[loc] || {}), ...(ticketIntel[loc] || {}), ...(stadiumI18n[loc] || {}), ...(recommendationsI18n[loc] || {}), ...(passportI18n[loc] || {}), ...(smartSearchI18n[loc] || {}) };
     return acc;
   },
   {} as Record<Locale, Record<string, string>>

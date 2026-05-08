@@ -19,7 +19,7 @@ export interface LegalCopy {
 }
 
 const SELLER = "Foot Ticket Finder";
-const EMAIL = "support.footticket@gmail.com";
+const EMAIL = "support@footticketfinder.com";
 const mail = `<a class="text-[#2ECC71] font-semibold" href="mailto:${EMAIL}">${EMAIL}</a>`;
 const paddleLink = `<a class="text-[#2ECC71] font-semibold" href="https://www.paddle.com" target="_blank" rel="noreferrer">Paddle.com</a>`;
 const paddlePrivacyLink = `<a class="text-[#2ECC71] font-semibold" href="https://www.paddle.com/legal/privacy" target="_blank" rel="noreferrer">Paddle</a>`;

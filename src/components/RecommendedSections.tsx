@@ -54,7 +54,7 @@ export const RecommendedSections = () => {
                       {sec.subtitle && <p className="text-xs text-[#2C3E50]/55">{subtitle}</p>}
                     </div>
                   </div>
-                  <Link to="/matches" className="text-xs font-bold text-[#2C3E50] hover:text-[#2ECC71] inline-flex items-center gap-1">
+                  <Link to={`/matches?cat=${sec.id}`} className="text-xs font-bold text-[#2C3E50] hover:text-[#2ECC71] inline-flex items-center gap-1">
                     {t("recommendations.see_all")} <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>

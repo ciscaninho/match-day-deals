@@ -123,11 +123,11 @@ export const WebsiteLayout = ({ children }: Props) => {
                 {t("website.footer.contact")}
               </h4>
               <a
-                href="mailto:support.footticket@gmail.com"
+                href="mailto:support@footticketfinder.com"
                 className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-[#2ECC71] transition-colors"
               >
                 <Mail className="w-4 h-4" />
-                support.footticket@gmail.com
+                support@footticketfinder.com
               </a>
             </div>
 

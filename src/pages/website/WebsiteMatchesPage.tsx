@@ -5,7 +5,7 @@ import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
 import { SmartSearch } from "@/components/SmartSearch";
-import { filterMatchesByQuery } from "@/lib/smartSearch";
+import { filterMatchesByQuery, buildRecommendations } from "@/lib/smartSearch";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 const WebsiteMatchesPage = () => {
@@ -14,6 +14,7 @@ const WebsiteMatchesPage = () => {
   const [params, setParams] = useSearchParams();
   const initialQ = params.get("q") ?? "";
   const initialLeague = params.get("league") ?? "";
+  const cat = params.get("cat") ?? "";
   const [q, setQ] = useState(initialQ);
   const [league, setLeague] = useState(initialLeague);
 
@@ -30,13 +31,31 @@ const WebsiteMatchesPage = () => {
     return Array.from(s).sort();
   }, [matches]);
 
+  const catIds = useMemo(() => {
+    if (!cat) return null;
+    const sections = buildRecommendations(matches);
+    const sec = sections.find((s) => s.id === cat);
+    return sec ? new Set(sec.matches.map((m) => m.id)) : new Set<string>();
+  }, [matches, cat]);
+
+  const catLabelKey: Record<string, string> = {
+    weekend: "recommendations.weekend",
+    derbies: "recommendations.derbies",
+    ucl: "recommendations.ucl",
+    cheapest: "recommendations.cheapest",
+    value: "recommendations.value",
+    trending: "recommendations.trending",
+    local: "recommendations.local",
+  };
+
   const filtered = useMemo(() => {
     const base = matches
       .filter((m) => new Date(m.date).getTime() >= Date.now() - 24 * 3600 * 1000)
-      .filter((m) => !league || m.competition === league);
+      .filter((m) => !league || m.competition === league)
+      .filter((m) => !catIds || catIds.has(m.id));
     const searched = q.trim() ? filterMatchesByQuery(base, q) : base;
     return [...searched].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [matches, q, league]);
+  }, [matches, q, league, catIds]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +106,23 @@ const WebsiteMatchesPage = () => {
               <Filter className="w-4 h-4" /> {t("mp.filter")}
             </button>
           </div>
+          {cat && catLabelKey[cat] && (
+            <div className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-[#27ae60] bg-[#2ECC71]/10 border border-[#2ECC71]/30 rounded-full px-3 py-1.5">
+              <span>{t(catLabelKey[cat], { country: matches[0]?.country ?? "" })}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = new URLSearchParams(params);
+                  next.delete("cat");
+                  setParams(next);
+                }}
+                aria-label={t("smart_search.clear")}
+                className="text-[#27ae60] hover:text-[#2C3E50]"
+              >
+                ×
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
