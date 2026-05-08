@@ -105,8 +105,8 @@ export const SmartSearch = ({ placeholder, variant = "inline", autoFocus, onSubm
           onFocus={() => q && setOpen(true)}
           onKeyDown={onKeyDown}
           autoFocus={autoFocus}
-          placeholder={placeholder}
-          aria-label="Search matches, teams and cities"
+          placeholder={ph}
+          aria-label={t("smart_search.placeholder")}
           aria-autocomplete="list"
           aria-expanded={open}
           className="flex-1 py-3 text-[#2C3E50] placeholder:text-[#2C3E50]/40 outline-none text-sm bg-transparent"
@@ -119,7 +119,7 @@ export const SmartSearch = ({ placeholder, variant = "inline", autoFocus, onSubm
               setQ("");
               inputRef.current?.focus();
             }}
-            aria-label="Clear search"
+            aria-label={t("smart_search.clear")}
             className="w-7 h-7 rounded-full hover:bg-slate-100 flex items-center justify-center text-[#2C3E50]/50"
           >
             <X className="w-4 h-4" />
@@ -128,11 +128,11 @@ export const SmartSearch = ({ placeholder, variant = "inline", autoFocus, onSubm
         <button
           type="button"
           onClick={() => submit()}
-          aria-label="Search"
+          aria-label={t("smart_search.button")}
           className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-3 sm:px-4 py-2.5 font-bold text-sm transition-colors shrink-0"
         >
           <Search className="w-4 h-4 sm:hidden" />
-          <span className="hidden sm:inline">Search</span>
+          <span className="hidden sm:inline">{t("smart_search.button")}</span>
         </button>
       </div>
 
