@@ -71,7 +71,7 @@ export const AIAssistantWidget = () => {
     const upcoming = matches
       .filter((m) => new Date(m.date) >= now)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 80)
+      .slice(0, 200)
       .map((m) => ({
         id: m.id,
         homeTeam: m.homeTeam,
