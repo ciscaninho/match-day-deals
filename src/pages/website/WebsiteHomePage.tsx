@@ -23,7 +23,7 @@ import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { SmartSearch } from "@/components/SmartSearch";
-import { RecommendedSections } from "@/components/RecommendedSections";
+// RecommendedSections removed (was: import { RecommendedSections } from "@/components/RecommendedSections";)
 
 const PROVIDERS = ["StubHub", "Viagogo", "Ticketmaster", "Seatpick", "LiveFootballTickets", "OneFootball"];
 
@@ -275,8 +275,7 @@ const WebsiteHomePage = () => {
         </div>
       </section>
 
-      {/* RECOMMENDED MATCHES */}
-      <RecommendedSections />
+      {/* Recommended sections removed — focus on football fan experience */}
 
 
       <section className="py-16 md:py-24 bg-[#2C3E50] text-white relative overflow-hidden">

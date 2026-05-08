@@ -125,9 +125,11 @@ export const SmartSearch = ({ placeholder = "Team, city, stadium, league…", va
         <button
           type="button"
           onClick={() => submit()}
-          className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-4 py-2.5 font-bold text-sm transition-colors"
+          aria-label="Search"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-3 sm:px-4 py-2.5 font-bold text-sm transition-colors shrink-0"
         >
-          Search
+          <Search className="w-4 h-4 sm:hidden" />
+          <span className="hidden sm:inline">Search</span>
         </button>
       </div>
 
