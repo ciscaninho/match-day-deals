@@ -23,6 +23,9 @@ import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { SmartSearch } from "@/components/SmartSearch";
+import { IconicStadiumsRail } from "@/components/home/IconicStadiumsRail";
+import { DreamMatchesRail } from "@/components/home/DreamMatchesRail";
+import { StadiumSocialProof } from "@/components/stadium/StadiumSocialProof";
 // RecommendedSections removed (was: import { RecommendedSections } from "@/components/RecommendedSections";)
 
 const PROVIDERS = ["StubHub", "Viagogo", "Ticketmaster", "Seatpick", "LiveFootballTickets", "OneFootball"];
@@ -275,8 +278,14 @@ const WebsiteHomePage = () => {
         </div>
       </section>
 
-      {/* Recommended sections removed — focus on football fan experience */}
+      {/* Dream matches — emotional, fan-centric storytelling */}
+      <DreamMatchesRail />
 
+      {/* Iconic stadiums — bucket-list football grounds */}
+      <IconicStadiumsRail />
+
+      {/* Stadium social proof — top fan reviews, best-rated, recently visited */}
+      <StadiumSocialProof variant="light" />
 
       <section className="py-16 md:py-24 bg-[#2C3E50] text-white relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-[#2ECC71]/20 blur-3xl" />
