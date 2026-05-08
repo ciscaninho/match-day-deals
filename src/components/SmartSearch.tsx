@@ -190,8 +190,8 @@ export const SmartSearch = ({ placeholder, variant = "inline", autoFocus, onSubm
           )}
           <div className="border-t border-slate-100 px-4 py-2.5 text-[11px] text-[#2C3E50]/50 flex items-center justify-between">
             <span>
-              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 font-mono">↑↓</kbd> navigate ·{" "}
-              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 font-mono">↵</kbd> open
+              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 font-mono">↑↓</kbd> {t("smart_search.navigate")} ·{" "}
+              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 font-mono">↵</kbd> {t("smart_search.open")}
             </span>
             <button
               type="button"
@@ -201,7 +201,7 @@ export const SmartSearch = ({ placeholder, variant = "inline", autoFocus, onSubm
               }}
               className="font-bold text-[#2ECC71] hover:underline"
             >
-              See all results →
+              {t("smart_search.see_all")}
             </button>
           </div>
         </div>
