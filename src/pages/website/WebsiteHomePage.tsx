@@ -275,8 +275,7 @@ const WebsiteHomePage = () => {
         </div>
       </section>
 
-      {/* RECOMMENDED MATCHES */}
-      <RecommendedSections />
+      {/* Recommended sections removed — focus on football fan experience */}
 
 
       <section className="py-16 md:py-24 bg-[#2C3E50] text-white relative overflow-hidden">
