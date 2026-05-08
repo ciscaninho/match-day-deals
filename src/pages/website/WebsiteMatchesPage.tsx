@@ -5,7 +5,7 @@ import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
 import { SmartSearch } from "@/components/SmartSearch";
-import { filterMatchesByQuery } from "@/lib/smartSearch";
+import { filterMatchesByQuery, buildRecommendations } from "@/lib/smartSearch";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 const WebsiteMatchesPage = () => {
