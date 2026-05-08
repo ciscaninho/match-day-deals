@@ -23,7 +23,7 @@ import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { SmartSearch } from "@/components/SmartSearch";
-import { RecommendedSections } from "@/components/RecommendedSections";
+// RecommendedSections removed (was: import { RecommendedSections } from "@/components/RecommendedSections";)
 
 const PROVIDERS = ["StubHub", "Viagogo", "Ticketmaster", "Seatpick", "LiveFootballTickets", "OneFootball"];
 
