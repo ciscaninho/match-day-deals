@@ -1,103 +1,120 @@
-## Official Ticketing Layer — Implementation Plan
+# Fan-Experience Polish Pass
 
-Build a new "Official Ticketing" layer for top clubs, positioning Foot Ticket Finder as the fan companion for legitimate club access (not just resale comparison).
-
----
-
-### 1. Data model
-
-New table `club_ticketing_profiles` (Lovable Cloud / Supabase):
-
-- `id` (uuid, pk)
-- `slug` (text, unique) — e.g. `arsenal`, `psg`, `real-madrid`
-- `club_name`, `short_name`
-- `country`, `city`, `league`
-- `stadium_name`, `stadium_slug` (optional link to `stadiums`)
-- `logo_url`, `hero_image_url`
-- `official_website`, `official_ticketing_url`
-- `membership_required` (bool), `membership_name`, `membership_required_for_big_games` (bool)
-- `public_sale_possible` (bool)
-- `resale_exchange_available` (bool), `resale_exchange_name`, `resale_exchange_url`
-- `average_difficulty` (enum text: `easy` / `medium` / `hard` / `extreme`)
-- `ticket_release_process` (text)
-- `important_restrictions` (text)
-- `hospitality_available` (bool), `hospitality_url`
-- `queue_system` (text)
-- `ballot_system` (bool), `ballot_notes` (text)
-- `local_fan_restrictions` (text)
-- `notes` (text)
-- `seo_title`, `seo_description`
-- `last_verified_at` (timestamptz)
-- timestamps
-
-RLS: public read; admin write (uses existing `has_role(..,'admin')`).
-
-Seeded with the 13 clubs listed (PSG, OM, Real Madrid, Barça, Liverpool, Arsenal, Man Utd, Man City, Bayern, Dortmund, Milan, Inter, Juventus). Uncertain details marked "May vary by match and competition" rather than invented.
+Transform Foot Ticket Finder from a "ticket alert app" into a premium football fan companion. Six workstreams, all reusing existing DB tables and i18n keys (9 locales).
 
 ---
 
-### 2. Routes & pages
+## 1. Deep linking ecosystem
 
-Add to public website (no login required):
+Wire the three core entities together so every page surfaces its neighbours.
 
-- `/clubs` — index page listing all clubs, with cards (logo, league, difficulty badge, membership badge)
-- `/clubs/:slug` — full club ticketing page
+### Match pages (`MatchDetailPage` + `WebsiteMatchDetailPage`)
+Add a new "Plan your matchday" section under the existing ticket info card with:
+- **Club guide cards** (home + away) → links to `/clubs/:slug` if a `club_ticketing_profiles` row exists for either team (matched by `club_name` / `short_name`).
+- **Stadium card** → links to `/stadiums/:slug` if a `stadiums` row matches `match.stadium`. Show stadium image, atmosphere score, capacity.
+- **Official ticketing CTA** → primary button using the home club's `official_ticketing_url` (falls back to existing "Where to buy" providers).
+- **Atmosphere rating chip** → from the linked stadium's `atmosphere_score`.
+- **Stadium passport CTA** → reuse existing `StadiumPassportButton` to log the visit.
 
-Wire into `App.tsx` routes and add a "Clubs" link in the website nav + footer.
+New helper: `src/hooks/useMatchContext.ts` — given a match, returns `{ homeClub, awayClub, stadium }` by slug-matching the three tables in a single React Query call. New component: `src/components/match/MatchContextLinks.tsx`.
 
----
+### Club pages (`ClubDetailPage`)
+Already has upcoming matches via `ClubUpcomingMatches`. Add:
+- **Linked stadium card** at top of the page (uses `stadium_slug` if present, else slug-match by `stadium_name`).
+- A clearer "Ticket difficulty / Official process / Membership / Resale" 4-block grid (existing data is there but presentation is text-heavy — restructure into scannable cards with icons).
 
-### 3. Club page UI sections
+### Stadium pages (`StadiumDetailPage`)
+Add:
+- **Upcoming matches at this stadium** (filter `useMatches` by `stadium` name, next 5).
+- **Related clubs** (any `club_ticketing_profiles` whose `stadium_slug` or `stadium_name` matches → link cards).
+- **Best fan reviews** (top 3 from `stadium_reviews` ordered by overall rating, surfaced above the full reviews list).
+- Atmosphere score, best sections, and fan tips already exist — make sure they're prominent above the fold.
 
-Premium, mobile-first (cards, badges, generous spacing, no walls of text):
-
-1. **Hero** — logo, club name, stadium, league, city/country, two CTAs (Official website / Official ticketing — both `target="_blank"`).
-2. **Quick badges row** — Membership required?, Official resale exchange?, Difficulty indicator (color-coded easy→extreme).
-3. **How ticket sales work** — concise structured blocks: release process, ballot, queue system, restrictions.
-4. **Membership** — name, what it unlocks, link out.
-5. **Official resale exchange** — name + link, or "Not available — be cautious of unofficial resale."
-6. **Best matches to attend** — curated highlights (derbies / European nights), text-driven from `notes`/admin.
-7. **Upcoming matches** — pulls from existing `matches` table filtered by club name (home or away), reusing `MatchCard`.
-8. **Stadium atmosphere** — if `stadium_slug` matches a row in `stadiums`, show atmosphere/family/accessibility scores + link to stadium page.
-9. **Trust note** — "May vary by match and competition" disclaimer + `last_verified_at` shown as "Last verified …".
-
----
-
-### 4. SEO
-
-- `useSEO` per club page: title `"{Club} Tickets — Official Access Guide | Foot Ticket Finder"`, meta description from `seo_description`, canonical `/clubs/{slug}`.
-- JSON-LD `SportsTeam` + `BreadcrumbList`.
-- Single H1 per page.
+New components: `src/components/stadium/StadiumUpcomingMatches.tsx`, `src/components/stadium/StadiumRelatedClubs.tsx`, `src/components/stadium/TopFanReviews.tsx`.
 
 ---
 
-### 5. i18n
+## 2. Premium repositioning
 
-All visible labels via `t("clubs.*")` keys for all 9 locales (en, fr, es, de, it, pt, nl, ar, ru). Club-specific narrative (release process, restrictions, notes) stays in DB in English for v1 — labelled clearly; localization of body text deferred.
+Rewrite all premium marketing copy in `LanguageContext`/`translations.ts` around fan-experience benefits, not "price alerts":
 
----
+- **Hero**: "Never miss the matches that matter" — dream matches, derbies, finals.
+- **Bullets**: official sales access · trusted ticket pathways · stadium atmosphere insights · football passport (visit collection) · priority alerts for big-match drops · ad-free fan companion.
+- Updates apply to: `PremiumPage`, `PremiumUpsellPage`, `pricing` page hero/features, home `home.premium_cta` / `home.premium_desc`, premium CTA buttons in nav.
 
-### 6. Files to create / edit
-
-**Create**
-- `supabase/migrations/...` — table + RLS + seed (via migration tool, then insert tool for seed rows).
-- `src/hooks/useClubTicketing.ts` — list + by-slug queries.
-- `src/pages/website/ClubsPage.tsx` — index.
-- `src/pages/website/ClubDetailPage.tsx` — detail.
-- `src/components/clubs/DifficultyBadge.tsx`
-- `src/components/clubs/ClubBadges.tsx`
-- `src/components/clubs/ClubUpcomingMatches.tsx`
-
-**Edit**
-- `src/App.tsx` — add routes.
-- `src/components/website/WebsiteLayout.tsx` — add "Clubs" to nav + footer browse list.
-- `src/i18n/LanguageContext.tsx` (and locale files) — add `clubs.*` keys for 9 locales.
+All copy added for 9 locales (en, fr, es, de, it, pt, nl, ar, ru). Keep keys small (`premium.hero.title`, `premium.benefits.officialAccess`, etc.).
 
 ---
 
-### 7. Phase 1 scope guardrails
+## 3. Homepage storytelling
 
-- Only the 13 clubs listed are seeded.
-- Schema is generic so future clubs just need new rows (no code changes).
-- No invented hard rules — uncertain fields use the "May vary by match and competition" placeholder.
-- No affiliate/booking flow yet — CTAs deep-link to official channels only.
+Restructure `HomePage` (mobile app) and `WebsiteHomePage` to feel emotional, football-centric:
+- New hero subline + supporting visuals: iconic stadium atmosphere, dream matches, bucket-list trips.
+- Add "Iconic stadiums" carousel (top 6 stadiums by `atmosphere_score`) → each card links to stadium page.
+- Add "Dream matches this season" rail (existing featured matches but reframed copy: "Derby Day", "Champions League nights", etc., driven by competition tags).
+- Add "Football journeys" mini-section → links to `/clubs` and `/stadiums` index pages with evocative copy.
+- Reduce density of utility CTAs ("Open Match Calendar" button, etc.) — move secondary actions further down.
+
+All new strings in i18n.
+
+---
+
+## 4. Mobile UX polish
+
+Targeted, presentation-only:
+- Standardise card padding (`p-4`), spacing (`space-y-4` between sections, `gap-3` inside).
+- Stronger stadium visuals: use `hero_image_url` / `background_image_url` with gradient overlays on stadium hero and home rail.
+- Consistent CTA hierarchy: one primary button per card, secondary as ghost/outline.
+- Tighten typography scale; reduce repeated badge/icon noise on match cards.
+- Audit `MatchCard`, `StadiumHero`, `ClubsPage` cards, `ClubDetailPage` blocks.
+
+No layout rewrites — just polish passes.
+
+---
+
+## 5. Stadium social proof
+
+New homepage + `/stadiums` index sections (data already in DB):
+- **Top fan comments**: latest 3 high-rated `stadium_reviews` with comment text + stadium name.
+- **Best-rated stadiums**: top 5 by overall computed score.
+- **Most atmospheric**: top 5 by `atmosphere_score`.
+- **Recently visited by the community**: latest 5 `stadium_visits` (anonymised — show stadium + city + date).
+
+New hook: `src/hooks/useStadiumSocialProof.ts` (single React Query batching the 4 queries). New component: `src/components/stadium/StadiumSocialProof.tsx` rendered on `WebsiteHomePage` and `StadiumsPage`.
+
+---
+
+## 6. Architecture & i18n guardrails
+
+- No fake data — every section reads from existing tables (`matches`, `stadiums`, `club_ticketing_profiles`, `stadium_reviews`, `stadium_visits`, `stadium_tips`).
+- All visible strings via `t("…")`, added to all 9 locales in `src/i18n/translations.ts`.
+- Keep components small; co-locate per domain (`components/match`, `components/club`, `components/stadium`).
+- No new tables. No DB migration.
+- Mobile-first: test long translations don't break layouts (truncate, `shrink-0`, gap).
+
+---
+
+## Files to create
+- `src/hooks/useMatchContext.ts`
+- `src/hooks/useStadiumSocialProof.ts`
+- `src/components/match/MatchContextLinks.tsx`
+- `src/components/stadium/StadiumUpcomingMatches.tsx`
+- `src/components/stadium/StadiumRelatedClubs.tsx`
+- `src/components/stadium/TopFanReviews.tsx`
+- `src/components/stadium/StadiumSocialProof.tsx`
+- `src/components/home/IconicStadiumsRail.tsx`
+- `src/components/home/DreamMatchesRail.tsx`
+
+## Files to edit
+- `src/pages/MatchDetailPage.tsx`, `src/pages/website/WebsiteMatchDetailPage.tsx`
+- `src/pages/website/ClubDetailPage.tsx`, `src/pages/website/StadiumDetailPage.tsx`, `src/pages/website/StadiumsPage.tsx`
+- `src/pages/HomePage.tsx`, `src/pages/website/WebsiteHomePage.tsx`
+- `src/pages/PremiumPage.tsx`, `src/pages/PremiumUpsellPage.tsx`, `src/pages/marketing/PricingPage.tsx`
+- `src/i18n/translations.ts` (9 locales)
+- `src/components/MatchCard.tsx`, `src/components/StadiumHero.tsx` (polish only)
+
+## Out of scope (this pass)
+- New DB tables or migrations
+- Affiliate / booking flow
+- Per-club editorial copy beyond what's already seeded
+- New auth or premium billing logic
