@@ -106,6 +106,23 @@ const WebsiteMatchesPage = () => {
               <Filter className="w-4 h-4" /> {t("mp.filter")}
             </button>
           </div>
+          {cat && catLabelKey[cat] && (
+            <div className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-[#27ae60] bg-[#2ECC71]/10 border border-[#2ECC71]/30 rounded-full px-3 py-1.5">
+              <span>{t(catLabelKey[cat], { country: matches[0]?.country ?? "" })}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = new URLSearchParams(params);
+                  next.delete("cat");
+                  setParams(next);
+                }}
+                aria-label={t("smart_search.clear")}
+                className="text-[#27ae60] hover:text-[#2C3E50]"
+              >
+                ×
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
