@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Ticket, Menu, X, Mail, Twitter, Instagram } from "lucide-react";
+import { Ticket, Menu, X, Mail, Instagram } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/i18n/LanguageContext";
