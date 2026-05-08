@@ -70,7 +70,7 @@ ALWAYS use this data. NEVER invent matches, prices, dates, stadiums, URLs, or pr
 3. FUZZY MATCHING — treat as the SAME entity:
    - Accent/spelling variants: Atlético = Atletico, München = Munich, Roma = Rome, Barça = Barcelona
    - Abbreviations: PSG, OM, OL, BVB, Inter, Spurs, Atléti, Real, Barça, Athletic, Man Utd, Man City
-   - League aliases: "Premier League" = "EPL"; "La Liga" = "Primera Division" = "LaLiga"; "UCL" = "Champions League"; "UEL" = "Europa League"; "UECL" = "Conference"
+   - League aliases: "Premier League" = "EPL"; "La Liga" = "LaLiga" (formerly Primera División); "UCL" = "Champions League"; "UEL" = "Europa League"; "UECL" = "Conference"
 
 4. RECOMMENDATION SCORING (rank candidates):
    a) ticketStatus: on_sale > on_sale_soon > not_released (mention sold_out only via resale providers)

@@ -23,7 +23,6 @@ import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { SmartSearch } from "@/components/SmartSearch";
-import { IconicStadiumsRail } from "@/components/home/IconicStadiumsRail";
 import { DreamMatchesRail } from "@/components/home/DreamMatchesRail";
 import { StadiumSocialProof } from "@/components/stadium/StadiumSocialProof";
 // RecommendedSections removed (was: import { RecommendedSections } from "@/components/RecommendedSections";)
@@ -122,9 +121,9 @@ const WebsiteHomePage = () => {
               <span className="text-sm text-white/85">
                 <span className="font-bold">{heroExample.homeTeam} vs {heroExample.awayTeam}</span>
                 {heroExample.startingPrice != null && (
-                  <span className="text-white/60"> — {t("wh.hero.example_from")} <span className="font-bold text-white">€{heroExample.startingPrice}</span></span>
+                  <span className="text-white/60"> · {t("wh.hero.example_from")} <span className="font-bold text-white">€{heroExample.startingPrice}</span></span>
                 )}
-                <span className="text-white/60"> — {t("wh.hero.example_compare", { n: providerCount(heroExample.id) })}</span>
+                <span className="text-white/60"> · {t("wh.hero.example_compare", { n: providerCount(heroExample.id) })}</span>
               </span>
               <ArrowRight className="w-3.5 h-3.5 text-[#2ECC71] ml-auto group-hover:translate-x-0.5 transition" />
             </Link>
@@ -278,13 +277,10 @@ const WebsiteHomePage = () => {
         </div>
       </section>
 
-      {/* Dream matches — emotional, fan-centric storytelling */}
+      {/* Dream matches: emotional, fan-centric storytelling */}
       <DreamMatchesRail />
 
-      {/* Iconic stadiums — bucket-list football grounds */}
-      <IconicStadiumsRail />
-
-      {/* Stadium social proof — top fan reviews, best-rated, recently visited */}
+      {/* Stadium experience: top fan reviews, most atmospheric grounds, recent visits */}
       <StadiumSocialProof variant="light" />
 
       <section className="py-16 md:py-24 bg-[#2C3E50] text-white relative overflow-hidden">
