@@ -27,6 +27,7 @@ export const StadiumExperienceTips = ({ stadiumSlug }: { stadiumSlug: string }) 
   const [category, setCategory] = useState<typeof CATEGORIES[number]>("general");
   const [tip, setTip] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [composing, setComposing] = useState(false);
 
   const { data: tips = [] } = useQuery({
     queryKey: ["experience-tips", stadiumSlug],
