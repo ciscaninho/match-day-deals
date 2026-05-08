@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, Calendar, MapPin, Trophy, Users, Building2, X, Loader2 } from "lucide-react";
 import { useMatches } from "@/hooks/useMatches";
 import { buildSuggestions, type Suggestion } from "@/lib/smartSearch";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Props {
   placeholder?: string;
