@@ -262,12 +262,23 @@ const WebsiteMatchDetailPage = () => {
           stadiumAtmosphere={stadium.atmosphere ?? 4.3}
         />
 
+        <MatchEmotionalContext
+          homeTeam={match.homeTeam}
+          awayTeam={match.awayTeam}
+          competition={match.competition}
+          stadiumName={match.stadium}
+          atmosphereScore={dbStadium?.atmosphere_score ?? null}
+          variant="dark"
+        />
+
         <MatchContextLinks
           homeTeam={match.homeTeam}
           awayTeam={match.awayTeam}
           stadiumName={match.stadium}
           variant="dark"
         />
+
+        <MatchdayExperience stadium={dbStadium ?? null} fallbackBest={stadium.bestSections} variant="dark" />
 
         {/* OFFICIAL SALES */}
         <section className="max-w-5xl mx-auto px-5 pb-10">
