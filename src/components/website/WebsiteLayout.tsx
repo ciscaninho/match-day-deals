@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { Ticket, ArrowRight, Menu, X, Bell, Mail, Twitter, Instagram } from "lucide-react";
+import { Ticket, ArrowRight, Menu, X, Bell, Mail, Instagram } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { HeaderAuthButton } from "@/components/auth/HeaderAuthButton";
