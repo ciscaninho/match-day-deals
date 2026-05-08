@@ -143,7 +143,7 @@ export const SmartSearch = ({ placeholder, variant = "inline", autoFocus, onSubm
         >
           {isLoading && suggestions.length === 0 ? (
             <div className="flex items-center gap-2 p-4 text-sm text-[#2C3E50]/60">
-              <Loader2 className="w-4 h-4 animate-spin" /> Searching…
+              <Loader2 className="w-4 h-4 animate-spin" /> {t("smart_search.searching")}
             </div>
           ) : (
             <ul className="max-h-[60vh] overflow-y-auto py-1">
