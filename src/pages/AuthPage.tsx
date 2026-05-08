@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,12 +11,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const AuthPage = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get("next") || "/app/home";
   const { toast } = useToast();
+  const { t, dir } = useLanguage();
   const { session, loading: sessionLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -53,10 +55,10 @@ const AuthPage = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setSubmitting(false);
     if (error) {
-      toast({ title: "Sign-in failed", description: error.message, variant: "destructive" });
+      toast({ title: t("auth.signin.error_title"), description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Welcome back!" });
+    toast({ title: t("auth.signin.welcome_back") });
     goAfterAuth();
   };
 
@@ -70,15 +72,35 @@ const AuthPage = () => {
     });
     setSubmitting(false);
     if (error) {
-      toast({ title: "Sign-up failed", description: error.message, variant: "destructive" });
+      toast({ title: t("auth.signup.error_title"), description: error.message, variant: "destructive" });
       return;
     }
     if (data.session) {
-      toast({ title: "Account created", description: "Let's personalize your experience." });
+      toast({ title: t("auth.signup.created"), description: t("auth.signup.personalize") });
       goAfterAuth();
     } else {
-      toast({ title: "Account created", description: "You can now sign in." });
+      toast({ title: t("auth.signup.created") });
     }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast({ title: t("auth.forgot.sent_title"), description: t("auth.forgot.enter_email"), variant: "destructive" });
+      return;
+    }
+
+    setSubmitting(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setSubmitting(false);
+
+    if (error) {
+      toast({ title: t("auth.reset.error_title"), description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: t("auth.forgot.sent_title"), description: t("auth.forgot.sent_desc", { email }) });
   };
 
   const handleGoogle = async () => {
@@ -86,7 +108,7 @@ const AuthPage = () => {
       redirect_uri: `${window.location.origin}${next}`,
     });
     if (result.error) {
-      toast({ title: "Google sign-in failed", variant: "destructive" });
+      toast({ title: t("auth.google.failed"), variant: "destructive" });
       return;
     }
     if (result.redirected) return;
@@ -94,13 +116,13 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-6" dir={dir}>
       <div className="w-full max-w-md flex flex-col items-center gap-6">
         <img src={logo} alt="Foot Ticket Finder" className="w-20 h-20 object-contain" />
         <Card className="w-full">
           <CardHeader className="text-center">
-            <CardTitle>Welcome to Foot Ticket Finder</CardTitle>
-            <CardDescription>Sign in to save matches and enable price alerts.</CardDescription>
+            <CardTitle>{t("auth.page.title")}</CardTitle>
+            <CardDescription>{t("auth.page.subtitle")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button
@@ -115,34 +137,34 @@ const AuthPage = () => {
                 <path fill="#FBBC05" d="M5.84 14.12c-.22-.66-.35-1.37-.35-2.12s.13-1.46.35-2.12V7.04H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.96l3.66-2.84z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.04l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/>
               </svg>
-              Continue with Google
+              {t("auth.continue_google")}
             </Button>
 
             <div className="relative my-3">
               <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-              <div className="relative flex justify-center text-xs"><span className="bg-background px-2 text-muted-foreground">or</span></div>
+              <div className="relative flex justify-center text-xs"><span className="bg-background px-2 text-muted-foreground">{t("auth.divider_or")}</span></div>
             </div>
 
             <Tabs defaultValue="signup" className="w-full">
               <TabsList className="grid grid-cols-2 w-full mb-4">
-                <TabsTrigger value="signup">Create account</TabsTrigger>
-                <TabsTrigger value="signin">Sign in</TabsTrigger>
+                <TabsTrigger value="signup">{t("auth.tab.signup")}</TabsTrigger>
+                <TabsTrigger value="signin">{t("auth.tab.signin")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">{t("auth.email")}</Label>
                     <Input id="signup-email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password">{t("auth.password")}</Label>
                     <Input id="signup-password" type="password" autoComplete="new-password" minLength={8} required value={password} onChange={(e) => setPassword(e.target.value)} />
-                    <p className="text-xs text-muted-foreground">8 characters minimum.</p>
+                    <p className="text-xs text-muted-foreground">{t("auth.password_min")}</p>
                   </div>
                   <Button type="submit" disabled={submitting} className="h-11">
                     {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Create my account
+                    {t("auth.signup.cta")}
                   </Button>
                 </form>
               </TabsContent>
@@ -150,16 +172,21 @@ const AuthPage = () => {
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email">{t("auth.email")}</Label>
                     <Input id="signin-email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password">{t("auth.password")}</Label>
                     <Input id="signin-password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                  </div>
+                  <div className="flex justify-end">
+                    <Button type="button" variant="link" className="h-auto px-0 text-xs" onClick={handleForgotPassword}>
+                      {t("auth.forgot.link")}
+                    </Button>
                   </div>
                   <Button type="submit" disabled={submitting} className="h-11">
                     {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Sign in
+                    {t("auth.signin.cta")}
                   </Button>
                 </form>
               </TabsContent>
@@ -167,8 +194,9 @@ const AuthPage = () => {
           </CardContent>
         </Card>
         <p className="text-xs text-muted-foreground text-center">
-          Browsing the website does not require an account — you only need one for alerts and favorites.
+          {t("auth.page.no_account_needed")}
         </p>
+        <Link to="/auth" className="sr-only">{t("auth.reset.back_to_signin")}</Link>
       </div>
     </div>
   );
