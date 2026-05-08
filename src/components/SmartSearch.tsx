@@ -20,8 +20,10 @@ const KIND_ICON: Record<Suggestion["kind"], typeof Search> = {
   stadium: Building2,
 };
 
-export const SmartSearch = ({ placeholder = "Team, city, stadium, league…", variant = "inline", autoFocus, onSubmit }: Props) => {
+export const SmartSearch = ({ placeholder, variant = "inline", autoFocus, onSubmit }: Props) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  const ph = placeholder ?? t("smart_search.placeholder");
   const { data: matches = [], isLoading } = useMatches();
   const [q, setQ] = useState("");
   const [debounced, setDebounced] = useState("");
