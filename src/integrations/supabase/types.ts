@@ -53,6 +53,123 @@ export type Database = {
         }
         Relationships: []
       }
+      club_ticketing_profiles: {
+        Row: {
+          average_difficulty: string
+          ballot_notes: string | null
+          ballot_system: boolean
+          best_matches: string | null
+          city: string | null
+          club_name: string
+          country: string | null
+          created_at: string
+          hero_image_url: string | null
+          hospitality_available: boolean
+          hospitality_url: string | null
+          id: string
+          important_restrictions: string | null
+          last_verified_at: string | null
+          league: string | null
+          local_fan_restrictions: string | null
+          logo_url: string | null
+          membership_name: string | null
+          membership_required: boolean
+          membership_required_for_big_games: boolean
+          notes: string | null
+          official_ticketing_url: string | null
+          official_website: string | null
+          public_sale_possible: boolean
+          queue_system: string | null
+          resale_exchange_available: boolean
+          resale_exchange_name: string | null
+          resale_exchange_url: string | null
+          seo_description: string | null
+          seo_title: string | null
+          short_name: string | null
+          slug: string
+          stadium_name: string | null
+          stadium_slug: string | null
+          ticket_release_process: string | null
+          updated_at: string
+        }
+        Insert: {
+          average_difficulty?: string
+          ballot_notes?: string | null
+          ballot_system?: boolean
+          best_matches?: string | null
+          city?: string | null
+          club_name: string
+          country?: string | null
+          created_at?: string
+          hero_image_url?: string | null
+          hospitality_available?: boolean
+          hospitality_url?: string | null
+          id?: string
+          important_restrictions?: string | null
+          last_verified_at?: string | null
+          league?: string | null
+          local_fan_restrictions?: string | null
+          logo_url?: string | null
+          membership_name?: string | null
+          membership_required?: boolean
+          membership_required_for_big_games?: boolean
+          notes?: string | null
+          official_ticketing_url?: string | null
+          official_website?: string | null
+          public_sale_possible?: boolean
+          queue_system?: string | null
+          resale_exchange_available?: boolean
+          resale_exchange_name?: string | null
+          resale_exchange_url?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          short_name?: string | null
+          slug: string
+          stadium_name?: string | null
+          stadium_slug?: string | null
+          ticket_release_process?: string | null
+          updated_at?: string
+        }
+        Update: {
+          average_difficulty?: string
+          ballot_notes?: string | null
+          ballot_system?: boolean
+          best_matches?: string | null
+          city?: string | null
+          club_name?: string
+          country?: string | null
+          created_at?: string
+          hero_image_url?: string | null
+          hospitality_available?: boolean
+          hospitality_url?: string | null
+          id?: string
+          important_restrictions?: string | null
+          last_verified_at?: string | null
+          league?: string | null
+          local_fan_restrictions?: string | null
+          logo_url?: string | null
+          membership_name?: string | null
+          membership_required?: boolean
+          membership_required_for_big_games?: boolean
+          notes?: string | null
+          official_ticketing_url?: string | null
+          official_website?: string | null
+          public_sale_possible?: boolean
+          queue_system?: string | null
+          resale_exchange_available?: boolean
+          resale_exchange_name?: string | null
+          resale_exchange_url?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          short_name?: string | null
+          slug?: string
+          stadium_name?: string | null
+          stadium_slug?: string | null
+          ticket_release_process?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       matches: {
         Row: {
           away_logo: string | null
