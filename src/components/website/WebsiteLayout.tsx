@@ -27,6 +27,7 @@ export const WebsiteLayout = ({ children }: Props) => {
 
   const navItems = [
     { label: t("website.nav.matches"), to: "/matches" },
+    { label: t("clubs.nav"), to: "/clubs" },
     { label: t("website.nav.leagues"), to: "/leagues" },
     { label: t("website.nav.how"), to: "/how-it-works" },
     { label: t("website.nav.pricing"), to: "/pricing" },
