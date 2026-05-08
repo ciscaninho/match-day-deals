@@ -224,62 +224,19 @@ const WebsiteMatchDetailPage = () => {
 
   return (
     <WebsiteLayout>
-      {/* PREMIUM DARK HEADER */}
-      <section className="relative bg-gradient-to-br from-[#0b1220] via-[#111a2c] to-[#0b1220] text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: "radial-gradient(circle at 20% 20%, rgba(46,204,113,0.25), transparent 40%), radial-gradient(circle at 80% 30%, rgba(99,102,241,0.2), transparent 45%)",
-        }} />
-        <div className="relative max-w-5xl mx-auto px-5 pt-6 pb-10">
-          {/* breadcrumb */}
-          <div className="text-xs text-white/55 mb-5">
-            <Link to="/" className="hover:text-[#2ECC71]">{t("md.breadcrumb_home")}</Link>
-            <span className="mx-1.5">/</span>
-            <Link to="/matches" className="hover:text-[#2ECC71]">{t("md.breadcrumb_matches")}</Link>
-            <span className="mx-1.5">/</span>
-            <Link to={`/leagues/${slugify(match.competition)}`} className="hover:text-[#2ECC71]">{match.competition}</Link>
-          </div>
+      {/* CINEMATIC HERO */}
+      <ImmersiveMatchHero match={match} stadium={dbStadium} backHref="/matches" />
 
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#2ECC71]">
-            <Trophy className="w-3.5 h-3.5" /> {match.competition}
-          </span>
-
-          {/* teams */}
-          <div className="mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6 md:gap-10">
-            <div className="flex flex-col items-center text-center animate-fade-in">
-              <ClubLogo logo={match.homeLogo} name={match.homeTeam} short={match.homeShort} />
-              <div className="mt-3 text-base sm:text-lg md:text-xl font-extrabold leading-tight">{match.homeTeam}</div>
-              <div className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">{t("md.home")}</div>
-            </div>
-            <div className="text-center px-1">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-black text-white/25 leading-none">VS</div>
-              <div className="mt-2 text-xs sm:text-sm text-white/75 font-bold tabular-nums">{fmtTime(match.date)}</div>
-            </div>
-            <div className="flex flex-col items-center text-center animate-fade-in">
-              <ClubLogo logo={match.awayLogo} name={match.awayTeam} short={match.awayShort} />
-              <div className="mt-3 text-base sm:text-lg md:text-xl font-extrabold leading-tight">{match.awayTeam}</div>
-              <div className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">{t("md.away")}</div>
-            </div>
-          </div>
-
-          {/* meta */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs sm:text-sm text-white/75">
-            <span className="inline-flex items-center gap-1.5"><Calendar className="w-4 h-4 shrink-0" />{fmtDate(match.date)}</span>
-            {(match.stadium || match.city) && (
-              <span className="inline-flex items-center gap-1.5 min-w-0"><MapPin className="w-4 h-4 shrink-0" /><span className="truncate">{[match.stadium, match.city, match.country].filter(Boolean).join(", ")}</span></span>
-            )}
-          </div>
-
-          {/* demand chips */}
-          <div className="mt-5 flex flex-wrap gap-2 justify-center">
+      {/* Sticky-feel CTA bar — directly under the hero, mobile-first */}
+      <section className="bg-[#06080f] text-white">
+        <div className="max-w-5xl mx-auto px-5 pt-4 pb-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             {sellingFast && <Chip icon={Flame} label={t("md.selling_fast")} tone="hot" />}
             {onSale && <Chip icon={Activity} label={t("md.high_demand")} tone="hot" />}
-            {derby && <Chip icon={Crown} label={t("md.derby")} tone="derby" />}
             {officialAvail && <Chip icon={ShieldCheck} label={t("md.official_tickets")} tone="official" />}
             {!onSale && <Chip icon={Clock} label={t("md.not_on_sale")} tone="neutral" />}
           </div>
-
-          {/* CTAs — full-width on mobile, side-by-side on larger screens */}
-          <div className="mt-6 grid grid-cols-1 sm:flex sm:flex-wrap gap-2.5 sm:gap-3 sm:justify-center">
+          <div className="mt-3 grid grid-cols-1 sm:flex sm:flex-wrap gap-2.5 sm:gap-3 sm:justify-center">
             <button onClick={handleTrack} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-3 sm:py-2.5 font-bold text-sm transition shadow-lg shadow-[#2ECC71]/20">
               <TrendingDown className="w-4 h-4" /> {t("md.track_price")}
             </button>
