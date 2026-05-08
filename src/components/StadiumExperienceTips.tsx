@@ -27,6 +27,7 @@ export const StadiumExperienceTips = ({ stadiumSlug }: { stadiumSlug: string }) 
   const [category, setCategory] = useState<typeof CATEGORIES[number]>("general");
   const [tip, setTip] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [composing, setComposing] = useState(false);
 
   const { data: tips = [] } = useQuery({
     queryKey: ["experience-tips", stadiumSlug],
@@ -58,8 +59,27 @@ export const StadiumExperienceTips = ({ stadiumSlug }: { stadiumSlug: string }) 
     if (error) return toast.error(error.message);
     toast.success(t("experience.posted"));
     setTip("");
+    setComposing(false);
     qc.invalidateQueries({ queryKey: ["experience-tips", stadiumSlug] });
   };
+
+  // Hide the section entirely when there are no tips AND the user hasn't started composing.
+  // Surface a tiny CTA so engaged users can still contribute, without showing an empty placeholder.
+  if (tips.length === 0 && !composing) {
+    return (
+      <section className="max-w-5xl mx-auto px-5 py-6">
+        <button
+          onClick={() => {
+            if (!user) return openAuth({ reason: t("experience.signin_to_share") });
+            setComposing(true);
+          }}
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white/80 hover:text-white px-4 py-2.5 text-sm font-semibold transition"
+        >
+          <Lightbulb className="w-4 h-4 text-[#2ECC71]" /> {t("experience.add_tip")}
+        </button>
+      </section>
+    );
+  }
 
   return (
     <section className="max-w-5xl mx-auto px-5 py-8">
@@ -99,9 +119,7 @@ export const StadiumExperienceTips = ({ stadiumSlug }: { stadiumSlug: string }) 
         </div>
       </div>
 
-      {tips.length === 0 ? (
-        <p className="text-sm text-white/55 text-center py-6">{t("experience.empty")}</p>
-      ) : (
+      {tips.length === 0 ? null : (
         <div className="space-y-2">
           {tips.map((tp) => (
             <div key={tp.id} className="rounded-xl bg-white/[0.04] border border-white/10 p-3">

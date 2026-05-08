@@ -34,13 +34,13 @@ export const WebsiteLayout = ({ children }: Props) => {
 
   return (
     <div className="min-h-screen bg-white text-[#2C3E50] font-sans antialiased flex flex-col">
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5" aria-label="Foot Ticket Finder home">
-            <div className="w-9 h-9 rounded-xl bg-[#2ECC71] flex items-center justify-center shadow-md shadow-[#2ECC71]/30">
-              <Ticket className="w-5 h-5 text-white" />
+      <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-slate-100/80">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 md:h-20 flex items-center justify-between gap-3">
+          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0" aria-label="Foot Ticket Finder home">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#2ECC71] flex items-center justify-center shadow-md shadow-[#2ECC71]/30 shrink-0">
+              <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <span className="font-extrabold tracking-tight">Foot Ticket Finder</span>
+            <span className="font-extrabold tracking-tight text-sm sm:text-base truncate">Foot Ticket Finder</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-10 text-[15px] font-medium text-[#2C3E50]/70">
@@ -57,12 +57,12 @@ export const WebsiteLayout = ({ children }: Props) => {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <LanguageSwitcher />
             <HeaderAuthButton />
             <Link
               to="/app"
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-[#2C3E50]/70 hover:text-[#2ECC71] transition-colors"
+              className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-[#2C3E50]/70 hover:text-[#2ECC71] transition-colors"
               aria-label={t("app.coming_soon")}
             >
               <Bell className="w-3.5 h-3.5" /> {t("website.nav.early_access") || "Early access"}
@@ -70,7 +70,7 @@ export const WebsiteLayout = ({ children }: Props) => {
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
-              className="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200"
+              className="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
               aria-label="Toggle menu"
             >
               {open ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
