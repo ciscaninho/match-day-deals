@@ -67,6 +67,11 @@ export const StadiumSocialProof = ({ variant = "light" }: { variant?: Variant })
                     <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
                       <div className="text-xs font-extrabold leading-tight line-clamp-2">{s.stadium_name}</div>
                       <div className="text-[10px] opacity-80 truncate">{s.city}</div>
+                      {s.atmosphere_score != null && Number(s.atmosphere_score) >= 8.5 && (
+                        <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-red-500/20 border border-red-400/30 px-1.5 py-0.5 text-[9px] font-bold text-red-200">
+                          🔥 {t("vibe.intense")}
+                        </span>
+                      )}
                     </div>
                   </Link>
                 );

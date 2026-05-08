@@ -12,6 +12,8 @@ import { StadiumExperienceTips } from "@/components/StadiumExperienceTips";
 import { StadiumUpcomingMatches } from "@/components/stadium/StadiumUpcomingMatches";
 import { StadiumRelatedClubs } from "@/components/stadium/StadiumRelatedClubs";
 import { TopFanReviews } from "@/components/stadium/TopFanReviews";
+import { MatchdayVibes } from "@/components/match/MatchdayVibes";
+import { vibesForStadium } from "@/lib/matchdayVibes";
 import { useSEO } from "@/lib/seo";
 import type { Stadium } from "@/hooks/useStadium";
 
@@ -91,7 +93,8 @@ const StadiumDetailPage = () => {
       <StadiumHero stadium={stadium} />
 
       <div className="bg-[#0b1220] text-white">
-        <section className="max-w-5xl mx-auto px-5 pt-6 pb-2 flex justify-end">
+        <section className="max-w-5xl mx-auto px-5 pt-6 pb-2 flex items-center justify-between gap-3 flex-wrap">
+          <MatchdayVibes vibes={vibesForStadium(stadium)} variant="dark" size="sm" showLabel />
           <StadiumPassportButton
             stadiumSlug={stadium.slug}
             stadiumName={stadium.stadium_name}
