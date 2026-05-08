@@ -25,7 +25,7 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
   ];
 
   const socialLinks = [
-    { label: "X (Twitter)", href: "https://x.com/footticket", icon: Twitter },
+    { label: "X (Twitter)", href: "https://x.com/Footticketfind", icon: Twitter },
     { label: "Instagram", href: "https://www.instagram.com/footticketfinder/", icon: Instagram },
     { label: "TikTok", href: "https://www.tiktok.com/@footticketfinder", icon: TikTokIcon },
   ];
