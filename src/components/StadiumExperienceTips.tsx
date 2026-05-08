@@ -119,9 +119,7 @@ export const StadiumExperienceTips = ({ stadiumSlug }: { stadiumSlug: string }) 
         </div>
       </div>
 
-      {tips.length === 0 ? (
-        <p className="text-sm text-white/55 text-center py-6">{t("experience.empty")}</p>
-      ) : (
+      {tips.length === 0 ? null : (
         <div className="space-y-2">
           {tips.map((tp) => (
             <div key={tp.id} className="rounded-xl bg-white/[0.04] border border-white/10 p-3">
