@@ -28,6 +28,7 @@ import PollsPage from "./pages/PollsPage";
 import QuizPage from "./pages/QuizPage";
 import AdminPage from "./pages/AdminPage";
 import AuthPage from "./pages/AuthPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import AlertsPage from "./pages/AlertsPage";
 import PremiumUpsellPage from "./pages/PremiumUpsellPage";
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="/how-it-works" element={<AboutPage />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/onboarding" element={<RequireAuth><OnboardingPage /></RequireAuth>} />
 
               {/* ========== FULL APPLICATION (logged-in companion) ========== */}

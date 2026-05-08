@@ -26,6 +26,26 @@ export const AuthModal = ({ open, onOpenChange, reason, onAuthenticated }: Props
   const [submitting, setSubmitting] = useState(false);
   const [magicSent, setMagicSent] = useState(false);
 
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast.error(t("auth.forgot.enter_email"));
+      return;
+    }
+
+    setSubmitting(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setSubmitting(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success(t("auth.forgot.sent_desc", { email }));
+  };
+
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -168,6 +188,9 @@ export const AuthModal = ({ open, onOpenChange, reason, onAuthenticated }: Props
                   <Label htmlFor="si-password">{t("auth.password")}</Label>
                   <Input id="si-password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
+                <button type="button" onClick={handleForgotPassword} className="w-fit text-[11px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">
+                  {t("auth.forgot.link")}
+                </button>
                 <Button type="submit" disabled={submitting} className="h-11 font-semibold">
                   {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} {t("auth.signin.cta")}
                 </Button>
