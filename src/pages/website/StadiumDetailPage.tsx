@@ -166,7 +166,7 @@ const StadiumDetailPage = () => {
           {upcoming.length > 0 && (
             <div className="mt-6">
               <div className="text-xs uppercase tracking-wider text-white/55 font-bold mb-3 flex items-center gap-1.5">
-                <Ticket className="w-3.5 h-3.5" /> Upcoming matches
+                <Ticket className="w-3.5 h-3.5" /> {t("stadium.upcoming_matches") || "Upcoming matches"}
               </div>
               <div className="grid md:grid-cols-2 gap-3">
                 {upcoming.map((m) => (
