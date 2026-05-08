@@ -240,28 +240,28 @@ const WebsiteMatchDetailPage = () => {
           </span>
 
           {/* teams */}
-          <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4 md:gap-8">
+          <div className="mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6 md:gap-10">
             <div className="flex flex-col items-center text-center animate-fade-in">
               <ClubLogo logo={match.homeLogo} name={match.homeTeam} short={match.homeShort} />
-              <div className="mt-3 text-sm md:text-base font-extrabold">{match.homeTeam}</div>
-              <div className="text-[10px] text-white/50 uppercase tracking-wider">{t("md.home")}</div>
+              <div className="mt-3 text-base sm:text-lg md:text-xl font-extrabold leading-tight">{match.homeTeam}</div>
+              <div className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">{t("md.home")}</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-4xl font-black text-white/30">VS</div>
-              <div className="mt-2 text-[11px] text-white/60 font-semibold">{fmtTime(match.date)}</div>
+            <div className="text-center px-1">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-black text-white/25 leading-none">VS</div>
+              <div className="mt-2 text-xs sm:text-sm text-white/75 font-bold tabular-nums">{fmtTime(match.date)}</div>
             </div>
             <div className="flex flex-col items-center text-center animate-fade-in">
               <ClubLogo logo={match.awayLogo} name={match.awayTeam} short={match.awayShort} />
-              <div className="mt-3 text-sm md:text-base font-extrabold">{match.awayTeam}</div>
-              <div className="text-[10px] text-white/50 uppercase tracking-wider">{t("md.away")}</div>
+              <div className="mt-3 text-base sm:text-lg md:text-xl font-extrabold leading-tight">{match.awayTeam}</div>
+              <div className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">{t("md.away")}</div>
             </div>
           </div>
 
           {/* meta */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-white/75">
-            <span className="inline-flex items-center gap-1.5"><Calendar className="w-4 h-4" />{fmtDate(match.date)}</span>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs sm:text-sm text-white/75">
+            <span className="inline-flex items-center gap-1.5"><Calendar className="w-4 h-4 shrink-0" />{fmtDate(match.date)}</span>
             {(match.stadium || match.city) && (
-              <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4" />{[match.stadium, match.city, match.country].filter(Boolean).join(", ")}</span>
+              <span className="inline-flex items-center gap-1.5 min-w-0"><MapPin className="w-4 h-4 shrink-0" /><span className="truncate">{[match.stadium, match.city, match.country].filter(Boolean).join(", ")}</span></span>
             )}
           </div>
 
@@ -274,12 +274,12 @@ const WebsiteMatchDetailPage = () => {
             {!onSale && <Chip icon={Clock} label={t("md.not_on_sale")} tone="neutral" />}
           </div>
 
-          {/* CTAs */}
-          <div className="mt-6 flex flex-wrap gap-3 justify-center">
-            <button onClick={handleTrack} className="inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-2.5 font-bold text-sm transition shadow-lg shadow-[#2ECC71]/20">
+          {/* CTAs — full-width on mobile, side-by-side on larger screens */}
+          <div className="mt-6 grid grid-cols-1 sm:flex sm:flex-wrap gap-2.5 sm:gap-3 sm:justify-center">
+            <button onClick={handleTrack} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-3 sm:py-2.5 font-bold text-sm transition shadow-lg shadow-[#2ECC71]/20">
               <TrendingDown className="w-4 h-4" /> {t("md.track_price")}
             </button>
-            <button onClick={handleSave} className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white px-5 py-2.5 font-bold text-sm transition">
+            <button onClick={handleSave} className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white px-5 py-3 sm:py-2.5 font-bold text-sm transition">
               <Heart className="w-4 h-4" /> {t("md.save_match")}
             </button>
           </div>
