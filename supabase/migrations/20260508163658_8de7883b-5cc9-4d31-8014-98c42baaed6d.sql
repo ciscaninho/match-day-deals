@@ -1,0 +1,1 @@
+UPDATE public.matches SET competition = 'La Liga' WHERE competition IN ('Primera Division', 'Primera División');

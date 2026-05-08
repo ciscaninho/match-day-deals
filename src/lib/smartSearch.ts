@@ -102,8 +102,26 @@ export const COMPETITION_ALIASES: Record<string, string[]> = {
   uecl: ["conference league", "uefa conference league"],
   epl: ["premier league", "english premier league"],
   pl: ["premier league"],
-  laliga: ["la liga", "primera division", "la liga ea sports"],
+  laliga: ["la liga", "la liga ea sports"],
   "la liga": ["la liga"],
+  "primera": ["la liga"],
+  "primera division": ["la liga"],
+  // Finals & knockout rounds (multilingual)
+  final: ["final", "finale", "finals", "champions league final", "europa league final", "cup final"],
+  finale: ["final", "finale", "champions league final", "europa league final"],
+  finals: ["final", "finale"],
+  finalissima: ["finalissima", "final"],
+  "ucl final": ["champions league final", "uefa champions league final"],
+  "uel final": ["europa league final", "uefa europa league final"],
+  "cup final": ["cup final", "final"],
+  semifinal: ["semi-final", "semifinal", "semi final", "semifinale", "demi-finale"],
+  semifinale: ["semi-final", "semifinal", "semifinale"],
+  "demi finale": ["semi-final", "semifinal"],
+  quarterfinal: ["quarter-final", "quarterfinal", "quart de finale"],
+  "quart de finale": ["quarter-final", "quarterfinal"],
+  derby: ["derby", "derbi", "clasico", "clásico", "el clasico"],
+  clasico: ["el clasico", "clásico", "real madrid barcelona"],
+  "el clasico": ["el clasico", "real madrid", "barcelona"],
   seriea: ["serie a"],
   "serie a": ["serie a"],
   bundesliga: ["bundesliga"],
@@ -123,18 +141,41 @@ const normalize = (s: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const expandQuery = (raw: string): string[] => {
-  const q = normalize(raw);
-  if (!q) return [];
-  const out = new Set<string>([q]);
-  const all = { ...TEAM_ALIASES, ...CITY_ALIASES, ...COUNTRY_ALIASES, ...COMPETITION_ALIASES };
-  for (const [k, vs] of Object.entries(all)) {
+const ALL_ALIASES = (): Record<string, string[]> => ({
+  ...TEAM_ALIASES,
+  ...CITY_ALIASES,
+  ...COUNTRY_ALIASES,
+  ...COMPETITION_ALIASES,
+});
+
+const expandToken = (token: string): string[] => {
+  const t = normalize(token);
+  if (!t) return [];
+  const out = new Set<string>([t]);
+  for (const [k, vs] of Object.entries(ALL_ALIASES())) {
     const nk = normalize(k);
-    if (nk === q || nk.startsWith(q) || q.startsWith(nk)) {
+    if (nk === t || nk.startsWith(t) || t.startsWith(nk)) {
       vs.forEach((v) => out.add(normalize(v)));
     }
   }
   return [...out];
+};
+
+// Returns the raw normalized query plus a list of token-level alias buckets.
+// Multi-word queries are matched with AND-semantics across fields.
+const expandQuery = (raw: string): string[] => {
+  const q = normalize(raw);
+  if (!q) return [];
+  return expandToken(q);
+};
+
+const queryTokens = (raw: string): string[][] => {
+  const q = normalize(raw);
+  if (!q) return [];
+  const tokens = q.split(" ").filter((t) => t.length >= 2);
+  if (tokens.length <= 1) return [expandToken(q)];
+  // Also include the full-string expansion as one bucket
+  return [expandToken(q), ...tokens.map(expandToken)];
 };
 
 // Damerau-Levenshtein-lite (for typo tolerance) — small, capped
@@ -173,14 +214,30 @@ const tokenScore = (haystack: string, needle: string): number => {
 };
 
 const matchScore = (m: Match, queries: string[]): number => {
-  let best = 0;
   const fields = [m.homeTeam, m.awayTeam, m.competition, m.city, m.stadium, m.country];
+  // Combined haystack lets us also catch queries spanning multiple fields ("psg final")
+  const combined = fields.filter(Boolean).join(" ");
+  let best = 0;
   for (const q of queries) {
-    let s = 0;
+    let s = tokenScore(combined, q);
     for (const f of fields) s = Math.max(s, tokenScore(f ?? "", q));
     best = Math.max(best, s);
   }
   return best;
+};
+
+// Multi-token AND scoring: every token bucket must match somewhere.
+const multiTokenScore = (m: Match, raw: string): number => {
+  const buckets = queryTokens(raw);
+  if (buckets.length === 0) return 0;
+  if (buckets.length === 1) return matchScore(m, buckets[0]);
+  let total = 0;
+  for (const bucket of buckets) {
+    const s = matchScore(m, bucket);
+    if (s < 25) return 0; // require every word to match
+    total += s;
+  }
+  return Math.round(total / buckets.length);
 };
 
 // ---------------- Suggestion items ----------------
@@ -209,7 +266,7 @@ export const buildSuggestions = (matches: Match[], rawQuery: string, limit = 10)
 
   for (const m of matches) {
     const upcoming = new Date(m.date).getTime() >= now - 24 * 3600 * 1000;
-    const sc = matchScore(m, queries);
+    const sc = Math.max(matchScore(m, queries), multiTokenScore(m, rawQuery));
     if (sc >= 30 && upcoming) {
       // Boost: ticket on sale, has price, sooner
       const daysAway = Math.max(1, (new Date(m.date).getTime() - now) / 86400000);
@@ -310,7 +367,7 @@ export const filterMatchesByQuery = (matches: Match[], rawQuery: string): Match[
   const queries = expandQuery(rawQuery);
   if (queries.length === 0) return matches;
   return matches
-    .map((m) => ({ m, s: matchScore(m, queries) }))
+    .map((m) => ({ m, s: Math.max(matchScore(m, queries), multiTokenScore(m, rawQuery)) }))
     .filter((x) => x.s >= 30)
     .sort((a, b) => b.s - a.s)
     .map((x) => x.m);
