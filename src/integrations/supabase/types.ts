@@ -350,6 +350,57 @@ export type Database = {
         }
         Relationships: []
       }
+      stadium_image_staging: {
+        Row: {
+          background_image_url: string | null
+          city: string | null
+          club: string | null
+          country: string | null
+          created_at: string
+          hero_image_url: string | null
+          id: string
+          league: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          slug: string | null
+          stadium_name: string
+          status: string
+          thumbnail_image_url: string | null
+        }
+        Insert: {
+          background_image_url?: string | null
+          city?: string | null
+          club?: string | null
+          country?: string | null
+          created_at?: string
+          hero_image_url?: string | null
+          id?: string
+          league?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          slug?: string | null
+          stadium_name: string
+          status?: string
+          thumbnail_image_url?: string | null
+        }
+        Update: {
+          background_image_url?: string | null
+          city?: string | null
+          club?: string | null
+          country?: string | null
+          created_at?: string
+          hero_image_url?: string | null
+          id?: string
+          league?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          slug?: string | null
+          stadium_name?: string
+          status?: string
+          thumbnail_image_url?: string | null
+        }
+        Relationships: []
+      }
       stadium_reviews: {
         Row: {
           accessibility: number
