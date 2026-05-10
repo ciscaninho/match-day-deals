@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { Ticket, ArrowRight, Menu, X, Bell, Mail, Instagram } from "lucide-react";
+import { Ticket, ArrowRight, Menu, X, Mail, Instagram } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { HeaderAuthButton } from "@/components/auth/HeaderAuthButton";
@@ -66,13 +66,6 @@ export const WebsiteLayout = ({ children }: Props) => {
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <LanguageSwitcher />
             <HeaderAuthButton />
-            <Link
-              to="/app"
-              className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-[#2C3E50]/70 hover:text-[#2ECC71] transition-colors"
-              aria-label={t("app.coming_soon")}
-            >
-              <Bell className="w-3.5 h-3.5" /> {t("website.nav.early_access") || "Early access"}
-            </Link>
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
@@ -97,13 +90,6 @@ export const WebsiteLayout = ({ children }: Props) => {
                   {n.label}
                 </Link>
               ))}
-              <Link
-                to="/app"
-                onClick={() => setOpen(false)}
-                className="mt-2 inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#2C3E50]/80 py-2.5"
-              >
-                <Bell className="w-3.5 h-3.5" /> {t("website.nav.early_access") || "Early access"}
-              </Link>
             </div>
           </div>
         )}
@@ -168,7 +154,6 @@ export const WebsiteLayout = ({ children }: Props) => {
               <li><Link to="/how-it-works" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.how")}</Link></li>
               <li><Link to="/pricing" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.pricing")}</Link></li>
               <li><Link to="/faq" className="hover:text-[#2ECC71] transition-colors">{t("website.nav.faq")}</Link></li>
-              <li><Link to="/app" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.the_app")}</Link></li>
             </ul>
           </div>
 

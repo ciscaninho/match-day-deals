@@ -5,7 +5,6 @@ import { useUser } from "@/contexts/UserContext";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { toast } from "sonner";
 import { useSEO } from "@/lib/seo";
-import { getPendingTrack } from "@/components/track/TrackPriceSheet";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 const TEAMS: { id: string; name: string; emoji: string; league: string }[] = [
@@ -92,8 +91,7 @@ const OnboardingPage = () => {
         onboarding_skipped_at: skipped ? new Date().toISOString() : null,
       });
       toast.success(skipped ? t("onb.toast.skip") : t("onb.toast.success"));
-      const pending = getPendingTrack();
-      navigate(pending ? "/app/upsell" : "/app/home", { replace: true });
+      navigate("/", { replace: true });
     } catch (e: any) {
       toast.error(e.message || t("onb.toast.error"));
     } finally {

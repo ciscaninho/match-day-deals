@@ -16,7 +16,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 const AuthPage = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const next = params.get("next") || "/app/home";
+  const next = params.get("next") || "/";
   const { toast } = useToast();
   const { t, dir } = useLanguage();
   const { session, loading: sessionLoading } = useAuth();
