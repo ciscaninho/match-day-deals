@@ -14,6 +14,7 @@ const ClubsPage = () => {
     title: `${t("clubs.index.title")} | Foot Ticket Finder`,
     description: t("clubs.index.subtitle"),
     canonical: typeof window !== "undefined" ? `${window.location.origin}/clubs` : undefined,
+    noindex: true,
   });
 
   return (
