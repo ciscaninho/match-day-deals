@@ -17,6 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMatches } from "@/hooks/useMatches";
 import { StadiumSuggestionsAdminCard } from "@/components/StadiumSuggestionsAdminCard";
 import { StadiumStagingAdminCard } from "@/components/admin/StadiumStagingAdminCard";
+import { StadiumsMasterStagingAdminCard } from "@/components/admin/StadiumsMasterStagingAdminCard";
 
 const AdminPage = () => {
   const { data: matches = [] } = useMatches();
@@ -147,6 +148,7 @@ const AdminPage = () => {
 
         <AssistantSettingsCard />
         <StadiumSuggestionsAdminCard />
+        <StadiumsMasterStagingAdminCard />
         <StadiumStagingAdminCard />
         <EscalationInbox />
       </div>
