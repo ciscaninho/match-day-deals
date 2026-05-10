@@ -70,6 +70,7 @@ const StadiumsPage = () => {
   useSEO({
     title: "Stadium Directory — Football Stadium Intelligence | Foot Ticket Finder",
     description: "Explore, search and verify football stadiums: capacity, atmosphere, accessibility, coordinates and data quality.",
+    noindex: true,
   });
 
   // Use league_slug to avoid collisions between same-named leagues from different countries
