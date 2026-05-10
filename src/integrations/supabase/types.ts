@@ -725,6 +725,117 @@ export type Database = {
         }
         Relationships: []
       }
+      stadiums_master_staging: {
+        Row: {
+          aliases: string[]
+          background_image_url: string | null
+          canonical_name: string
+          capacity: number | null
+          city: string | null
+          club_names: string[]
+          confidence: string
+          conflict_flags: string[]
+          country: string | null
+          created_at: string
+          dedupe_cluster_id: string | null
+          description: string | null
+          duplicate_of: string | null
+          has_missing_metadata: boolean
+          hero_image_url: string | null
+          id: string
+          image_score: number
+          latitude: number | null
+          league: string | null
+          longitude: number | null
+          normalized_city: string | null
+          normalized_country: string | null
+          normalized_name: string
+          normalized_slug: string
+          official_website: string | null
+          production_stadium_id: string | null
+          review_notes: string | null
+          slug: string
+          source_ids: Json
+          sources: string[]
+          status: string
+          thumbnail_image_url: string | null
+          updated_at: string
+          year_opened: number | null
+        }
+        Insert: {
+          aliases?: string[]
+          background_image_url?: string | null
+          canonical_name: string
+          capacity?: number | null
+          city?: string | null
+          club_names?: string[]
+          confidence?: string
+          conflict_flags?: string[]
+          country?: string | null
+          created_at?: string
+          dedupe_cluster_id?: string | null
+          description?: string | null
+          duplicate_of?: string | null
+          has_missing_metadata?: boolean
+          hero_image_url?: string | null
+          id?: string
+          image_score?: number
+          latitude?: number | null
+          league?: string | null
+          longitude?: number | null
+          normalized_city?: string | null
+          normalized_country?: string | null
+          normalized_name: string
+          normalized_slug: string
+          official_website?: string | null
+          production_stadium_id?: string | null
+          review_notes?: string | null
+          slug: string
+          source_ids?: Json
+          sources?: string[]
+          status?: string
+          thumbnail_image_url?: string | null
+          updated_at?: string
+          year_opened?: number | null
+        }
+        Update: {
+          aliases?: string[]
+          background_image_url?: string | null
+          canonical_name?: string
+          capacity?: number | null
+          city?: string | null
+          club_names?: string[]
+          confidence?: string
+          conflict_flags?: string[]
+          country?: string | null
+          created_at?: string
+          dedupe_cluster_id?: string | null
+          description?: string | null
+          duplicate_of?: string | null
+          has_missing_metadata?: boolean
+          hero_image_url?: string | null
+          id?: string
+          image_score?: number
+          latitude?: number | null
+          league?: string | null
+          longitude?: number | null
+          normalized_city?: string | null
+          normalized_country?: string | null
+          normalized_name?: string
+          normalized_slug?: string
+          official_website?: string | null
+          production_stadium_id?: string | null
+          review_notes?: string | null
+          slug?: string
+          source_ids?: Json
+          sources?: string[]
+          status?: string
+          thumbnail_image_url?: string | null
+          updated_at?: string
+          year_opened?: number | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
