@@ -145,7 +145,6 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
               <li><Link to="/how-it-works" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.how")}</Link></li>
               <li><Link to="/pricing" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.pricing")}</Link></li>
               <li><Link to="/faq" className="hover:text-[#2ECC71] transition-colors">{t("website.nav.faq")}</Link></li>
-              <li><Link to="/app" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.the_app")}</Link></li>
             </ul>
           </div>
 
