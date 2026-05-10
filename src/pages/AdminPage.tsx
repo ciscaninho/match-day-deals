@@ -148,6 +148,7 @@ const AdminPage = () => {
 
         <AssistantSettingsCard />
         <StadiumSuggestionsAdminCard />
+        <StadiumsMasterStagingAdminCard />
         <StadiumStagingAdminCard />
         <EscalationInbox />
       </div>
