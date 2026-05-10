@@ -10,7 +10,7 @@ export const HeaderAuthButton = () => {
   if (user) {
     return (
       <Link
-        to="/app/profile"
+        to="/"
         className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-slate-200 text-[#2C3E50] text-xs font-bold px-3.5 py-2 hover:bg-slate-50 transition-colors"
       >
         <UserIcon className="w-3.5 h-3.5" />
