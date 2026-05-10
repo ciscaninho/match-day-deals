@@ -3,6 +3,7 @@ import { Flame, MapPin, Quote, Star, TrendingUp, Users } from "lucide-react";
 import { useStadiumSocialProof } from "@/hooks/useStadiumSocialProof";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { stadiumImageFor } from "@/lib/stadiumImages";
+import { BrandedStadiumImage } from "@/components/stadium/BrandedStadiumImage";
 
 type Variant = "light" | "dark";
 
@@ -50,16 +51,13 @@ export const StadiumSocialProof = ({ variant = "light" }: { variant?: Variant })
                     to={`/stadiums/${s.slug}`}
                     className="group relative rounded-2xl overflow-hidden border border-white/10 bg-slate-900 aspect-[4/5] hover:-translate-y-0.5 transition-transform"
                   >
-                    <img
+                    <BrandedStadiumImage
                       src={bg}
                       alt={s.stadium_name}
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = stadiumImageFor(`fb-${s.slug}`);
-                      }}
+                      seed={s.slug}
+                      imgClassName="transition-transform duration-500 group-hover:scale-110"
+                      overlay={<div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
                     <div className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/65 px-2 py-0.5 text-[10px] font-bold text-white">
                       <Flame className="w-3 h-3 text-red-300" />
                       {s.atmosphere_score != null ? Number(s.atmosphere_score).toFixed(1) : "—"}
