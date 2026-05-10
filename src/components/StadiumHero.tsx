@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import type { Stadium } from "@/hooks/useStadium";
 import { cn } from "@/lib/utils";
+import { isCuratedStadiumImage } from "@/lib/stadiumImages";
 
 type Props = {
   stadium: Stadium;
@@ -40,6 +41,19 @@ export const StadiumHero = ({ stadium, showBreadcrumb = true, className }: Props
       {/* Dark premium overlay + glass gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0b1220]/40 via-[#0b1220]/75 to-[#0b1220]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(46,204,113,0.18),transparent_60%)]" />
+
+      {/* Branded watermark — only on curated dataset visuals */}
+      {heroImg && isCuratedStadiumImage(heroImg) && (
+        <div
+          className="pointer-events-none absolute bottom-3 right-3 z-10 flex items-center gap-1.5 rounded-full bg-black/45 backdrop-blur-sm px-2 py-1 shadow-sm"
+          aria-hidden="true"
+        >
+          <img src="/logo.png" alt="" className="w-4 h-4 opacity-90" loading="lazy" />
+          <span className="text-[9px] font-bold tracking-wide text-white/85 uppercase leading-none">
+            Foot Ticket Finder
+          </span>
+        </div>
+      )}
 
       <div className="relative max-w-5xl mx-auto px-5 pt-6 pb-8 md:pt-10 md:pb-14">
         {showBreadcrumb && (
