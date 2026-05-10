@@ -90,13 +90,6 @@ export const WebsiteLayout = ({ children }: Props) => {
                   {n.label}
                 </Link>
               ))}
-              <Link
-                to="/app"
-                onClick={() => setOpen(false)}
-                className="mt-2 inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#2C3E50]/80 py-2.5"
-              >
-                <Bell className="w-3.5 h-3.5" /> {t("website.nav.early_access") || "Early access"}
-              </Link>
             </div>
           </div>
         )}
