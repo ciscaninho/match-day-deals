@@ -147,6 +147,7 @@ const AdminPage = () => {
 
         <AssistantSettingsCard />
         <StadiumSuggestionsAdminCard />
+        <StadiumStagingAdminCard />
         <EscalationInbox />
       </div>
       <BottomNav />
