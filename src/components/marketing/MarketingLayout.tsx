@@ -81,13 +81,6 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
                   {n.label}
                 </Link>
               ))}
-              <Link
-                to="/app"
-                onClick={() => setOpen(false)}
-                className="mt-2 inline-flex items-center justify-center text-xs font-semibold text-[#2C3E50]/80 py-2.5"
-              >
-                {t("website.nav.early_access") || "Early access"}
-              </Link>
             </div>
           </div>
         )}
