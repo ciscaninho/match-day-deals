@@ -64,6 +64,11 @@ export const StadiumSocialProof = ({ variant = "light" }: { variant?: Variant })
                       <Flame className="w-3 h-3 text-red-300" />
                       {s.atmosphere_score != null ? Number(s.atmosphere_score).toFixed(1) : "—"}
                     </div>
+                    {s.upcoming_count > 0 && (
+                      <div className="absolute top-2 left-2 inline-flex items-center rounded-full bg-[#2ECC71]/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                        {t("social.upcoming_count", { count: s.upcoming_count })}
+                      </div>
+                    )}
                     <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
                       <div className="text-xs font-extrabold leading-tight line-clamp-2">{s.stadium_name}</div>
                       <div className="text-[10px] opacity-80 truncate">{s.city}</div>

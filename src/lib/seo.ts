@@ -5,6 +5,7 @@ interface SEOOptions {
   description: string;
   canonical?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  noindex?: boolean;
 }
 
 const upsertMeta = (selector: string, attr: "name" | "property", key: string, content: string) => {
@@ -17,7 +18,7 @@ const upsertMeta = (selector: string, attr: "name" | "property", key: string, co
   el.setAttribute("content", content);
 };
 
-export const useSEO = ({ title, description, canonical, jsonLd }: SEOOptions) => {
+export const useSEO = ({ title, description, canonical, jsonLd, noindex }: SEOOptions) => {
   useEffect(() => {
     document.title = title;
     upsertMeta('meta[name="description"]', "name", "description", description);
@@ -25,6 +26,7 @@ export const useSEO = ({ title, description, canonical, jsonLd }: SEOOptions) =>
     upsertMeta('meta[property="og:description"]', "property", "og:description", description);
     upsertMeta('meta[name="twitter:title"]', "name", "twitter:title", title);
     upsertMeta('meta[name="twitter:description"]', "name", "twitter:description", description);
+    upsertMeta('meta[name="robots"]', "name", "robots", noindex ? "noindex,nofollow" : "index,follow");
 
     if (canonical) {
       let link = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
@@ -48,7 +50,7 @@ export const useSEO = ({ title, description, canonical, jsonLd }: SEOOptions) =>
     return () => {
       if (ldEl) ldEl.remove();
     };
-  }, [title, description, canonical, JSON.stringify(jsonLd)]);
+  }, [title, description, canonical, JSON.stringify(jsonLd), noindex]);
 };
 
 export const slugify = (s: string) =>

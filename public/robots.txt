@@ -13,5 +13,10 @@ Allow: /
 User-agent: *
 Allow: /
 Disallow: /app/
+Disallow: /stadiums
+Disallow: /stadiums/
+Disallow: /clubs
+Disallow: /clubs/
+Disallow: /stadium-directory
 
 Sitemap: https://footticketfinder.com/sitemap.xml

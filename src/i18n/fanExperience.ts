@@ -24,6 +24,7 @@ export const fanExperienceI18n: Record<Locale, Record<string, string>> = {
     "social.top_comments": "Top fan comments",
     "social.best_rated": "Best-rated stadiums",
     "social.recent_visits": "Recently visited by the community",
+    "social.upcoming_count": "Upcoming fixtures · {count}",
 
     // Homepage rails
     "home.iconic.eyebrow": "Iconic stadiums",
@@ -73,6 +74,7 @@ export const fanExperienceI18n: Record<Locale, Record<string, string>> = {
     "social.top_comments": "Meilleurs commentaires des fans",
     "social.best_rated": "Stades les mieux notés",
     "social.recent_visits": "Récemment visités par la communauté",
+    "social.upcoming_count": "Matchs à venir · {count}",
 
     "home.iconic.eyebrow": "Stades mythiques",
     "home.iconic.title": "Les enceintes à voir une fois dans sa vie",
@@ -119,6 +121,7 @@ export const fanExperienceI18n: Record<Locale, Record<string, string>> = {
     "social.top_comments": "Mejores comentarios de aficionados",
     "social.best_rated": "Estadios mejor valorados",
     "social.recent_visits": "Visitados recientemente por la comunidad",
+    "social.upcoming_count": "Próximos partidos · {count}",
 
     "home.iconic.eyebrow": "Estadios míticos",
     "home.iconic.title": "Templos del fútbol que ver al menos una vez",
@@ -165,6 +168,7 @@ export const fanExperienceI18n: Record<Locale, Record<string, string>> = {
     "social.top_comments": "Top Fan-Kommentare",
     "social.best_rated": "Bestbewertete Stadien",
     "social.recent_visits": "Kürzlich besucht von der Community",
+    "social.upcoming_count": "Kommende Spiele · {count}",
 
     "home.iconic.eyebrow": "Ikonische Stadien",
     "home.iconic.title": "Fußball-Tempel auf der Bucket List",
@@ -211,6 +215,7 @@ export const fanExperienceI18n: Record<Locale, Record<string, string>> = {
     "social.top_comments": "Migliori commenti dei tifosi",
     "social.best_rated": "Stadi più votati",
     "social.recent_visits": "Visitati di recente dalla community",
+    "social.upcoming_count": "Prossime partite · {count}",
 
     "home.iconic.eyebrow": "Stadi iconici",
     "home.iconic.title": "Templi del calcio da vivere almeno una volta",
@@ -257,6 +262,7 @@ export const fanExperienceI18n: Record<Locale, Record<string, string>> = {
     "social.top_comments": "Melhores comentários dos adeptos",
     "social.best_rated": "Estádios mais bem avaliados",
     "social.recent_visits": "Visitados recentemente pela comunidade",
+    "social.upcoming_count": "Próximos jogos · {count}",
 
     "home.iconic.eyebrow": "Estádios míticos",
     "home.iconic.title": "Templos do futebol para visitar uma vez na vida",
@@ -303,6 +309,7 @@ export const fanExperienceI18n: Record<Locale, Record<string, string>> = {
     "social.top_comments": "Top fan-commentaren",
     "social.best_rated": "Best beoordeelde stadions",
     "social.recent_visits": "Recent bezocht door de community",
+    "social.upcoming_count": "Komende wedstrijden · {count}",
 
     "home.iconic.eyebrow": "Iconische stadions",
     "home.iconic.title": "Voetbaltempels voor je bucket list",
@@ -349,6 +356,7 @@ export const fanExperienceI18n: Record<Locale, Record<string, string>> = {
     "social.top_comments": "أفضل تعليقات المشجعين",
     "social.best_rated": "الملاعب الأعلى تقييمًا",
     "social.recent_visits": "زارها المجتمع مؤخرًا",
+    "social.upcoming_count": "مباريات قادمة · {count}",
 
     "home.iconic.eyebrow": "ملاعب أسطورية",
     "home.iconic.title": "ملاعب يجب زيارتها مرة في العمر",
@@ -395,6 +403,7 @@ export const fanExperienceI18n: Record<Locale, Record<string, string>> = {
     "social.top_comments": "Лучшие комментарии болельщиков",
     "social.best_rated": "Лучшие по рейтингу стадионы",
     "social.recent_visits": "Недавно посетили из сообщества",
+    "social.upcoming_count": "Ближайшие матчи · {count}",
 
     "home.iconic.eyebrow": "Легендарные стадионы",
     "home.iconic.title": "Футбольные арены из списка мечты",

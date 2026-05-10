@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -77,10 +77,10 @@ const App = () => (
               <Route path="/matches/:id" element={<WebsiteMatchDetailPage />} />
               <Route path="/leagues" element={<WebsiteLeaguesPage />} />
               <Route path="/leagues/:slug" element={<WebsiteLeaguePage />} />
-              <Route path="/clubs" element={<Navigate to="/matches" replace />} />
+              <Route path="/clubs" element={<ClubsPage />} />
               <Route path="/clubs/:slug" element={<ClubDetailPage />} />
-              <Route path="/stadiums" element={<Navigate to="/matches" replace />} />
-              <Route path="/stadium-directory" element={<Navigate to="/matches" replace />} />
+              <Route path="/stadiums" element={<StadiumsPage />} />
+              <Route path="/stadium-directory" element={<StadiumsPage />} />
               <Route path="/stadiums/suggest" element={<SuggestStadiumPage />} />
               <Route path="/stadiums/:slug" element={<StadiumDetailPage />} />
               <Route path="/app" element={<AppLandingPage />} />
