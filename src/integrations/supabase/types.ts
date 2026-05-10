@@ -352,52 +352,88 @@ export type Database = {
       }
       stadium_image_staging: {
         Row: {
+          atmosphere_tags: string[]
           background_image_url: string | null
+          capacity: number | null
           city: string | null
           club: string | null
+          confidence: string
           country: string | null
           created_at: string
+          description: string | null
           hero_image_url: string | null
           id: string
+          latitude: number | null
           league: string | null
+          longitude: number | null
+          match_type: string
+          official_website: string | null
+          published_stadium_id: string | null
+          review_notes: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           slug: string | null
           stadium_name: string
           status: string
+          suggested_stadium_id: string | null
           thumbnail_image_url: string | null
+          year_opened: number | null
         }
         Insert: {
+          atmosphere_tags?: string[]
           background_image_url?: string | null
+          capacity?: number | null
           city?: string | null
           club?: string | null
+          confidence?: string
           country?: string | null
           created_at?: string
+          description?: string | null
           hero_image_url?: string | null
           id?: string
+          latitude?: number | null
           league?: string | null
+          longitude?: number | null
+          match_type?: string
+          official_website?: string | null
+          published_stadium_id?: string | null
+          review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           slug?: string | null
           stadium_name: string
           status?: string
+          suggested_stadium_id?: string | null
           thumbnail_image_url?: string | null
+          year_opened?: number | null
         }
         Update: {
+          atmosphere_tags?: string[]
           background_image_url?: string | null
+          capacity?: number | null
           city?: string | null
           club?: string | null
+          confidence?: string
           country?: string | null
           created_at?: string
+          description?: string | null
           hero_image_url?: string | null
           id?: string
+          latitude?: number | null
           league?: string | null
+          longitude?: number | null
+          match_type?: string
+          official_website?: string | null
+          published_stadium_id?: string | null
+          review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           slug?: string | null
           stadium_name?: string
           status?: string
+          suggested_stadium_id?: string | null
           thumbnail_image_url?: string | null
+          year_opened?: number | null
         }
         Relationships: []
       }
