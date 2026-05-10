@@ -128,14 +128,15 @@ export const StadiumStagingAdminCard = () => {
       // Only fill NULLs on the production stadium — never overwrite
       const target = suggestedMap[row.suggested_stadium_id];
       if (!target) throw new Error("Suggested stadium not loaded");
-      const updates: Record<string, unknown> = {};
       if (!target.hero_image_url && row.hero_image_url) {
-        updates.hero_image_url = row.hero_image_url;
-        updates.thumbnail_image_url = row.hero_image_url;
-        updates.background_image_url = row.hero_image_url;
-      }
-      if (Object.keys(updates).length > 0) {
-        const { error: e1 } = await supabase.from("stadiums").update(updates).eq("id", target.id);
+        const { error: e1 } = await supabase
+          .from("stadiums")
+          .update({
+            hero_image_url: row.hero_image_url,
+            thumbnail_image_url: row.hero_image_url,
+            background_image_url: row.hero_image_url,
+          })
+          .eq("id", target.id);
         if (e1) throw e1;
       }
       await updateRow(row.id, { status: "merged", published_stadium_id: target.id });
