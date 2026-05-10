@@ -578,7 +578,7 @@ export type Database = {
           club_name?: string | null
           clubs?: string[]
           continent?: string | null
-          country?: string
+          country: string
           created_at?: string
           description?: string | null
           family_friendly_score?: number | null
@@ -588,7 +588,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           latitude?: number | null
-          league?: string
+          league: string
           league_slug?: string | null
           longitude?: number | null
           official_ticket_provider?: string | null

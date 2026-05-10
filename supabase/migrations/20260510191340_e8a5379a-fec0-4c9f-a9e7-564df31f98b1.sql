@@ -1,0 +1,2 @@
+ALTER TABLE public.stadiums ALTER COLUMN country DROP DEFAULT;
+ALTER TABLE public.stadiums ALTER COLUMN league DROP DEFAULT;
