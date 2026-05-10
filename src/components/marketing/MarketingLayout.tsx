@@ -57,13 +57,6 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
 
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
-            <Link
-              to="/app"
-              className="hidden sm:inline-flex items-center text-xs font-semibold text-[#2C3E50]/70 hover:text-[#2ECC71] transition-colors"
-              aria-label={t("app.coming_soon")}
-            >
-              {t("website.nav.early_access") || "Early access"}
-            </Link>
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
