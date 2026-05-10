@@ -5,7 +5,6 @@ import { useUser } from "@/contexts/UserContext";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { toast } from "sonner";
 import { useSEO } from "@/lib/seo";
-import { getPendingTrack } from "@/components/track/TrackPriceSheet";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 const TEAMS: { id: string; name: string; emoji: string; league: string }[] = [
