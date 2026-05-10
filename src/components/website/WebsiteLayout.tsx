@@ -66,13 +66,6 @@ export const WebsiteLayout = ({ children }: Props) => {
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <LanguageSwitcher />
             <HeaderAuthButton />
-            <Link
-              to="/app"
-              className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-[#2C3E50]/70 hover:text-[#2ECC71] transition-colors"
-              aria-label={t("app.coming_soon")}
-            >
-              <Bell className="w-3.5 h-3.5" /> {t("website.nav.early_access") || "Early access"}
-            </Link>
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
