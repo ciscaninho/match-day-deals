@@ -95,6 +95,19 @@ const AdminPage = () => {
           </div>
         </a>
 
+        <a
+          href="/app/admin/stadium-media-sync"
+          className="block mb-4 rounded-lg border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-3 hover:border-primary/60 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-bold text-foreground">📸 Stadium Media Sync (Google Drive)</div>
+              <div className="text-[11px] text-muted-foreground">Curated image pipeline · dry-run matching · overwrite review</div>
+            </div>
+            <span className="text-xs text-primary font-semibold">Open →</span>
+          </div>
+        </a>
+
         <ApiFootballSyncCard />
 
         {/* Existing matches */}
