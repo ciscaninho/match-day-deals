@@ -173,8 +173,9 @@ function DriveImage({ fileId, alt }: { fileId: string | null; alt: string }) {
   const [src, setSrc] = useState<string | null>(null);
   const [err, setErr] = useState(false);
 
-  useMemo(() => {
+  useEffect(() => {
     let aborted = false;
+    let objectUrl: string | null = null;
     setSrc(null);
     setErr(false);
     if (!fileId) {
@@ -199,13 +200,15 @@ function DriveImage({ fileId, alt }: { fileId: string | null; alt: string }) {
         }
         const blob = await r.blob();
         if (aborted) return;
-        setSrc(URL.createObjectURL(blob));
+        objectUrl = URL.createObjectURL(blob);
+        setSrc(objectUrl);
       } catch {
         if (!aborted) setErr(true);
       }
     })();
     return () => {
       aborted = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [fileId]);
 
