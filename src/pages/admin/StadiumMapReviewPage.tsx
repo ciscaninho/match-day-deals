@@ -328,6 +328,18 @@ const StadiumMapReviewPageInner = () => {
     },
   });
 
+  const { data: clubs = [] } = useQuery({
+    queryKey: ["stadium-map-review-clubs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("club_ticketing_profiles")
+        .select("id,slug,club_name,short_name,city,country,league,stadium_name,stadium_slug,logo_url")
+        .order("club_name", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ClubProfile[];
+    },
+  });
+
   // Pull production stadiums (small table) for comparison & filters.
   const { data: production = [] } = useQuery({
     queryKey: ["stadium-map-review-production"],
