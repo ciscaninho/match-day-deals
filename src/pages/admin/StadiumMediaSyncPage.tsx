@@ -104,7 +104,7 @@ export default function StadiumMediaSyncPage() {
       if (filter === "duplicate") q = q.like("notes", "%duplicate%");
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as HistoryRow[];
+      return (data ?? []) as unknown as HistoryRow[];
     },
   });
 
