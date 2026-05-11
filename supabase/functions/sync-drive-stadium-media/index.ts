@@ -106,16 +106,19 @@ function classify(score: number): { confidence: string; match_type: string } {
   return { confidence: "none", match_type: "none" };
 }
 
-async function listAllDriveFiles(folderId: string): Promise<DriveFile[]> {
+const FOLDER_MIME = "application/vnd.google-apps.folder";
+
+async function listFolderChildren(folderId: string): Promise<DriveFile[]> {
   const all: DriveFile[] = [];
   let pageToken: string | undefined;
   for (let i = 0; i < 20; i++) {
     const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
     const fields = encodeURIComponent(
-      "nextPageToken, files(id,name,mimeType,size,modifiedTime)",
+      "nextPageToken, files(id,name,mimeType,size,modifiedTime,parents)",
     );
     const url =
       `${GATEWAY}/files?q=${q}&fields=${fields}&pageSize=1000` +
+      `&supportsAllDrives=true&includeItemsFromAllDrives=true` +
       (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : "");
     const r = await fetch(url, {
       headers: {
@@ -131,6 +134,27 @@ async function listAllDriveFiles(folderId: string): Promise<DriveFile[]> {
     for (const f of data.files ?? []) all.push(f);
     pageToken = data.nextPageToken;
     if (!pageToken) break;
+  }
+  return all;
+}
+
+async function listAllDriveFiles(folderId: string): Promise<DriveFile[]> {
+  const all: DriveFile[] = [];
+  const queue: string[] = [folderId];
+  const visited = new Set<string>();
+  let safety = 0;
+  while (queue.length && safety++ < 200) {
+    const current = queue.shift()!;
+    if (visited.has(current)) continue;
+    visited.add(current);
+    const children = await listFolderChildren(current);
+    for (const f of children) {
+      if (f.mimeType === FOLDER_MIME) {
+        queue.push(f.id);
+      } else {
+        all.push(f);
+      }
+    }
   }
   return all;
 }
