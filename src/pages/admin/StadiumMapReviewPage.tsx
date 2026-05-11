@@ -98,8 +98,7 @@ const ClusterLayer = ({ rows, onSelect }: ClusterProps) => {
   const groupRef = useRef<L.MarkerClusterGroup | null>(null);
 
   useEffect(() => {
-    // @ts-expect-error markercluster augments L
-    const group: L.MarkerClusterGroup = L.markerClusterGroup({
+    const group: L.MarkerClusterGroup = (L as unknown as { markerClusterGroup: (o: L.MarkerClusterGroupOptions) => L.MarkerClusterGroup }).markerClusterGroup({
       chunkedLoading: true,
       maxClusterRadius: 50,
       showCoverageOnHover: false,
