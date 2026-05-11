@@ -4,6 +4,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import type { Stadium } from "@/hooks/useStadium";
 import { cn } from "@/lib/utils";
 import { isCuratedStadiumImage } from "@/lib/stadiumImages";
+import { BrandLockup } from "@/components/stadium/BrandedStadiumImage";
 
 type Props = {
   stadium: Stadium;
