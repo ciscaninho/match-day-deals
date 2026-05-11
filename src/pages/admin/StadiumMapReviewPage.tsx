@@ -49,6 +49,24 @@ interface StagingRow {
   confidence: "high" | "medium" | "low";
   status: string;
   review_notes: string | null;
+  primary_club: string | null;
+  is_historic: boolean;
+  is_inactive: boolean;
+  is_multi_club: boolean;
+  is_national_team_stadium: boolean;
+}
+
+interface ClubProfile {
+  id: string;
+  slug: string;
+  club_name: string;
+  short_name: string | null;
+  city: string | null;
+  country: string | null;
+  league: string | null;
+  stadium_name: string | null;
+  stadium_slug: string | null;
+  logo_url: string | null;
 }
 
 interface ProductionStadium {
