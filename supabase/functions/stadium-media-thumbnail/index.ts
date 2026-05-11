@@ -74,21 +74,44 @@ Deno.serve(async (req) => {
     }
 
     const driveUrl = `${GATEWAY}/files/${encodeURIComponent(fileId)}?alt=media&supportsAllDrives=true`;
-    const r = await fetch(driveUrl, {
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "X-Connection-Api-Key": GOOGLE_DRIVE_API_KEY,
-      },
-    });
-    if (!r.ok) {
-      const body = await r.text();
-      return new Response(
-        JSON.stringify({ error: `drive_fetch_failed_${r.status}`, body: body.slice(0, 300) }),
-        {
-          status: 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+    let r: Response | null = null;
+    let lastErr = "";
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        r = await fetch(driveUrl, {
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "X-Connection-Api-Key": GOOGLE_DRIVE_API_KEY,
+          },
+        });
+        if (r.ok) break;
+        // Retry on 5xx / 429; bail on 4xx
+        if (r.status < 500 && r.status !== 429) break;
+        lastErr = `status_${r.status}`;
+      } catch (e) {
+        lastErr = e instanceof Error ? e.message : String(e);
+      }
+      await new Promise((res) => setTimeout(res, 300 * (attempt + 1)));
+    }
+
+    if (!r || !r.ok) {
+      // Graceful fallback: 1x1 transparent PNG so the UI <img> just shows blank
+      // instead of bubbling a 502 runtime error. Includes a header for debugging.
+      const pixel = Uint8Array.from(
+        atob(
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+        ),
+        (c) => c.charCodeAt(0),
       );
+      return new Response(pixel, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "image/png",
+          "Cache-Control": "no-store",
+          "X-Drive-Fallback": `1; reason=${lastErr || `status_${r?.status ?? "unknown"}`}`,
+        },
+      });
     }
     const contentType = r.headers.get("Content-Type") ?? "application/octet-stream";
     return new Response(r.body, {
