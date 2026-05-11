@@ -116,7 +116,7 @@ async function listFolderChildren(folderId: string): Promise<DriveFile[]> {
   for (let i = 0; i < 20; i++) {
     const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
     const fields = encodeURIComponent(
-      "nextPageToken, files(id,name,mimeType,size,modifiedTime,parents)",
+      "nextPageToken, files(id,name,mimeType,size,modifiedTime,parents,thumbnailLink,imageMediaMetadata(width,height))",
     );
     const url =
       `${GATEWAY}/files?q=${q}&fields=${fields}&pageSize=1000` +
