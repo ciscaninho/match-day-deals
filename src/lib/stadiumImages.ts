@@ -8,7 +8,16 @@
 // We expanded the fallback pool well past 6 to avoid the "same generic stadium
 // everywhere" effect that made the homepage feel cheap.
 
-const CURATED_HOSTS = ["static.prod-images.emergentagent.com"];
+// Hosts we consider "curated" — i.e. authentic stadium photography from our
+// own dataset or imported from the curated Google Drive source via the
+// Supabase storage bucket `stadium-media`. These are the only images that
+// receive the Foot Ticket Finder branded overlay (never stock/Unsplash).
+const CURATED_HOSTS = [
+  "static.prod-images.emergentagent.com",
+  // Supabase storage (curated bucket) — covers all imports from the Drive sync.
+  "supabase.co/storage/v1/object/public/stadium-media",
+  "supabase.in/storage/v1/object/public/stadium-media",
+];
 
 const FALLBACKS: string[] = [
   "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&q=80",
