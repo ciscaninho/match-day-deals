@@ -446,10 +446,14 @@ export type Database = {
           destination_public_url: string | null
           drive_file_id: string | null
           drive_file_name: string
+          drive_image_height: number | null
+          drive_image_width: number | null
           drive_mime_type: string | null
           drive_size_bytes: number | null
+          drive_thumbnail_link: string | null
           id: string
           import_id: string | null
+          manual_stadium_id: string | null
           match_confidence: string
           match_type: string
           matched_stadium_id: string | null
@@ -458,6 +462,9 @@ export type Database = {
           normalized_name: string | null
           notes: string | null
           previous_image_url: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           would_overwrite: boolean
         }
         Insert: {
@@ -468,10 +475,14 @@ export type Database = {
           destination_public_url?: string | null
           drive_file_id?: string | null
           drive_file_name: string
+          drive_image_height?: number | null
+          drive_image_width?: number | null
           drive_mime_type?: string | null
           drive_size_bytes?: number | null
+          drive_thumbnail_link?: string | null
           id?: string
           import_id?: string | null
+          manual_stadium_id?: string | null
           match_confidence?: string
           match_type?: string
           matched_stadium_id?: string | null
@@ -480,6 +491,9 @@ export type Database = {
           normalized_name?: string | null
           notes?: string | null
           previous_image_url?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           would_overwrite?: boolean
         }
         Update: {
@@ -490,10 +504,14 @@ export type Database = {
           destination_public_url?: string | null
           drive_file_id?: string | null
           drive_file_name?: string
+          drive_image_height?: number | null
+          drive_image_width?: number | null
           drive_mime_type?: string | null
           drive_size_bytes?: number | null
+          drive_thumbnail_link?: string | null
           id?: string
           import_id?: string | null
+          manual_stadium_id?: string | null
           match_confidence?: string
           match_type?: string
           matched_stadium_id?: string | null
@@ -502,6 +520,9 @@ export type Database = {
           normalized_name?: string | null
           notes?: string | null
           previous_image_url?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           would_overwrite?: boolean
         }
         Relationships: [

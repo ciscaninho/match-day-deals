@@ -40,6 +40,8 @@ type DriveFile = {
   mimeType: string;
   size?: string;
   modifiedTime?: string;
+  thumbnailLink?: string;
+  imageMediaMetadata?: { width?: number; height?: number };
 };
 
 type StadiumRow = {
@@ -114,7 +116,7 @@ async function listFolderChildren(folderId: string): Promise<DriveFile[]> {
   for (let i = 0; i < 20; i++) {
     const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
     const fields = encodeURIComponent(
-      "nextPageToken, files(id,name,mimeType,size,modifiedTime,parents)",
+      "nextPageToken, files(id,name,mimeType,size,modifiedTime,parents,thumbnailLink,imageMediaMetadata(width,height))",
     );
     const url =
       `${GATEWAY}/files?q=${q}&fields=${fields}&pageSize=1000` +
@@ -321,6 +323,9 @@ Deno.serve(async (req) => {
           drive_file_name: f.name,
           drive_mime_type: f.mimeType,
           drive_size_bytes: f.size ? Number(f.size) : null,
+          drive_thumbnail_link: f.thumbnailLink ?? null,
+          drive_image_width: f.imageMediaMetadata?.width ?? null,
+          drive_image_height: f.imageMediaMetadata?.height ?? null,
           normalized_name: fileNorm,
           matched_stadium_id: best && !isAmbiguous ? best.stadium_id : null,
           matched_stadium_slug: best && !isAmbiguous ? best.slug : null,
