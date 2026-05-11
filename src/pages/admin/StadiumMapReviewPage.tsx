@@ -49,6 +49,24 @@ interface StagingRow {
   confidence: "high" | "medium" | "low";
   status: string;
   review_notes: string | null;
+  primary_club: string | null;
+  is_historic: boolean;
+  is_inactive: boolean;
+  is_multi_club: boolean;
+  is_national_team_stadium: boolean;
+}
+
+interface ClubProfile {
+  id: string;
+  slug: string;
+  club_name: string;
+  short_name: string | null;
+  city: string | null;
+  country: string | null;
+  league: string | null;
+  stadium_name: string | null;
+  stadium_slug: string | null;
+  logo_url: string | null;
 }
 
 interface ProductionStadium {
@@ -301,12 +319,24 @@ const StadiumMapReviewPageInner = () => {
       const { data, error } = await supabase
         .from("stadiums_master_staging")
         .select(
-          "id,canonical_name,slug,normalized_slug,normalized_name,aliases,city,country,league,club_names,hero_image_url,thumbnail_image_url,background_image_url,latitude,longitude,capacity,year_opened,official_website,production_stadium_id,conflict_flags,has_missing_metadata,confidence,status,review_notes",
+          "id,canonical_name,slug,normalized_slug,normalized_name,aliases,city,country,league,club_names,hero_image_url,thumbnail_image_url,background_image_url,latitude,longitude,capacity,year_opened,official_website,production_stadium_id,conflict_flags,has_missing_metadata,confidence,status,review_notes,primary_club,is_historic,is_inactive,is_multi_club,is_national_team_stadium",
         )
         .order("confidence", { ascending: true })
         .limit(2000);
       if (error) throw error;
       return (data ?? []) as StagingRow[];
+    },
+  });
+
+  const { data: clubs = [] } = useQuery({
+    queryKey: ["stadium-map-review-clubs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("club_ticketing_profiles")
+        .select("id,slug,club_name,short_name,city,country,league,stadium_name,stadium_slug,logo_url")
+        .order("club_name", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ClubProfile[];
     },
   });
 
@@ -587,6 +617,7 @@ const StadiumMapReviewPageInner = () => {
               prod={selectedProd}
               safety={safety}
               duplicates={duplicates}
+              clubs={clubs}
               busy={busy}
               editing={editing}
               setEditing={setEditing}
@@ -662,6 +693,7 @@ interface ReviewCardProps {
   prod: ProductionStadium | null;
   safety: SafetyAssessment;
   duplicates: { row: StagingRow; distanceKm: number; similarity: number }[];
+  clubs: ClubProfile[];
   busy: boolean;
   editing: boolean;
   setEditing: (v: boolean) => void;
@@ -673,7 +705,7 @@ interface ReviewCardProps {
   onOpenFullscreen: (src: string) => void;
 }
 
-const ReviewCard = ({ row, prod, safety, duplicates, busy, editing, setEditing, onUpdate, onJumpTo, onPrev, onNext, indexLabel, onOpenFullscreen }: ReviewCardProps) => {
+const ReviewCard = ({ row, prod, safety, duplicates, clubs, busy, editing, setEditing, onUpdate, onJumpTo, onPrev, onNext, indexLabel, onOpenFullscreen }: ReviewCardProps) => {
   const [form, setForm] = useState({
     canonical_name: row.canonical_name,
     city: row.city ?? "",
@@ -684,6 +716,31 @@ const ReviewCard = ({ row, prod, safety, duplicates, busy, editing, setEditing, 
     longitude: row.longitude?.toString() ?? "",
     review_notes: row.review_notes ?? "",
   });
+
+  // Club relationship state (live editable, separate from text form)
+  const [clubList, setClubList] = useState<string[]>(row.club_names ?? []);
+  const [primaryClub, setPrimaryClub] = useState<string>(row.primary_club ?? (row.club_names?.[0] ?? ""));
+  const [flags, setFlags] = useState({
+    is_historic: row.is_historic,
+    is_inactive: row.is_inactive,
+    is_multi_club: row.is_multi_club || (row.club_names?.length ?? 0) > 1,
+    is_national_team_stadium: row.is_national_team_stadium,
+  });
+  const [clubSearch, setClubSearch] = useState("");
+  const [clubsDirty, setClubsDirty] = useState(false);
+
+  useEffect(() => {
+    setClubList(row.club_names ?? []);
+    setPrimaryClub(row.primary_club ?? (row.club_names?.[0] ?? ""));
+    setFlags({
+      is_historic: row.is_historic,
+      is_inactive: row.is_inactive,
+      is_multi_club: row.is_multi_club || (row.club_names?.length ?? 0) > 1,
+      is_national_team_stadium: row.is_national_team_stadium,
+    });
+    setClubSearch("");
+    setClubsDirty(false);
+  }, [row.id]);
 
   useEffect(() => {
     setForm({
@@ -922,6 +979,45 @@ const ReviewCard = ({ row, prod, safety, duplicates, busy, editing, setEditing, 
           </div>
         )}
 
+        {/* Club Relationships — always editable */}
+        <ClubRelationshipsPanel
+          row={row}
+          prod={prod}
+          clubs={clubs}
+          clubList={clubList}
+          setClubList={(v) => { setClubList(v); setClubsDirty(true); }}
+          primaryClub={primaryClub}
+          setPrimaryClub={(v) => { setPrimaryClub(v); setClubsDirty(true); }}
+          flags={flags}
+          setFlags={(v) => { setFlags(v); setClubsDirty(true); }}
+          clubSearch={clubSearch}
+          setClubSearch={setClubSearch}
+          dirty={clubsDirty}
+          busy={busy}
+          onSave={async () => {
+            await onUpdate({
+              club_names: clubList,
+              primary_club: primaryClub || null,
+              is_historic: flags.is_historic,
+              is_inactive: flags.is_inactive,
+              is_multi_club: flags.is_multi_club || clubList.length > 1,
+              is_national_team_stadium: flags.is_national_team_stadium,
+            });
+            setClubsDirty(false);
+          }}
+          onReset={() => {
+            setClubList(row.club_names ?? []);
+            setPrimaryClub(row.primary_club ?? (row.club_names?.[0] ?? ""));
+            setFlags({
+              is_historic: row.is_historic,
+              is_inactive: row.is_inactive,
+              is_multi_club: row.is_multi_club || (row.club_names?.length ?? 0) > 1,
+              is_national_team_stadium: row.is_national_team_stadium,
+            });
+            setClubsDirty(false);
+          }}
+        />
+
         {/* Metadata / edit */}
         {!editing ? (
           <div className="space-y-2 text-xs">
@@ -935,14 +1031,6 @@ const ReviewCard = ({ row, prod, safety, duplicates, busy, editing, setEditing, 
                 <div className="text-muted-foreground mb-1">Aliases</div>
                 <div className="flex flex-wrap gap-1">
                   {row.aliases.map((a) => <Badge key={a} variant="secondary" className="text-[10px]">{a}</Badge>)}
-                </div>
-              </div>
-            )}
-            {row.club_names?.length > 0 && (
-              <div>
-                <div className="text-muted-foreground mb-1">Clubs</div>
-                <div className="flex flex-wrap gap-1">
-                  {row.club_names.map((c) => <Badge key={c} className="text-[10px]">{c}</Badge>)}
                 </div>
               </div>
             )}
@@ -1052,6 +1140,275 @@ const CompareRow = ({ label, a, b }: { label: string; a: string | null | undefin
     </div>
   );
 };
+
+// ---------- Club Relationships Panel ----------
+const norm = (s: string) =>
+  s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+
+interface ClubFlags {
+  is_historic: boolean;
+  is_inactive: boolean;
+  is_multi_club: boolean;
+  is_national_team_stadium: boolean;
+}
+
+interface ClubPanelProps {
+  row: StagingRow;
+  prod: ProductionStadium | null;
+  clubs: ClubProfile[];
+  clubList: string[];
+  setClubList: (v: string[]) => void;
+  primaryClub: string;
+  setPrimaryClub: (v: string) => void;
+  flags: ClubFlags;
+  setFlags: (v: ClubFlags) => void;
+  clubSearch: string;
+  setClubSearch: (v: string) => void;
+  dirty: boolean;
+  busy: boolean;
+  onSave: () => Promise<void>;
+  onReset: () => void;
+}
+
+const ClubRelationshipsPanel = ({
+  row, prod, clubs, clubList, setClubList, primaryClub, setPrimaryClub,
+  flags, setFlags, clubSearch, setClubSearch, dirty, busy, onSave, onReset,
+}: ClubPanelProps) => {
+  const clubByNormName = useMemo(() => {
+    const m = new Map<string, ClubProfile>();
+    clubs.forEach((c) => {
+      m.set(norm(c.club_name), c);
+      if (c.short_name) m.set(norm(c.short_name), c);
+    });
+    return m;
+  }, [clubs]);
+
+  const findClub = (name: string): ClubProfile | undefined => clubByNormName.get(norm(name));
+
+  const searchResults = useMemo(() => {
+    const q = clubSearch.trim().toLowerCase();
+    if (!q) return [];
+    const inList = new Set(clubList.map((c) => norm(c)));
+    return clubs
+      .filter((c) => {
+        const n = norm(c.club_name);
+        if (inList.has(n)) return false;
+        return c.club_name.toLowerCase().includes(q) || (c.short_name?.toLowerCase().includes(q) ?? false);
+      })
+      .slice(0, 8);
+  }, [clubSearch, clubs, clubList]);
+
+  const addClub = (name: string) => {
+    const n = norm(name);
+    if (!n) return;
+    if (clubList.some((c) => norm(c) === n)) return;
+    const next = [...clubList, name];
+    setClubList(next);
+    if (!primaryClub) setPrimaryClub(name);
+    setClubSearch("");
+  };
+  const removeClub = (name: string) => {
+    const next = clubList.filter((c) => c !== name);
+    setClubList(next);
+    if (primaryClub === name) setPrimaryClub(next[0] ?? "");
+  };
+
+  const warnings: { level: "warn" | "info"; text: string }[] = [];
+  for (const cName of clubList) {
+    const c = findClub(cName);
+    if (!c) continue;
+    if (c.city && row.city && norm(c.city) !== norm(row.city)) {
+      warnings.push({ level: "warn", text: `${c.club_name}: club city "${c.city}" ≠ stadium city "${row.city}"` });
+    }
+    if (c.league && row.league && norm(c.league) !== norm(row.league)) {
+      warnings.push({ level: "info", text: `${c.club_name}: club league "${c.league}" ≠ stadium league "${row.league}"` });
+    }
+    if (c.stadium_name && norm(c.stadium_name) !== norm(row.canonical_name)) {
+      warnings.push({ level: "warn", text: `${c.club_name} currently plays at "${c.stadium_name}" — not this stadium` });
+    }
+  }
+
+  const prodClubs = (prod?.clubs ?? []).filter(Boolean);
+
+  return (
+    <div className="rounded-md border border-border bg-card p-3 space-y-3 text-xs">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 font-bold text-foreground">
+          <Users className="w-3.5 h-3.5 text-primary" /> Club relationships
+        </div>
+        {dirty && (
+          <div className="flex items-center gap-1">
+            <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2" onClick={onReset} disabled={busy}>Reset</Button>
+            <Button size="sm" className="h-6 text-[10px] px-2" onClick={onSave} disabled={busy}>
+              {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : "Save clubs"}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {prod && (
+        <div className="grid grid-cols-2 gap-0 rounded border border-border overflow-hidden">
+          <div className="p-2 bg-muted/30">
+            <div className="text-[9px] uppercase text-muted-foreground font-bold flex items-center gap-1 mb-1">
+              <Database className="w-3 h-3 text-emerald-600" /> Production
+            </div>
+            {prodClubs.length ? (
+              <div className="flex flex-wrap gap-1">
+                {prodClubs.map((c) => <Badge key={c} variant="secondary" className="text-[10px]">{c}</Badge>)}
+              </div>
+            ) : (
+              <span className="text-muted-foreground text-[10px]">No clubs</span>
+            )}
+          </div>
+          <div className="p-2 border-l border-border">
+            <div className="text-[9px] uppercase text-muted-foreground font-bold flex items-center gap-1 mb-1">
+              <Sparkles className="w-3 h-3 text-amber-500" /> Staging (preview)
+            </div>
+            {clubList.length ? (
+              <div className="flex flex-wrap gap-1">
+                {clubList.map((c) => (
+                  <Badge key={c} className="text-[10px]">
+                    {c === primaryClub ? "★ " : ""}{c}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <span className="text-muted-foreground text-[10px]">No clubs</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-1.5">
+        <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Linked clubs ({clubList.length})</div>
+        {clubList.length === 0 && (
+          <div className="text-muted-foreground italic text-[11px]">No clubs linked. Search below to add one.</div>
+        )}
+        <div className="flex flex-wrap gap-1.5">
+          {clubList.map((name) => {
+            const c = findClub(name);
+            const isPrimary = name === primaryClub;
+            return (
+              <div
+                key={name}
+                className={`group inline-flex items-center gap-1 rounded-full border pl-1.5 pr-1 py-0.5 text-[11px] ${
+                  isPrimary ? "border-primary bg-primary/10 text-foreground" : "border-border bg-muted/40 text-foreground"
+                }`}
+              >
+                {c?.logo_url ? (
+                  <img src={c.logo_url} alt="" className="w-3.5 h-3.5 rounded object-contain" />
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setPrimaryClub(name)}
+                  title={isPrimary ? "Primary club" : "Set as primary"}
+                  className="flex items-center gap-1"
+                >
+                  {isPrimary
+                    ? <span className="text-primary">★</span>
+                    : <span className="text-muted-foreground/60 group-hover:text-primary">☆</span>}
+                  <span className="font-medium">{name}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeClub(name)}
+                  className="ml-0.5 rounded p-0.5 hover:bg-destructive/15 hover:text-destructive"
+                  aria-label={`Remove ${name}`}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Add a club</Label>
+        <Input
+          value={clubSearch}
+          onChange={(e) => setClubSearch(e.target.value)}
+          placeholder="Search club directory…"
+          className="h-8 text-xs"
+        />
+        {clubSearch && (
+          <div className="rounded border border-border bg-popover divide-y divide-border max-h-56 overflow-y-auto">
+            {searchResults.length === 0 ? (
+              <div className="p-2 text-[11px] text-muted-foreground flex items-center justify-between gap-2">
+                <span>No matching club in directory.</span>
+                <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => addClub(clubSearch.trim())}>
+                  Add as free text
+                </Button>
+              </div>
+            ) : (
+              searchResults.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => addClub(c.club_name)}
+                  className="w-full text-left p-1.5 hover:bg-muted/60 flex items-center gap-2"
+                >
+                  {c.logo_url ? (
+                    <img src={c.logo_url} alt="" className="w-5 h-5 rounded object-contain bg-muted shrink-0" />
+                  ) : (
+                    <div className="w-5 h-5 rounded bg-muted shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-medium text-foreground truncate">{c.club_name}</div>
+                    <div className="text-[10px] text-muted-foreground truncate">
+                      {[c.city, c.country, c.league].filter(Boolean).join(" · ")}
+                      {c.stadium_name ? ` · plays at ${c.stadium_name}` : ""}
+                    </div>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-1.5">
+        <FlagToggle label="Historic stadium" active={flags.is_historic}
+          onClick={() => setFlags({ ...flags, is_historic: !flags.is_historic })} />
+        <FlagToggle label="Inactive stadium" active={flags.is_inactive}
+          onClick={() => setFlags({ ...flags, is_inactive: !flags.is_inactive })} />
+        <FlagToggle label="Multi-club stadium" active={flags.is_multi_club}
+          onClick={() => setFlags({ ...flags, is_multi_club: !flags.is_multi_club })} />
+        <FlagToggle label="National team stadium" active={flags.is_national_team_stadium}
+          onClick={() => setFlags({ ...flags, is_national_team_stadium: !flags.is_national_team_stadium })} />
+      </div>
+
+      {warnings.length > 0 && (
+        <div className="rounded border border-amber-500/40 bg-amber-500/5 p-2 space-y-1">
+          <div className="flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-400 text-[11px]">
+            <AlertTriangle className="w-3.5 h-3.5" /> Relationship warnings
+          </div>
+          <ul className="space-y-0.5 text-[10px]">
+            {warnings.map((w, i) => (
+              <li key={i} className={w.level === "warn" ? "text-destructive" : "text-amber-700 dark:text-amber-400"}>
+                · {w.text}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const FlagToggle = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`text-[11px] px-2 h-7 rounded-md border text-left transition-colors ${
+      active
+        ? "bg-primary/10 border-primary text-foreground font-medium"
+        : "bg-background border-border text-muted-foreground hover:text-foreground"
+    }`}
+  >
+    {active ? "● " : "○ "}{label}
+  </button>
+);
 
 const StadiumMapReviewPage = () => (
   <RequireAdmin>

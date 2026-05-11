@@ -744,6 +744,10 @@ export type Database = {
           hero_image_url: string | null
           id: string
           image_score: number
+          is_historic: boolean
+          is_inactive: boolean
+          is_multi_club: boolean
+          is_national_team_stadium: boolean
           latitude: number | null
           league: string | null
           longitude: number | null
@@ -752,6 +756,7 @@ export type Database = {
           normalized_name: string
           normalized_slug: string
           official_website: string | null
+          primary_club: string | null
           production_stadium_id: string | null
           review_notes: string | null
           slug: string
@@ -780,6 +785,10 @@ export type Database = {
           hero_image_url?: string | null
           id?: string
           image_score?: number
+          is_historic?: boolean
+          is_inactive?: boolean
+          is_multi_club?: boolean
+          is_national_team_stadium?: boolean
           latitude?: number | null
           league?: string | null
           longitude?: number | null
@@ -788,6 +797,7 @@ export type Database = {
           normalized_name: string
           normalized_slug: string
           official_website?: string | null
+          primary_club?: string | null
           production_stadium_id?: string | null
           review_notes?: string | null
           slug: string
@@ -816,6 +826,10 @@ export type Database = {
           hero_image_url?: string | null
           id?: string
           image_score?: number
+          is_historic?: boolean
+          is_inactive?: boolean
+          is_multi_club?: boolean
+          is_national_team_stadium?: boolean
           latitude?: number | null
           league?: string | null
           longitude?: number | null
@@ -824,6 +838,7 @@ export type Database = {
           normalized_name?: string
           normalized_slug?: string
           official_website?: string | null
+          primary_club?: string | null
           production_stadium_id?: string | null
           review_notes?: string | null
           slug?: string
