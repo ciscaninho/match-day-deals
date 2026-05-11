@@ -319,7 +319,7 @@ const StadiumMapReviewPageInner = () => {
       const { data, error } = await supabase
         .from("stadiums_master_staging")
         .select(
-          "id,canonical_name,slug,normalized_slug,normalized_name,aliases,city,country,league,club_names,hero_image_url,thumbnail_image_url,background_image_url,latitude,longitude,capacity,year_opened,official_website,production_stadium_id,conflict_flags,has_missing_metadata,confidence,status,review_notes",
+          "id,canonical_name,slug,normalized_slug,normalized_name,aliases,city,country,league,club_names,hero_image_url,thumbnail_image_url,background_image_url,latitude,longitude,capacity,year_opened,official_website,production_stadium_id,conflict_flags,has_missing_metadata,confidence,status,review_notes,primary_club,is_historic,is_inactive,is_multi_club,is_national_team_stadium",
         )
         .order("confidence", { ascending: true })
         .limit(2000);
