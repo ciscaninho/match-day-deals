@@ -80,7 +80,20 @@ const AdminPage = () => {
         <h1 className="text-xl font-bold text-foreground mb-1 flex items-center gap-2">
           <Shield className="w-5 h-5" /> Admin Panel
         </h1>
-        <p className="text-xs text-muted-foreground mb-6">Manage matches and ticket info</p>
+        <p className="text-xs text-muted-foreground mb-4">Manage matches and ticket info</p>
+
+        <a
+          href="/app/admin/stadium-map-review"
+          className="block mb-4 rounded-lg border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-3 hover:border-primary/60 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-bold text-foreground">🗺️ Stadium Map Review</div>
+              <div className="text-[11px] text-muted-foreground">Visual moderation · clustering · duplicate detection</div>
+            </div>
+            <span className="text-xs text-primary font-semibold">Open →</span>
+          </div>
+        </a>
 
         <ApiFootballSyncCard />
 
