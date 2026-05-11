@@ -40,6 +40,8 @@ type DriveFile = {
   mimeType: string;
   size?: string;
   modifiedTime?: string;
+  thumbnailLink?: string;
+  imageMediaMetadata?: { width?: number; height?: number };
 };
 
 type StadiumRow = {
