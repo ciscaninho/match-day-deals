@@ -28,6 +28,7 @@ import PollsPage from "./pages/PollsPage";
 import QuizPage from "./pages/QuizPage";
 import AdminPage from "./pages/AdminPage";
 import StadiumMapReviewPage from "./pages/admin/StadiumMapReviewPage";
+import StadiumMediaSyncPage from "./pages/admin/StadiumMediaSyncPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
@@ -127,6 +128,8 @@ const App = () => (
               />
               <Route path="/app/admin/stadium-map-review" element={<StadiumMapReviewPage />} />
               <Route path="/admin/stadium-map-review" element={<StadiumMapReviewPage />} />
+              <Route path="/app/admin/stadium-media-sync" element={<StadiumMediaSyncPage />} />
+              <Route path="/admin/stadium-media-sync" element={<StadiumMediaSyncPage />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
