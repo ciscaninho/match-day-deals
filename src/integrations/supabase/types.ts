@@ -437,6 +437,143 @@ export type Database = {
         }
         Relationships: []
       }
+      stadium_media_history: {
+        Row: {
+          action: string
+          candidates: Json
+          created_at: string
+          destination_path: string | null
+          destination_public_url: string | null
+          drive_file_id: string | null
+          drive_file_name: string
+          drive_mime_type: string | null
+          drive_size_bytes: number | null
+          id: string
+          import_id: string | null
+          match_confidence: string
+          match_type: string
+          matched_stadium_id: string | null
+          matched_stadium_name: string | null
+          matched_stadium_slug: string | null
+          normalized_name: string | null
+          notes: string | null
+          previous_image_url: string | null
+          would_overwrite: boolean
+        }
+        Insert: {
+          action?: string
+          candidates?: Json
+          created_at?: string
+          destination_path?: string | null
+          destination_public_url?: string | null
+          drive_file_id?: string | null
+          drive_file_name: string
+          drive_mime_type?: string | null
+          drive_size_bytes?: number | null
+          id?: string
+          import_id?: string | null
+          match_confidence?: string
+          match_type?: string
+          matched_stadium_id?: string | null
+          matched_stadium_name?: string | null
+          matched_stadium_slug?: string | null
+          normalized_name?: string | null
+          notes?: string | null
+          previous_image_url?: string | null
+          would_overwrite?: boolean
+        }
+        Update: {
+          action?: string
+          candidates?: Json
+          created_at?: string
+          destination_path?: string | null
+          destination_public_url?: string | null
+          drive_file_id?: string | null
+          drive_file_name?: string
+          drive_mime_type?: string | null
+          drive_size_bytes?: number | null
+          id?: string
+          import_id?: string | null
+          match_confidence?: string
+          match_type?: string
+          matched_stadium_id?: string | null
+          matched_stadium_name?: string | null
+          matched_stadium_slug?: string | null
+          normalized_name?: string | null
+          notes?: string | null
+          previous_image_url?: string | null
+          would_overwrite?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stadium_media_history_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "stadium_media_imports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stadium_media_imports: {
+        Row: {
+          ambiguous_count: number
+          created_at: string
+          dry_run: boolean
+          duplicate_count: number
+          error_message: string | null
+          finished_at: string | null
+          folder_id: string | null
+          id: string
+          imported_count: number
+          matched_count: number
+          report: Json
+          source: string
+          status: string
+          total_files: number
+          triggered_by: string | null
+          unmatched_count: number
+          would_overwrite_count: number
+        }
+        Insert: {
+          ambiguous_count?: number
+          created_at?: string
+          dry_run?: boolean
+          duplicate_count?: number
+          error_message?: string | null
+          finished_at?: string | null
+          folder_id?: string | null
+          id?: string
+          imported_count?: number
+          matched_count?: number
+          report?: Json
+          source?: string
+          status?: string
+          total_files?: number
+          triggered_by?: string | null
+          unmatched_count?: number
+          would_overwrite_count?: number
+        }
+        Update: {
+          ambiguous_count?: number
+          created_at?: string
+          dry_run?: boolean
+          duplicate_count?: number
+          error_message?: string | null
+          finished_at?: string | null
+          folder_id?: string | null
+          id?: string
+          imported_count?: number
+          matched_count?: number
+          report?: Json
+          source?: string
+          status?: string
+          total_files?: number
+          triggered_by?: string | null
+          unmatched_count?: number
+          would_overwrite_count?: number
+        }
+        Relationships: []
+      }
       stadium_reviews: {
         Row: {
           accessibility: number
