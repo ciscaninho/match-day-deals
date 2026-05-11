@@ -979,6 +979,45 @@ const ReviewCard = ({ row, prod, safety, duplicates, clubs, busy, editing, setEd
           </div>
         )}
 
+        {/* Club Relationships — always editable */}
+        <ClubRelationshipsPanel
+          row={row}
+          prod={prod}
+          clubs={clubs}
+          clubList={clubList}
+          setClubList={(v) => { setClubList(v); setClubsDirty(true); }}
+          primaryClub={primaryClub}
+          setPrimaryClub={(v) => { setPrimaryClub(v); setClubsDirty(true); }}
+          flags={flags}
+          setFlags={(v) => { setFlags(v); setClubsDirty(true); }}
+          clubSearch={clubSearch}
+          setClubSearch={setClubSearch}
+          dirty={clubsDirty}
+          busy={busy}
+          onSave={async () => {
+            await onUpdate({
+              club_names: clubList,
+              primary_club: primaryClub || null,
+              is_historic: flags.is_historic,
+              is_inactive: flags.is_inactive,
+              is_multi_club: flags.is_multi_club || clubList.length > 1,
+              is_national_team_stadium: flags.is_national_team_stadium,
+            });
+            setClubsDirty(false);
+          }}
+          onReset={() => {
+            setClubList(row.club_names ?? []);
+            setPrimaryClub(row.primary_club ?? (row.club_names?.[0] ?? ""));
+            setFlags({
+              is_historic: row.is_historic,
+              is_inactive: row.is_inactive,
+              is_multi_club: row.is_multi_club || (row.club_names?.length ?? 0) > 1,
+              is_national_team_stadium: row.is_national_team_stadium,
+            });
+            setClubsDirty(false);
+          }}
+        />
+
         {/* Metadata / edit */}
         {!editing ? (
           <div className="space-y-2 text-xs">
@@ -992,14 +1031,6 @@ const ReviewCard = ({ row, prod, safety, duplicates, clubs, busy, editing, setEd
                 <div className="text-muted-foreground mb-1">Aliases</div>
                 <div className="flex flex-wrap gap-1">
                   {row.aliases.map((a) => <Badge key={a} variant="secondary" className="text-[10px]">{a}</Badge>)}
-                </div>
-              </div>
-            )}
-            {row.club_names?.length > 0 && (
-              <div>
-                <div className="text-muted-foreground mb-1">Clubs</div>
-                <div className="flex flex-wrap gap-1">
-                  {row.club_names.map((c) => <Badge key={c} className="text-[10px]">{c}</Badge>)}
                 </div>
               </div>
             )}
