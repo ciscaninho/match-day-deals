@@ -125,6 +125,8 @@ const App = () => (
                   </RequireAdmin>
                 }
               />
+              <Route path="/app/admin/stadium-map-review" element={<StadiumMapReviewPage />} />
+              <Route path="/admin/stadium-map-review" element={<StadiumMapReviewPage />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
