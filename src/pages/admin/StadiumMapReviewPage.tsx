@@ -693,6 +693,7 @@ interface ReviewCardProps {
   prod: ProductionStadium | null;
   safety: SafetyAssessment;
   duplicates: { row: StagingRow; distanceKm: number; similarity: number }[];
+  clubs: ClubProfile[];
   busy: boolean;
   editing: boolean;
   setEditing: (v: boolean) => void;
@@ -704,7 +705,7 @@ interface ReviewCardProps {
   onOpenFullscreen: (src: string) => void;
 }
 
-const ReviewCard = ({ row, prod, safety, duplicates, busy, editing, setEditing, onUpdate, onJumpTo, onPrev, onNext, indexLabel, onOpenFullscreen }: ReviewCardProps) => {
+const ReviewCard = ({ row, prod, safety, duplicates, clubs, busy, editing, setEditing, onUpdate, onJumpTo, onPrev, onNext, indexLabel, onOpenFullscreen }: ReviewCardProps) => {
   const [form, setForm] = useState({
     canonical_name: row.canonical_name,
     city: row.city ?? "",
@@ -715,6 +716,31 @@ const ReviewCard = ({ row, prod, safety, duplicates, busy, editing, setEditing, 
     longitude: row.longitude?.toString() ?? "",
     review_notes: row.review_notes ?? "",
   });
+
+  // Club relationship state (live editable, separate from text form)
+  const [clubList, setClubList] = useState<string[]>(row.club_names ?? []);
+  const [primaryClub, setPrimaryClub] = useState<string>(row.primary_club ?? (row.club_names?.[0] ?? ""));
+  const [flags, setFlags] = useState({
+    is_historic: row.is_historic,
+    is_inactive: row.is_inactive,
+    is_multi_club: row.is_multi_club || (row.club_names?.length ?? 0) > 1,
+    is_national_team_stadium: row.is_national_team_stadium,
+  });
+  const [clubSearch, setClubSearch] = useState("");
+  const [clubsDirty, setClubsDirty] = useState(false);
+
+  useEffect(() => {
+    setClubList(row.club_names ?? []);
+    setPrimaryClub(row.primary_club ?? (row.club_names?.[0] ?? ""));
+    setFlags({
+      is_historic: row.is_historic,
+      is_inactive: row.is_inactive,
+      is_multi_club: row.is_multi_club || (row.club_names?.length ?? 0) > 1,
+      is_national_team_stadium: row.is_national_team_stadium,
+    });
+    setClubSearch("");
+    setClubsDirty(false);
+  }, [row.id]);
 
   useEffect(() => {
     setForm({
