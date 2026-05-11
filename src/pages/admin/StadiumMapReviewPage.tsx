@@ -617,6 +617,7 @@ const StadiumMapReviewPageInner = () => {
               prod={selectedProd}
               safety={safety}
               duplicates={duplicates}
+              clubs={clubs}
               busy={busy}
               editing={editing}
               setEditing={setEditing}
