@@ -292,10 +292,16 @@ const WebsiteHomePage = () => {
       {/* Stadium experience: top fan reviews, most atmospheric grounds, recent visits */}
       <StadiumSocialProof variant="light" />
 
-      <section className="py-16 md:py-24 bg-[#2C3E50] text-white relative overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-[#2ECC71]/20 blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-[#2ECC71]/10 blur-3xl" />
-        <div className="relative max-w-6xl mx-auto px-5 grid md:grid-cols-2 gap-12 items-center">
+      <section className="relative overflow-hidden bg-[#0F1A2E] text-white">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-30"
+          style={{
+            background:
+              "radial-gradient(ellipse at top left, rgba(46,204,113,0.4), transparent 55%), radial-gradient(ellipse at bottom right, rgba(52,152,219,0.3), transparent 55%)",
+          }}
+        />
+        <div className={`relative ${wideContainerCls} py-20 sm:py-24 md:py-28 grid md:grid-cols-2 gap-12 items-center`}>
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-[#2ECC71]/30 bg-[#2ECC71]/10 px-3 py-1 text-xs font-bold text-[#2ECC71] mb-5">
               <Bell className="w-3.5 h-3.5" /> {t("wh.app.badge")}
