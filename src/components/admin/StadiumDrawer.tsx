@@ -93,7 +93,7 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
     if (!form || !slug) return;
     setSaving(true);
     try {
-      const { error } = await supabase
+      const { data: rows, error } = await supabase
         .from("stadiums")
         .update({
           stadium_name: form.stadium_name,
@@ -106,14 +106,23 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
           hero_image_url: form.hero_image_url,
           description: form.description,
         })
-        .eq("slug", slug);
-      if (error) throw error;
+        .eq("slug", slug)
+        .select("slug");
+      if (error) {
+        console.error("[StadiumDrawer] save error", error);
+        throw error;
+      }
+      if (!rows || rows.length === 0) {
+        console.warn("[StadiumDrawer] save returned 0 rows — likely RLS denied", { slug });
+        throw new Error(t("admin.drawer.no_rows_affected"));
+      }
       toast.success(t("admin.drawer.saved"));
       onSaved?.(form);
       qc.invalidateQueries({ queryKey: ["admin-stadiums-v2"] });
       qc.invalidateQueries({ queryKey: ["admin-world-map"] });
     } catch (e: any) {
-      toast.error(e?.message || t("admin.drawer.save_error"));
+      const msg = e?.message || e?.error_description || t("admin.drawer.save_error");
+      toast.error(msg, { duration: 6000 });
     } finally {
       setSaving(false);
     }
@@ -131,23 +140,62 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
       update("hero_image_url", data.publicUrl);
       toast.success(t("admin.drawer.image_uploaded"));
     } catch (e: any) {
-      toast.error(e?.message || t("admin.drawer.upload_error"));
+      console.error("[StadiumDrawer] upload error", e);
+      toast.error(e?.message || t("admin.drawer.upload_error"), { duration: 6000 });
     } finally {
       setUploading(false);
     }
   };
 
+  const [pendingClub, setPendingClub] = useState<string | null>(null);
+
   const handleAttachClub = async (clubSlug: string) => {
     if (!slug) return;
-    const { error } = await supabase.from("club_ticketing_profiles").update({ stadium_slug: slug }).eq("slug", clubSlug);
-    if (error) toast.error(error.message);
-    else { toast.success(t("admin.drawer.club_attached")); refetchRelations(); }
+    setPendingClub(clubSlug);
+    try {
+      const { data: rows, error } = await supabase
+        .from("club_ticketing_profiles")
+        .update({ stadium_slug: slug })
+        .eq("slug", clubSlug)
+        .select("slug,stadium_slug");
+      if (error) {
+        console.error("[StadiumDrawer] attach error", error);
+        throw error;
+      }
+      if (!rows || rows.length === 0) {
+        throw new Error(t("admin.drawer.no_rows_affected"));
+      }
+      toast.success(t("admin.drawer.club_attached"));
+      await refetchRelations();
+      qc.invalidateQueries({ queryKey: ["admin-club-search"] });
+    } catch (e: any) {
+      toast.error(e?.message || "Attach failed", { duration: 6000 });
+    } finally {
+      setPendingClub(null);
+    }
   };
 
   const handleDetachClub = async (clubSlug: string) => {
-    const { error } = await supabase.from("club_ticketing_profiles").update({ stadium_slug: null }).eq("slug", clubSlug);
-    if (error) toast.error(error.message);
-    else { toast.success(t("admin.drawer.club_detached")); refetchRelations(); }
+    setPendingClub(clubSlug);
+    try {
+      const { data: rows, error } = await supabase
+        .from("club_ticketing_profiles")
+        .update({ stadium_slug: null })
+        .eq("slug", clubSlug)
+        .select("slug");
+      if (error) {
+        console.error("[StadiumDrawer] detach error", error);
+        throw error;
+      }
+      if (!rows || rows.length === 0) throw new Error(t("admin.drawer.no_rows_affected"));
+      toast.success(t("admin.drawer.club_detached"));
+      await refetchRelations();
+      qc.invalidateQueries({ queryKey: ["admin-club-search"] });
+    } catch (e: any) {
+      toast.error(e?.message || "Detach failed", { duration: 6000 });
+    } finally {
+      setPendingClub(null);
+    }
   };
 
   const hasCoords = !!(form?.latitude && form?.longitude);
