@@ -89,6 +89,10 @@ const en = {
   "admin.drawer.club_attached": "Club attached",
   "admin.drawer.club_detached": "Club detached",
   "admin.drawer.currently_at": "currently at",
+  "admin.drawer.saving": "Saving…",
+  "admin.drawer.no_changes": "No changes",
+  "admin.drawer.no_rows_affected": "No rows updated. You may not have admin permission for this table.",
+  "admin.drawer.clubs_autosave_hint": "Club attachments save instantly — no need to press Save.",
 };
 
 const fr: Record<keyof typeof en, string> = {
