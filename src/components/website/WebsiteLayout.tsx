@@ -97,14 +97,14 @@ export const WebsiteLayout = ({ children }: Props) => {
 
       <main className="flex-1">{children}</main>
 
-      <footer dir={dir} className="bg-[#2C3E50] text-white/80 mt-16">
+      <footer dir={dir} className="bg-gradient-to-b from-[#2C3E50] to-[#1A2533] text-white/80">
         {/* Trust strip */}
-        <div className="bg-[#0F1A2E] border-b border-white/5">
-          <div className="max-w-6xl mx-auto px-5 py-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] sm:text-xs text-white/60 text-center">
-            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.compare") || "We compare official ticket providers"}</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.no_sale") || "We do not sell tickets directly"}</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.affiliate") || "Some outbound links may earn us a commission"}</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.gdpr") || "GDPR-compliant"}</span>
+        <div className="bg-[#0B1424]/80 border-b border-white/5 backdrop-blur-sm">
+          <div className="max-w-6xl mx-auto px-5 py-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[11px] sm:text-[11.5px] text-white/55 text-center">
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.compare")}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.no_sale")}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.affiliate")}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.gdpr")}</span>
           </div>
         </div>
 
