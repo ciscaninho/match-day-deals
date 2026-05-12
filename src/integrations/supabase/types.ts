@@ -1375,6 +1375,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      merge_stadium_records: {
+        Args: {
+          p_canonical_slug: string
+          p_duplicate_slug: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
