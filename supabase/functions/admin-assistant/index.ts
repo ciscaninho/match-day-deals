@@ -1,4 +1,4 @@
-// Admin AI Copilot — moderation assistant with tool calling
+// Admin AI Copilot — moderation assistant with tool calling, thread memory, and proposed actions
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -6,121 +6,58 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `You are the Football Operations Copilot for Foot Ticket Finder, an admin assistant helping moderators of a premium football travel & ticketing platform.
+const SYSTEM_PROMPT = `You are the Football Operations Copilot for Foot Ticket Finder, an admin assistant for moderators of a premium football travel & ticketing platform.
 
 You help with:
-- Detecting duplicate stadiums (similar names, same city)
-- Finding entities (clubs, stadiums, matches, leagues)
-- Explaining data conflicts (missing coordinates, missing images, capacity mismatches)
-- Suggesting concrete moderation fixes
-- Surfacing relationships between clubs ↔ stadiums ↔ matches ↔ leagues ↔ ticketing
+- Detecting duplicates, conflicts and missing data
+- Finding clubs / stadiums / matches / leagues
+- Surfacing relationships
+- Proposing concrete moderation fixes via the propose_* tools
 
-Style:
-- Be concise, structured, use markdown (bullets, bold).
-- When you mention an entity, include its slug in backticks so admins can navigate.
-- Always call tools before making factual claims about the database.
-- Reply in the language the admin uses (English or French).`;
+Strict rules:
+- ALWAYS call tools before making factual claims about the database.
+- When the admin asks you to change data, do NOT pretend to do it. Call the matching propose_* tool, which creates a proposed action the admin will Approve or Reject in the UI.
+- Reference proposed actions by their id in backticks so the UI can render them.
+- Reply in the language used by the admin (English or French).
+- Be concise, structured markdown.`;
 
-const TOOLS = [
-  {
-    type: "function",
-    function: {
-      name: "search_stadiums",
-      description: "Search stadiums by name/city/country (case-insensitive).",
-      parameters: {
-        type: "object",
-        properties: { query: { type: "string" }, limit: { type: "number", default: 10 } },
-        required: ["query"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "search_clubs",
-      description: "Search clubs by name or slug.",
-      parameters: {
-        type: "object",
-        properties: { query: { type: "string" }, limit: { type: "number", default: 10 } },
-        required: ["query"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "find_duplicate_stadiums",
-      description: "Find stadiums that look like duplicates (same city + similar normalized name).",
-      parameters: { type: "object", properties: { limit: { type: "number", default: 20 } } },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "find_data_gaps",
-      description: "Find stadiums missing key data: coordinates, image, capacity, or description.",
-      parameters: {
-        type: "object",
-        properties: {
-          missing: { type: "string", enum: ["coords", "image", "capacity", "description", "any"], default: "any" },
-          limit: { type: "number", default: 20 },
-        },
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "inspect_stadium",
-      description: "Get full details for a stadium by slug, including related clubs and upcoming matches.",
-      parameters: { type: "object", properties: { slug: { type: "string" } }, required: ["slug"] },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "upcoming_matches",
-      description: "List upcoming matches, optionally filtered by competition or city.",
-      parameters: {
-        type: "object",
-        properties: {
-          competition: { type: "string" },
-          city: { type: "string" },
-          limit: { type: "number", default: 15 },
-        },
-      },
-    },
-  },
+const READ_TOOLS = [
+  { type: "function", function: { name: "search_stadiums", description: "Search stadiums by name/city/country.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "number", default: 10 } }, required: ["query"] } } },
+  { type: "function", function: { name: "search_clubs", description: "Search clubs by name or slug.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "number", default: 10 } }, required: ["query"] } } },
+  { type: "function", function: { name: "find_duplicate_stadiums", description: "Find stadiums that look like duplicates.", parameters: { type: "object", properties: { limit: { type: "number", default: 20 } } } } },
+  { type: "function", function: { name: "find_data_gaps", description: "Find stadiums missing key data.", parameters: { type: "object", properties: { missing: { type: "string", enum: ["coords", "image", "capacity", "description", "any"], default: "any" }, limit: { type: "number", default: 20 } } } } },
+  { type: "function", function: { name: "inspect_stadium", description: "Get full stadium details + clubs + upcoming matches.", parameters: { type: "object", properties: { slug: { type: "string" } }, required: ["slug"] } } },
+  { type: "function", function: { name: "upcoming_matches", description: "List upcoming matches.", parameters: { type: "object", properties: { competition: { type: "string" }, city: { type: "string" }, limit: { type: "number", default: 15 } } } } },
 ];
 
-async function runTool(name: string, args: any, supabase: any) {
+const WRITE_TOOLS = [
+  { type: "function", function: { name: "propose_stadium_update", description: "Propose updating fields on a stadium. Allowed fields: city, country, league, capacity, latitude, longitude, hero_image_url, description.", parameters: { type: "object", properties: { slug: { type: "string" }, fields: { type: "object" }, reason: { type: "string" } }, required: ["slug", "fields"] } } },
+  { type: "function", function: { name: "propose_attach_club", description: "Propose attaching a club to a stadium (sets stadium_slug on the club ticketing profile).", parameters: { type: "object", properties: { club_slug: { type: "string" }, stadium_slug: { type: "string" }, reason: { type: "string" } }, required: ["club_slug", "stadium_slug"] } } },
+  { type: "function", function: { name: "propose_detach_club", description: "Propose detaching a club from its stadium.", parameters: { type: "object", properties: { club_slug: { type: "string" }, reason: { type: "string" } }, required: ["club_slug"] } } },
+];
+
+const ALLOWED_STADIUM_FIELDS = new Set(["city", "country", "league", "capacity", "latitude", "longitude", "hero_image_url", "description"]);
+
+async function runReadTool(name: string, args: any, supabase: any) {
   switch (name) {
     case "search_stadiums": {
       const q = String(args.query || "").trim();
-      const limit = Math.min(args.limit ?? 10, 25);
-      const { data } = await supabase
-        .from("stadiums")
+      const { data } = await supabase.from("stadiums")
         .select("slug,stadium_name,city,country,league,capacity,latitude,longitude,hero_image_url")
         .or(`stadium_name.ilike.%${q}%,city.ilike.%${q}%,country.ilike.%${q}%`)
-        .limit(limit);
+        .limit(Math.min(args.limit ?? 10, 25));
       return data || [];
     }
     case "search_clubs": {
       const q = String(args.query || "").trim();
-      const limit = Math.min(args.limit ?? 10, 25);
-      const { data } = await supabase
-        .from("club_ticketing_profiles")
+      const { data } = await supabase.from("club_ticketing_profiles")
         .select("slug,club_name,short_name,league,country,city,stadium_slug,logo_url")
         .or(`club_name.ilike.%${q}%,slug.ilike.%${q}%,short_name.ilike.%${q}%`)
-        .limit(limit);
+        .limit(Math.min(args.limit ?? 10, 25));
       return data || [];
     }
     case "find_duplicate_stadiums": {
-      const limit = Math.min(args.limit ?? 20, 50);
-      const { data } = await supabase
-        .from("stadiums")
-        .select("slug,stadium_name,city,country")
-        .limit(2000);
+      const { data } = await supabase.from("stadiums").select("slug,stadium_name,city,country").limit(2000);
       if (!data) return [];
       const norm = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
       const groups = new Map<string, any[]>();
@@ -129,48 +66,39 @@ async function runTool(name: string, args: any, supabase: any) {
         if (!groups.has(k)) groups.set(k, []);
         groups.get(k)!.push(s);
       }
-      return Array.from(groups.values()).filter((g) => g.length > 1).slice(0, limit);
+      return Array.from(groups.values()).filter((g) => g.length > 1).slice(0, Math.min(args.limit ?? 20, 50));
     }
     case "find_data_gaps": {
       const missing = args.missing || "any";
       const limit = Math.min(args.limit ?? 20, 50);
-      let q = supabase.from("stadiums").select("slug,stadium_name,city,country,latitude,longitude,hero_image_url,capacity,description").limit(limit * 3);
-      const { data } = await q;
+      const { data } = await supabase.from("stadiums")
+        .select("slug,stadium_name,city,country,latitude,longitude,hero_image_url,capacity,description").limit(limit * 3);
       if (!data) return [];
-      const gaps = data.filter((s: any) => {
+      return data.filter((s: any) => {
         if (missing === "coords") return !s.latitude || !s.longitude;
         if (missing === "image") return !s.hero_image_url;
         if (missing === "capacity") return !s.capacity;
         if (missing === "description") return !s.description;
         return !s.latitude || !s.longitude || !s.hero_image_url || !s.capacity;
-      });
-      return gaps.slice(0, limit);
+      }).slice(0, limit);
     }
     case "inspect_stadium": {
       const slug = String(args.slug || "");
       const { data: stadium } = await supabase.from("stadiums").select("*").eq("slug", slug).maybeSingle();
       if (!stadium) return { error: "not_found", slug };
-      const { data: clubs } = await supabase
-        .from("club_ticketing_profiles")
-        .select("slug,club_name,short_name,logo_url,league")
-        .eq("stadium_slug", slug);
-      const { data: matches } = await supabase
-        .from("matches")
+      const { data: clubs } = await supabase.from("club_ticketing_profiles")
+        .select("slug,club_name,short_name,logo_url,league").eq("stadium_slug", slug);
+      const { data: matches } = await supabase.from("matches")
         .select("id,home_team,away_team,competition,date,ticket_status")
         .ilike("stadium", `%${stadium.stadium_name}%`)
-        .gte("date", new Date().toISOString())
-        .order("date")
-        .limit(10);
+        .gte("date", new Date().toISOString()).order("date").limit(10);
       return { stadium, clubs: clubs || [], upcoming_matches: matches || [] };
     }
     case "upcoming_matches": {
       const limit = Math.min(args.limit ?? 15, 30);
-      let q = supabase
-        .from("matches")
+      let q = supabase.from("matches")
         .select("id,home_team,away_team,competition,date,stadium,city,ticket_status")
-        .gte("date", new Date().toISOString())
-        .order("date", { ascending: true })
-        .limit(limit);
+        .gte("date", new Date().toISOString()).order("date", { ascending: true }).limit(limit);
       if (args.competition) q = q.ilike("competition", `%${args.competition}%`);
       if (args.city) q = q.ilike("city", `%${args.city}%`);
       const { data } = await q;
@@ -180,43 +108,68 @@ async function runTool(name: string, args: any, supabase: any) {
   return { error: "unknown_tool", name };
 }
 
+async function proposeAction(kind: string, payload: any, preview: any, supabase: any, userId: string, threadId: string | null) {
+  const { data, error } = await supabase.from("admin_actions").insert({
+    kind, payload, preview, status: "proposed", created_by: userId, thread_id: threadId,
+  }).select("id,kind,payload,preview,status").single();
+  if (error) return { error: error.message };
+  return { proposed_action: data };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-
   try {
     const authHeader = req.headers.get("Authorization") || "";
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnon = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseAnon, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
     const { data: userData } = await supabase.auth.getUser();
-    if (!userData?.user) {
-      return new Response(JSON.stringify({ error: "unauthenticated" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    if (!userData?.user) return new Response(JSON.stringify({ error: "unauthenticated" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!isAdmin) return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    const userId = userData.user.id;
+    const body = await req.json();
+    let { thread_id, message, messages } = body as { thread_id?: string | null; message?: string; messages?: any[] };
+
+    // Ensure thread exists (create on first user message)
+    if (!thread_id && message) {
+      const title = message.slice(0, 60);
+      const { data: t } = await supabase.from("admin_assistant_threads").insert({ user_id: userId, title }).select("id").single();
+      thread_id = t?.id ?? null;
     }
 
-    const { messages = [] } = await req.json();
+    // Load history if thread provided and no messages array supplied
+    let chatHistory: any[] = [];
+    if (thread_id && (!messages || messages.length === 0)) {
+      const { data: rows } = await supabase.from("admin_assistant_messages")
+        .select("role,content").eq("thread_id", thread_id).order("created_at").limit(60);
+      chatHistory = (rows || []).filter((r: any) => r.role === "user" || r.role === "assistant");
+    } else if (messages) {
+      chatHistory = messages;
+    }
+
+    if (message) {
+      chatHistory.push({ role: "user", content: message });
+      if (thread_id) await supabase.from("admin_assistant_messages").insert({ thread_id, role: "user", content: message });
+    }
+
     const apiKey = Deno.env.get("LOVABLE_API_KEY")!;
+    const chatMessages: any[] = [{ role: "system", content: SYSTEM_PROMPT }, ...chatHistory];
+    const proposedActions: any[] = [];
 
-    const chatMessages: any[] = [{ role: "system", content: SYSTEM_PROMPT }, ...messages];
-
-    // Tool calling loop (max 4 iterations)
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
       const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           messages: chatMessages,
-          tools: TOOLS,
+          tools: [...READ_TOOLS, ...WRITE_TOOLS],
         }),
       });
-
       if (!resp.ok) {
         const txt = await resp.text();
         if (resp.status === 429) return new Response(JSON.stringify({ error: "rate_limited" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -224,7 +177,6 @@ Deno.serve(async (req) => {
         console.error("AI gateway error", resp.status, txt);
         return new Response(JSON.stringify({ error: "ai_error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-
       const json = await resp.json();
       const msg = json.choices?.[0]?.message;
       if (!msg) break;
@@ -232,22 +184,45 @@ Deno.serve(async (req) => {
       if (msg.tool_calls?.length) {
         chatMessages.push(msg);
         for (const call of msg.tool_calls) {
-          let args = {};
+          let args: any = {};
           try { args = JSON.parse(call.function?.arguments || "{}"); } catch { /* noop */ }
-          const result = await runTool(call.function.name, args, supabase);
-          chatMessages.push({
-            role: "tool",
-            tool_call_id: call.id,
-            content: JSON.stringify(result).slice(0, 12000),
-          });
+          const fname = call.function.name;
+          let result: any;
+          if (fname === "propose_stadium_update") {
+            const fields: any = {};
+            for (const [k, v] of Object.entries(args.fields || {})) {
+              if (ALLOWED_STADIUM_FIELDS.has(k)) fields[k] = v;
+            }
+            const { data: stadium } = await supabase.from("stadiums").select("slug,stadium_name,city,country").eq("slug", args.slug).maybeSingle();
+            const preview = { stadium, fields, reason: args.reason };
+            result = await proposeAction("stadium_update", { slug: args.slug, fields }, preview, supabase, userId, thread_id);
+            if (result.proposed_action) proposedActions.push(result.proposed_action);
+          } else if (fname === "propose_attach_club") {
+            const { data: club } = await supabase.from("club_ticketing_profiles").select("slug,club_name,logo_url").eq("slug", args.club_slug).maybeSingle();
+            const { data: stadium } = await supabase.from("stadiums").select("slug,stadium_name,city").eq("slug", args.stadium_slug).maybeSingle();
+            result = await proposeAction("attach_club_to_stadium", { club_slug: args.club_slug, stadium_slug: args.stadium_slug }, { club, stadium, reason: args.reason }, supabase, userId, thread_id);
+            if (result.proposed_action) proposedActions.push(result.proposed_action);
+          } else if (fname === "propose_detach_club") {
+            const { data: club } = await supabase.from("club_ticketing_profiles").select("slug,club_name,logo_url,stadium_slug").eq("slug", args.club_slug).maybeSingle();
+            result = await proposeAction("detach_club_from_stadium", { club_slug: args.club_slug }, { club, reason: args.reason }, supabase, userId, thread_id);
+            if (result.proposed_action) proposedActions.push(result.proposed_action);
+          } else {
+            result = await runReadTool(fname, args, supabase);
+          }
+          chatMessages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(result).slice(0, 12000) });
         }
         continue;
       }
 
-      return new Response(JSON.stringify({ reply: msg.content || "" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const reply = msg.content || "";
+      if (thread_id) {
+        await supabase.from("admin_assistant_messages").insert({ thread_id, role: "assistant", content: reply });
+        await supabase.from("admin_assistant_threads").update({ updated_at: new Date().toISOString() }).eq("id", thread_id);
+      }
+      return new Response(JSON.stringify({ reply, thread_id, proposed_actions: proposedActions }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ reply: "I couldn't complete that reasoning loop. Try a more specific question." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ reply: "I couldn't complete that reasoning loop.", thread_id, proposed_actions: proposedActions }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     console.error("admin-assistant error", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "unknown" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
