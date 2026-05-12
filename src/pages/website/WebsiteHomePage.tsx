@@ -209,8 +209,8 @@ const WebsiteHomePage = () => {
       </PageSection>
 
       {/* LIVE MATCH EXAMPLES */}
-      <section className="py-16 md:py-20 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-5">
+      <PageSection tone="slate" width="wide">
+        <div>
           <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">{t("wh.live.eyebrow")}</span>
