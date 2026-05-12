@@ -6,20 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { StadiumDrawer, type StadiumDrawerRow } from "@/components/admin/StadiumDrawer";
 
-type StadiumRow = {
-  slug: string;
-  stadium_name: string;
-  city: string | null;
-  country: string | null;
-  league: string | null;
-  capacity: number | null;
-  latitude: number | null;
-  longitude: number | null;
-  hero_image_url: string | null;
-  thumbnail_image_url: string | null;
-  clubs: string[] | null;
-  description: string | null;
-};
+type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null };
 
 const StatusPill = ({ ok, label }: { ok: boolean; label: string }) => (
   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${ok ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
