@@ -27,36 +27,69 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 
 // --- Static catalogs (re-used from prior onboarding) -------------------------
+// Logos served from api-sports media CDN (stable, public).
+const teamLogo = (id: number) => `https://media.api-sports.io/football/teams/${id}.png`;
+const leagueLogo = (id: number) => `https://media.api-sports.io/football/leagues/${id}.png`;
+
 const TEAMS = [
-  { id: "real-madrid", name: "Real Madrid", emoji: "👑", league: "La Liga" },
-  { id: "fc-barcelona", name: "FC Barcelona", emoji: "🔵", league: "La Liga" },
-  { id: "atletico-madrid", name: "Atlético Madrid", emoji: "🔴", league: "La Liga" },
-  { id: "liverpool", name: "Liverpool", emoji: "🔴", league: "Premier League" },
-  { id: "manchester-united", name: "Manchester United", emoji: "🔴", league: "Premier League" },
-  { id: "manchester-city", name: "Manchester City", emoji: "🔵", league: "Premier League" },
-  { id: "arsenal", name: "Arsenal", emoji: "🔴", league: "Premier League" },
-  { id: "chelsea", name: "Chelsea", emoji: "🔵", league: "Premier League" },
-  { id: "tottenham", name: "Tottenham", emoji: "⚪", league: "Premier League" },
-  { id: "psg", name: "Paris Saint-Germain", emoji: "🔵", league: "Ligue 1" },
-  { id: "marseille", name: "Marseille", emoji: "🔵", league: "Ligue 1" },
-  { id: "ac-milan", name: "AC Milan", emoji: "🔴", league: "Serie A" },
-  { id: "inter-milan", name: "Inter Milan", emoji: "🔵", league: "Serie A" },
-  { id: "juventus", name: "Juventus", emoji: "⚫", league: "Serie A" },
-  { id: "napoli", name: "Napoli", emoji: "🔵", league: "Serie A" },
-  { id: "bayern-munich", name: "Bayern Munich", emoji: "🔴", league: "Bundesliga" },
-  { id: "dortmund", name: "Borussia Dortmund", emoji: "🟡", league: "Bundesliga" },
+  { id: "real-madrid", name: "Real Madrid", logo: teamLogo(541), fallback: "RMA", league: "La Liga" },
+  { id: "fc-barcelona", name: "FC Barcelona", logo: teamLogo(529), fallback: "FCB", league: "La Liga" },
+  { id: "atletico-madrid", name: "Atlético Madrid", logo: teamLogo(530), fallback: "ATM", league: "La Liga" },
+  { id: "liverpool", name: "Liverpool", logo: teamLogo(40), fallback: "LIV", league: "Premier League" },
+  { id: "manchester-united", name: "Manchester United", logo: teamLogo(33), fallback: "MUN", league: "Premier League" },
+  { id: "manchester-city", name: "Manchester City", logo: teamLogo(50), fallback: "MCI", league: "Premier League" },
+  { id: "arsenal", name: "Arsenal", logo: teamLogo(42), fallback: "ARS", league: "Premier League" },
+  { id: "chelsea", name: "Chelsea", logo: teamLogo(49), fallback: "CHE", league: "Premier League" },
+  { id: "tottenham", name: "Tottenham", logo: teamLogo(47), fallback: "TOT", league: "Premier League" },
+  { id: "psg", name: "Paris Saint-Germain", logo: teamLogo(85), fallback: "PSG", league: "Ligue 1" },
+  { id: "marseille", name: "Marseille", logo: teamLogo(81), fallback: "OM", league: "Ligue 1" },
+  { id: "ac-milan", name: "AC Milan", logo: teamLogo(489), fallback: "MIL", league: "Serie A" },
+  { id: "inter-milan", name: "Inter Milan", logo: teamLogo(505), fallback: "INT", league: "Serie A" },
+  { id: "juventus", name: "Juventus", logo: teamLogo(496), fallback: "JUV", league: "Serie A" },
+  { id: "napoli", name: "Napoli", logo: teamLogo(492), fallback: "NAP", league: "Serie A" },
+  { id: "bayern-munich", name: "Bayern Munich", logo: teamLogo(157), fallback: "FCB", league: "Bundesliga" },
+  { id: "dortmund", name: "Borussia Dortmund", logo: teamLogo(165), fallback: "BVB", league: "Bundesliga" },
 ];
 
 const LEAGUES = [
-  { id: "premier-league", name: "Premier League", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
-  { id: "la-liga", name: "La Liga", flag: "🇪🇸" },
-  { id: "serie-a", name: "Serie A", flag: "🇮🇹" },
-  { id: "bundesliga", name: "Bundesliga", flag: "🇩🇪" },
-  { id: "ligue-1", name: "Ligue 1", flag: "🇫🇷" },
-  { id: "champions-league", name: "Champions League", flag: "⭐" },
-  { id: "europa-league", name: "Europa League", flag: "🏆" },
-  { id: "world-cup", name: "World Cup", flag: "🌍" },
+  { id: "premier-league", name: "Premier League", logo: leagueLogo(39) },
+  { id: "la-liga", name: "La Liga", logo: leagueLogo(140) },
+  { id: "serie-a", name: "Serie A", logo: leagueLogo(135) },
+  { id: "bundesliga", name: "Bundesliga", logo: leagueLogo(78) },
+  { id: "ligue-1", name: "Ligue 1", logo: leagueLogo(61) },
+  { id: "champions-league", name: "Champions League", logo: leagueLogo(2) },
+  { id: "europa-league", name: "Europa League", logo: leagueLogo(3) },
+  { id: "world-cup", name: "World Cup", logo: leagueLogo(1) },
 ];
+
+// Inline logo renderer with graceful fallback to initials/circle.
+const LogoImg = ({ src, alt, fallback, size = 40 }: { src: string; alt: string; fallback: string; size?: number }) => {
+  const [failed, setFailed] = useState(false);
+  if (failed || !src) {
+    return (
+      <div
+        className="rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-[10px] font-extrabold text-white/80"
+        style={{ width: size, height: size }}
+      >
+        {fallback}
+      </div>
+    );
+  }
+  return (
+    <div
+      className="rounded-full bg-white/95 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm"
+      style={{ width: size, height: size }}
+    >
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className="w-full h-full object-contain p-1"
+      />
+    </div>
+  );
+};
 
 const MATCHDAY_STYLES = [
   { id: "ultra", icon: Flame, accent: "from-orange-500 to-rose-600" },
