@@ -3,6 +3,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useEffect } from "react";
 import type { Locale } from "@/i18n/translations";
+import { PageHero, PageSection } from "@/components/layout/Page";
 
 type FaqItem = { q: string; a: string };
 
