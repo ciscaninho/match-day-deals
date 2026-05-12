@@ -83,7 +83,7 @@ export const HeaderAuthButton = () => {
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
             <LogOut className="w-4 h-4 mr-2" />
-            Sign out
+            {t("account.menu.signout") || "Sign out"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
