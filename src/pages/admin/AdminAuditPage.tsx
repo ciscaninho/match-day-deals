@@ -15,7 +15,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export const AdminAuditPage = () => {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const qc = useQueryClient();
   const [pending, setPending] = useState<string | null>(null);
 
@@ -32,7 +32,10 @@ export const AdminAuditPage = () => {
   const run = async (id: string, mode: "execute" | "reject" | "rollback") => {
     setPending(id + mode);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-actions-execute", { body: { action_id: id, mode } });
+      const { data, error } = await supabase.functions.invoke("admin-actions-execute", {
+        body: { action_id: id, mode },
+        headers: { "x-locale": locale },
+      });
       if (error || data?.error) throw new Error(data?.error || error?.message);
       toast.success(t(`admin.audit.${mode}_ok`));
       qc.invalidateQueries({ queryKey: ["admin-actions"] });
@@ -63,7 +66,7 @@ export const AdminAuditPage = () => {
                   <code className="text-xs font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">{a.kind}</code>
                   <span className="text-xs text-slate-500">{new Date(a.created_at).toLocaleString()}</span>
                 </div>
-                <pre className="mt-2 text-xs text-slate-700 bg-slate-50 rounded p-2 overflow-x-auto max-h-40">{JSON.stringify(a.preview || a.payload, null, 2)}</pre>
+                <pre className="mt-2 text-xs text-slate-700 bg-slate-50 rounded p-2 overflow-x-auto max-h-40">{JSON.stringify(a.result || a.preview || a.payload, null, 2)}</pre>
                 {a.error && <p className="text-xs text-red-700 mt-2 font-semibold">{a.error}</p>}
               </div>
               <div className="flex flex-col gap-2 shrink-0">

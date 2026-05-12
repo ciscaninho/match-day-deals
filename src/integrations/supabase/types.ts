@@ -25,6 +25,7 @@ export type Database = {
           kind: string
           payload: Json
           preview: Json
+          result: Json
           status: string
           thread_id: string | null
           undo_payload: Json | null
@@ -39,6 +40,7 @@ export type Database = {
           kind: string
           payload?: Json
           preview?: Json
+          result?: Json
           status?: string
           thread_id?: string | null
           undo_payload?: Json | null
@@ -53,6 +55,7 @@ export type Database = {
           kind?: string
           payload?: Json
           preview?: Json
+          result?: Json
           status?: string
           thread_id?: string | null
           undo_payload?: Json | null
@@ -893,6 +896,11 @@ export type Database = {
       stadiums: {
         Row: {
           accessibility_score: number | null
+          aliases: string[]
+          archived_at: string | null
+          archived_into_slug: string | null
+          archived_into_stadium_id: string | null
+          archived_reason: string | null
           atmosphere_score: number | null
           background_image_url: string | null
           best_sections: string[] | null
@@ -927,6 +935,11 @@ export type Database = {
         }
         Insert: {
           accessibility_score?: number | null
+          aliases?: string[]
+          archived_at?: string | null
+          archived_into_slug?: string | null
+          archived_into_stadium_id?: string | null
+          archived_reason?: string | null
           atmosphere_score?: number | null
           background_image_url?: string | null
           best_sections?: string[] | null
@@ -961,6 +974,11 @@ export type Database = {
         }
         Update: {
           accessibility_score?: number | null
+          aliases?: string[]
+          archived_at?: string | null
+          archived_into_slug?: string | null
+          archived_into_stadium_id?: string | null
+          archived_reason?: string | null
           atmosphere_score?: number | null
           background_image_url?: string | null
           best_sections?: string[] | null
@@ -993,7 +1011,15 @@ export type Database = {
           value_score?: number | null
           vip_available?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stadiums_archived_into_stadium_id_fkey"
+            columns: ["archived_into_stadium_id"]
+            isOneToOne: false
+            referencedRelation: "stadiums"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stadiums_master_staging: {
         Row: {
@@ -1348,6 +1374,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      merge_stadium_records: {
+        Args: {
+          p_canonical_slug: string
+          p_duplicate_slug: string
+          p_reason?: string
+        }
+        Returns: Json
       }
     }
     Enums: {

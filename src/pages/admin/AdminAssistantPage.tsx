@@ -10,7 +10,7 @@ import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 
 type Msg = { id?: string; role: "user" | "assistant"; content: string };
-type Action = { id: string; kind: string; payload: any; preview: any; status: string };
+type Action = { id: string; kind: string; payload: any; preview: any; result?: any; status: string };
 
 const SUGGESTIONS_EN = [
   "Find duplicate stadiums",
@@ -59,7 +59,7 @@ export const AdminAssistantPage = () => {
       .select("id,role,content").eq("thread_id", id).order("created_at");
     setMessages((data || []).filter((m: any) => m.role === "user" || m.role === "assistant") as Msg[]);
     const { data: acts } = await supabase.from("admin_actions")
-      .select("id,kind,payload,preview,status").eq("thread_id", id);
+      .select("id,kind,payload,preview,result,status").eq("thread_id", id);
     const map: Record<string, Action> = {};
     (acts || []).forEach((a: any) => { map[a.id] = a; });
     setActions(map);
@@ -105,12 +105,19 @@ export const AdminAssistantPage = () => {
   const runAction = async (id: string, mode: "execute" | "reject") => {
     setPendingAction(id);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-actions-execute", { body: { action_id: id, mode } });
+      const { data, error } = await supabase.functions.invoke("admin-actions-execute", {
+        body: { action_id: id, mode },
+        headers: { "x-locale": locale },
+      });
       if (error || data?.error) throw new Error(data?.error || error?.message);
-      setActions((p) => ({ ...p, [id]: { ...p[id], status: data.status } }));
+      setActions((p) => ({ ...p, [id]: { ...p[id], status: data.status, result: data.result } }));
+      if (data?.assistant_message) {
+        setMessages((m) => [...m, { role: "assistant", content: data.assistant_message }]);
+      }
       toast.success(mode === "execute" ? t("admin.audit.execute_ok") : t("admin.audit.reject_ok"));
       qc.invalidateQueries({ queryKey: ["admin-stadiums-v2"] });
       qc.invalidateQueries({ queryKey: ["admin-actions"] });
+      qc.invalidateQueries({ queryKey: ["assistant-threads"] });
     } catch (e: any) {
       toast.error(e?.message || t("admin.audit.error"));
     } finally { setPendingAction(null); }
@@ -200,7 +207,7 @@ export const AdminAssistantPage = () => {
                 </div>
                 <span className={`text-[11px] font-bold ${a.status === "executed" ? "text-emerald-700" : a.status === "rejected" ? "text-slate-500" : a.status === "failed" ? "text-red-700" : "text-amber-700"}`}>{a.status}</span>
               </div>
-              <pre className="text-xs text-slate-800 bg-white/60 rounded p-2 overflow-x-auto max-h-40">{JSON.stringify(a.preview || a.payload, null, 2)}</pre>
+              <pre className="text-xs text-slate-800 bg-white/60 rounded p-2 overflow-x-auto max-h-40">{JSON.stringify(a.result || a.preview || a.payload, null, 2)}</pre>
               {a.status === "proposed" && (
                 <div className="flex gap-2 mt-2">
                   <Button size="sm" onClick={() => runAction(a.id, "execute")} disabled={pendingAction === a.id} className="bg-emerald-600 hover:bg-emerald-700 text-white">

@@ -34,6 +34,7 @@ const WRITE_TOOLS = [
   { type: "function", function: { name: "propose_stadium_update", description: "Propose updating fields on a stadium. Allowed fields: city, country, league, capacity, latitude, longitude, hero_image_url, description.", parameters: { type: "object", properties: { slug: { type: "string" }, fields: { type: "object" }, reason: { type: "string" } }, required: ["slug", "fields"] } } },
   { type: "function", function: { name: "propose_attach_club", description: "Propose attaching a club to a stadium (sets stadium_slug on the club ticketing profile).", parameters: { type: "object", properties: { club_slug: { type: "string" }, stadium_slug: { type: "string" }, reason: { type: "string" } }, required: ["club_slug", "stadium_slug"] } } },
   { type: "function", function: { name: "propose_detach_club", description: "Propose detaching a club from its stadium.", parameters: { type: "object", properties: { club_slug: { type: "string" }, reason: { type: "string" } }, required: ["club_slug"] } } },
+  { type: "function", function: { name: "propose_merge_stadiums", description: "Propose merging a duplicate stadium into a canonical stadium. This archives the duplicate, moves linked relations, and preserves aliases.", parameters: { type: "object", properties: { canonical_slug: { type: "string" }, duplicate_slug: { type: "string" }, reason: { type: "string" } }, required: ["canonical_slug", "duplicate_slug"] } } },
 ];
 
 const ALLOWED_STADIUM_FIELDS = new Set(["city", "country", "league", "capacity", "latitude", "longitude", "hero_image_url", "description"]);
@@ -57,7 +58,7 @@ async function runReadTool(name: string, args: any, supabase: any) {
       return data || [];
     }
     case "find_duplicate_stadiums": {
-      const { data } = await supabase.from("stadiums").select("slug,stadium_name,city,country").limit(2000);
+      const { data } = await supabase.from("stadiums").select("slug,stadium_name,city,country,aliases").is("archived_at", null).limit(2000);
       if (!data) return [];
       const norm = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
       const groups = new Map<string, any[]>();
@@ -205,6 +206,18 @@ Deno.serve(async (req) => {
           } else if (fname === "propose_detach_club") {
             const { data: club } = await supabase.from("club_ticketing_profiles").select("slug,club_name,logo_url,stadium_slug").eq("slug", args.club_slug).maybeSingle();
             result = await proposeAction("detach_club_from_stadium", { club_slug: args.club_slug }, { club, reason: args.reason }, supabase, userId, thread_id);
+            if (result.proposed_action) proposedActions.push(result.proposed_action);
+          } else if (fname === "propose_merge_stadiums") {
+            const { data: canonical } = await supabase.from("stadiums").select("id,slug,stadium_name,city,country,aliases,clubs").eq("slug", args.canonical_slug).maybeSingle();
+            const { data: duplicate } = await supabase.from("stadiums").select("id,slug,stadium_name,city,country,aliases,clubs").eq("slug", args.duplicate_slug).maybeSingle();
+            result = await proposeAction(
+              "merge_stadium_duplicate",
+              { canonical_slug: args.canonical_slug, duplicate_slug: args.duplicate_slug, reason: args.reason },
+              { canonical, duplicate, reason: args.reason },
+              supabase,
+              userId,
+              thread_id,
+            );
             if (result.proposed_action) proposedActions.push(result.proposed_action);
           } else {
             result = await runReadTool(fname, args, supabase);
