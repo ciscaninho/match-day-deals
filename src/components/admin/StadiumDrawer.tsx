@@ -389,20 +389,23 @@ function ClubAttachPicker({ excludeSlugs, onAttach, pendingSlug }: { excludeSlug
         <div className="mt-2 space-y-1 max-h-56 overflow-y-auto">
           {isFetching ? <p className="text-xs text-slate-400 p-2">{t("admin.loading")}</p> :
             filtered.length === 0 ? <p className="text-xs text-slate-400 p-2">{t("admin.empty")}</p> :
-            filtered.map((c: any) => (
-              <button key={c.slug} onClick={() => onAttach(c.slug)} className="w-full flex items-center gap-3 p-2 rounded-lg border border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50 transition text-left">
-                <div className="w-7 h-7 rounded bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
-                  {c.logo_url ? <img src={c.logo_url} alt="" className="w-full h-full object-contain" /> : <span className="text-[9px] font-bold text-slate-400">{c.short_name}</span>}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-slate-900 truncate">{c.club_name}</p>
-                  <p className="text-[10px] text-slate-500 truncate">
-                    {c.league} {c.stadium_slug && <span className="text-amber-600">· {t("admin.drawer.currently_at")} {c.stadium_slug}</span>}
-                  </p>
-                </div>
-                <Plus className="w-3.5 h-3.5 text-emerald-600" />
-              </button>
-            ))
+            filtered.map((c: any) => {
+              const busy = pendingSlug === c.slug;
+              return (
+                <button key={c.slug} disabled={busy} onClick={() => onAttach(c.slug)} className="w-full flex items-center gap-3 p-2 rounded-lg border border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50 transition text-left disabled:opacity-50">
+                  <div className="w-7 h-7 rounded bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
+                    {c.logo_url ? <img src={c.logo_url} alt="" className="w-full h-full object-contain" /> : <span className="text-[9px] font-bold text-slate-400">{c.short_name}</span>}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-slate-900 truncate">{c.club_name}</p>
+                    <p className="text-[10px] text-slate-500 truncate">
+                      {c.league} {c.stadium_slug && <span className="text-amber-600">· {t("admin.drawer.currently_at")} {c.stadium_slug}</span>}
+                    </p>
+                  </div>
+                  {busy ? <Loader2 className="w-3.5 h-3.5 text-emerald-600 animate-spin" /> : <Plus className="w-3.5 h-3.5 text-emerald-600" />}
+                </button>
+              );
+            })
           }
         </div>
       )}
