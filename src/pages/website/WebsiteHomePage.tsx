@@ -25,7 +25,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { SmartSearch } from "@/components/SmartSearch";
 import { DreamMatchesRail } from "@/components/home/DreamMatchesRail";
 import { StadiumSocialProof } from "@/components/stadium/StadiumSocialProof";
-// RecommendedSections removed (was: import { RecommendedSections } from "@/components/RecommendedSections";)
+import { PageSection, SectionHeading, wideContainerCls } from "@/components/layout/Page";
 
 const PROVIDERS = ["StubHub", "Viagogo", "Ticketmaster", "Seatpick", "LiveFootballTickets", "OneFootball"];
 
