@@ -93,7 +93,7 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
     if (!form || !slug) return;
     setSaving(true);
     try {
-      const { error } = await supabase
+      const { data: rows, error } = await supabase
         .from("stadiums")
         .update({
           stadium_name: form.stadium_name,
@@ -106,14 +106,23 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
           hero_image_url: form.hero_image_url,
           description: form.description,
         })
-        .eq("slug", slug);
-      if (error) throw error;
+        .eq("slug", slug)
+        .select("slug");
+      if (error) {
+        console.error("[StadiumDrawer] save error", error);
+        throw error;
+      }
+      if (!rows || rows.length === 0) {
+        console.warn("[StadiumDrawer] save returned 0 rows — likely RLS denied", { slug });
+        throw new Error(t("admin.drawer.no_rows_affected"));
+      }
       toast.success(t("admin.drawer.saved"));
       onSaved?.(form);
       qc.invalidateQueries({ queryKey: ["admin-stadiums-v2"] });
       qc.invalidateQueries({ queryKey: ["admin-world-map"] });
     } catch (e: any) {
-      toast.error(e?.message || t("admin.drawer.save_error"));
+      const msg = e?.message || e?.error_description || t("admin.drawer.save_error");
+      toast.error(msg, { duration: 6000 });
     } finally {
       setSaving(false);
     }
@@ -131,23 +140,62 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
       update("hero_image_url", data.publicUrl);
       toast.success(t("admin.drawer.image_uploaded"));
     } catch (e: any) {
-      toast.error(e?.message || t("admin.drawer.upload_error"));
+      console.error("[StadiumDrawer] upload error", e);
+      toast.error(e?.message || t("admin.drawer.upload_error"), { duration: 6000 });
     } finally {
       setUploading(false);
     }
   };
 
+  const [pendingClub, setPendingClub] = useState<string | null>(null);
+
   const handleAttachClub = async (clubSlug: string) => {
     if (!slug) return;
-    const { error } = await supabase.from("club_ticketing_profiles").update({ stadium_slug: slug }).eq("slug", clubSlug);
-    if (error) toast.error(error.message);
-    else { toast.success(t("admin.drawer.club_attached")); refetchRelations(); }
+    setPendingClub(clubSlug);
+    try {
+      const { data: rows, error } = await supabase
+        .from("club_ticketing_profiles")
+        .update({ stadium_slug: slug })
+        .eq("slug", clubSlug)
+        .select("slug,stadium_slug");
+      if (error) {
+        console.error("[StadiumDrawer] attach error", error);
+        throw error;
+      }
+      if (!rows || rows.length === 0) {
+        throw new Error(t("admin.drawer.no_rows_affected"));
+      }
+      toast.success(t("admin.drawer.club_attached"));
+      await refetchRelations();
+      qc.invalidateQueries({ queryKey: ["admin-club-search"] });
+    } catch (e: any) {
+      toast.error(e?.message || "Attach failed", { duration: 6000 });
+    } finally {
+      setPendingClub(null);
+    }
   };
 
   const handleDetachClub = async (clubSlug: string) => {
-    const { error } = await supabase.from("club_ticketing_profiles").update({ stadium_slug: null }).eq("slug", clubSlug);
-    if (error) toast.error(error.message);
-    else { toast.success(t("admin.drawer.club_detached")); refetchRelations(); }
+    setPendingClub(clubSlug);
+    try {
+      const { data: rows, error } = await supabase
+        .from("club_ticketing_profiles")
+        .update({ stadium_slug: null })
+        .eq("slug", clubSlug)
+        .select("slug");
+      if (error) {
+        console.error("[StadiumDrawer] detach error", error);
+        throw error;
+      }
+      if (!rows || rows.length === 0) throw new Error(t("admin.drawer.no_rows_affected"));
+      toast.success(t("admin.drawer.club_detached"));
+      await refetchRelations();
+      qc.invalidateQueries({ queryKey: ["admin-club-search"] });
+    } catch (e: any) {
+      toast.error(e?.message || "Detach failed", { duration: 6000 });
+    } finally {
+      setPendingClub(null);
+    }
   };
 
   const hasCoords = !!(form?.latitude && form?.longitude);
@@ -235,6 +283,9 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
                 </TabsContent>
 
                 <TabsContent value="clubs" className="space-y-4 mt-0">
+                  <div className="text-[11px] font-medium text-slate-600 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                    {t("admin.drawer.clubs_autosave_hint")}
+                  </div>
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-emerald-600" /> {t("admin.drawer.attached_clubs")} · {relations?.clubs.length || 0}
@@ -249,15 +300,15 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
                             <p className="text-sm font-bold text-slate-900 truncate">{c.club_name}</p>
                             <p className="text-[11px] text-slate-500 truncate">{c.league}</p>
                           </div>
-                          <Button variant="ghost" size="sm" onClick={() => handleDetachClub(c.slug)} className="text-rose-600 hover:text-rose-700 hover:bg-rose-50">
-                            <Trash2 className="w-3.5 h-3.5" />
+                          <Button variant="ghost" size="sm" disabled={pendingClub === c.slug} onClick={() => handleDetachClub(c.slug)} className="text-rose-600 hover:text-rose-700 hover:bg-rose-50">
+                            {pendingClub === c.slug ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                           </Button>
                         </div>
                       )) : <p className="text-xs text-slate-400 italic py-2">{t("admin.drawer.no_clubs_attached")}</p>}
                     </div>
                   </div>
                   <Separator />
-                  <ClubAttachPicker excludeSlugs={(relations?.clubs || []).map((c: any) => c.slug)} onAttach={handleAttachClub} />
+                  <ClubAttachPicker excludeSlugs={(relations?.clubs || []).map((c: any) => c.slug)} onAttach={handleAttachClub} pendingSlug={pendingClub} />
                 </TabsContent>
 
                 <TabsContent value="matches" className="space-y-2 mt-0">
@@ -281,9 +332,9 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
             {/* Sticky save bar */}
             <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-5 py-3 flex items-center gap-2 z-20">
               <Button variant="outline" onClick={onClose} className="flex-1">{dirty ? t("admin.drawer.cancel") : t("admin.drawer.close")}</Button>
-              <Button onClick={handleSave} disabled={!dirty || saving} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Button onClick={handleSave} disabled={saving || !dirty} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-slate-300 disabled:text-slate-500">
                 {saving ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Save className="w-4 h-4 mr-1.5" />}
-                {t("admin.drawer.save")}
+                {saving ? t("admin.drawer.saving") : dirty ? t("admin.drawer.save") : t("admin.drawer.no_changes")}
               </Button>
             </div>
           </div>
@@ -307,7 +358,7 @@ const FormRow = ({ label, children }: { label: string; children: React.ReactNode
   </div>
 );
 
-function ClubAttachPicker({ excludeSlugs, onAttach }: { excludeSlugs: string[]; onAttach: (slug: string) => void }) {
+function ClubAttachPicker({ excludeSlugs, onAttach, pendingSlug }: { excludeSlugs: string[]; onAttach: (slug: string) => void; pendingSlug?: string | null }) {
   const { t } = useLanguage();
   const [q, setQ] = useState("");
   const { data = [], isFetching } = useQuery({
@@ -338,20 +389,23 @@ function ClubAttachPicker({ excludeSlugs, onAttach }: { excludeSlugs: string[]; 
         <div className="mt-2 space-y-1 max-h-56 overflow-y-auto">
           {isFetching ? <p className="text-xs text-slate-400 p-2">{t("admin.loading")}</p> :
             filtered.length === 0 ? <p className="text-xs text-slate-400 p-2">{t("admin.empty")}</p> :
-            filtered.map((c: any) => (
-              <button key={c.slug} onClick={() => onAttach(c.slug)} className="w-full flex items-center gap-3 p-2 rounded-lg border border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50 transition text-left">
-                <div className="w-7 h-7 rounded bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
-                  {c.logo_url ? <img src={c.logo_url} alt="" className="w-full h-full object-contain" /> : <span className="text-[9px] font-bold text-slate-400">{c.short_name}</span>}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-slate-900 truncate">{c.club_name}</p>
-                  <p className="text-[10px] text-slate-500 truncate">
-                    {c.league} {c.stadium_slug && <span className="text-amber-600">· {t("admin.drawer.currently_at")} {c.stadium_slug}</span>}
-                  </p>
-                </div>
-                <Plus className="w-3.5 h-3.5 text-emerald-600" />
-              </button>
-            ))
+            filtered.map((c: any) => {
+              const busy = pendingSlug === c.slug;
+              return (
+                <button key={c.slug} disabled={busy} onClick={() => onAttach(c.slug)} className="w-full flex items-center gap-3 p-2 rounded-lg border border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50 transition text-left disabled:opacity-50">
+                  <div className="w-7 h-7 rounded bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
+                    {c.logo_url ? <img src={c.logo_url} alt="" className="w-full h-full object-contain" /> : <span className="text-[9px] font-bold text-slate-400">{c.short_name}</span>}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-slate-900 truncate">{c.club_name}</p>
+                    <p className="text-[10px] text-slate-500 truncate">
+                      {c.league} {c.stadium_slug && <span className="text-amber-600">· {t("admin.drawer.currently_at")} {c.stadium_slug}</span>}
+                    </p>
+                  </div>
+                  {busy ? <Loader2 className="w-3.5 h-3.5 text-emerald-600 animate-spin" /> : <Plus className="w-3.5 h-3.5 text-emerald-600" />}
+                </button>
+              );
+            })
           }
         </div>
       )}
