@@ -46,6 +46,12 @@ import FAQPage from "./pages/marketing/FAQPage";
 import PrivacyPage from "./pages/marketing/PrivacyPage";
 import TermsPage from "./pages/marketing/TermsPage";
 import RefundPage from "./pages/marketing/RefundPage";
+import ContactPage from "./pages/marketing/ContactPage";
+import CookiesPage from "./pages/marketing/CookiesPage";
+import AffiliateDisclosurePage from "./pages/marketing/AffiliateDisclosurePage";
+import EditorialPolicyPage from "./pages/marketing/EditorialPolicyPage";
+import TicketPolicyPage from "./pages/marketing/TicketPolicyPage";
+import { GuidesIndexPage, GuideDetailPage } from "./pages/marketing/GuidesPage";
 import { AIAssistantWidget } from "./components/AIAssistantWidget";
 import { RequireAdmin } from "./components/RequireAdmin";
 import { RequireAuth } from "./components/auth/RequireAuth";
@@ -102,6 +108,13 @@ const App = () => (
               <Route path="/legal/refund" element={<RefundPage />} />
               <Route path="/refund-policy" element={<RefundPage />} />
               <Route path="/how-it-works" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/cookies" element={<CookiesPage />} />
+              <Route path="/affiliate-disclosure" element={<AffiliateDisclosurePage />} />
+              <Route path="/editorial-policy" element={<EditorialPolicyPage />} />
+              <Route path="/ticket-policy" element={<TicketPolicyPage />} />
+              <Route path="/guides" element={<GuidesIndexPage />} />
+              <Route path="/guides/:slug" element={<GuideDetailPage />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
