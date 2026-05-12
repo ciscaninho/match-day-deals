@@ -4,6 +4,7 @@ import { Check, ArrowRight, Crown, BellRing, TrendingDown, Heart, Zap } from "lu
 import { usePremiumGate } from "@/components/premium/PremiumGate";
 import { useSEO } from "@/lib/seo";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { PageHero, PageSection } from "@/components/layout/Page";
 
 const PricingPage = () => {
   const { openPaywall } = usePremiumGate();
@@ -40,23 +41,19 @@ const PricingPage = () => {
   return (
     <MarketingLayout>
       <div dir={dir}>
-        <section className="bg-gradient-to-br from-[#2C3E50] via-[#243342] to-[#1a2530] text-white">
-          <div className="max-w-4xl mx-auto px-5 py-20 text-center">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#2ECC71] bg-[#2ECC71]/10 border border-[#2ECC71]/30 rounded-full px-3 py-1">
+        <PageHero
+          eyebrow={
+            <>
               <Zap className="w-3 h-3" /> {t("pricing.badge")}
-            </span>
-            <h1 className="mt-4 text-4xl md:text-5xl font-extrabold tracking-tight">
-              {t("pricing.hero.title")}
-            </h1>
-            <p className="mt-5 text-white/70 text-lg max-w-2xl mx-auto">
-              {t("pricing.hero.subtitle")}
-            </p>
-          </div>
-        </section>
+            </>
+          }
+          title={t("pricing.hero.title")}
+          subtitle={t("pricing.hero.subtitle")}
+        />
 
-        <section className="py-20 bg-white">
-          <div className="max-w-5xl mx-auto px-5 grid md:grid-cols-2 gap-6">
-            <div className="rounded-2xl border border-slate-200 p-8 flex flex-col">
+        <PageSection tone="white">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 flex flex-col">
               <h3 className="text-xl font-extrabold">{t("pricing.free.title")}</h3>
               <p className="text-sm text-[#2C3E50]/65 mt-1">{t("pricing.free.subtitle")}</p>
               <p className="mt-6 text-4xl font-extrabold">
@@ -72,13 +69,13 @@ const PricingPage = () => {
               </ul>
               <Link
                 to="/matches"
-                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-[#2C3E50] text-white px-5 py-3 font-semibold hover:bg-[#1f2d3a]"
+                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-[#2C3E50] text-white px-5 py-3 font-semibold hover:bg-[#1f2d3a] transition-colors"
               >
                 {t("pricing.free.cta")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
-            <div className="rounded-2xl border-2 border-[#2ECC71] p-8 flex flex-col relative bg-gradient-to-br from-white to-[#2ECC71]/5">
+            <div className="rounded-2xl border-2 border-[#2ECC71] p-8 flex flex-col relative bg-gradient-to-br from-white to-[#2ECC71]/5 shadow-[0_12px_40px_-16px_rgba(46,204,113,0.35)]">
               <span className="absolute -top-3 left-8 inline-flex items-center gap-1 rounded-full bg-[#2ECC71] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1">
                 <Crown className="w-3 h-3" /> {t("pricing.premium.badge")}
               </span>
@@ -98,23 +95,28 @@ const PricingPage = () => {
               </ul>
               <button
                 onClick={() => openPaywall({ intent: "generic" })}
-                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-3 font-semibold shadow-lg shadow-[#2ECC71]/30"
+                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-5 py-3 font-semibold shadow-lg shadow-[#2ECC71]/30 transition-colors"
               >
                 {t("pricing.premium.cta")} <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
+        </PageSection>
 
-          <div className="max-w-5xl mx-auto px-5 mt-16 grid md:grid-cols-3 gap-5">
+        <PageSection tone="slate" size="tight">
+          <div className="grid md:grid-cols-3 gap-5">
             {values.map((v) => (
-              <div key={v.title} className="rounded-2xl border border-slate-200 bg-white p-6">
+              <div
+                key={v.title}
+                className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-[#2ECC71]/40 hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.12)] transition-all"
+              >
                 <v.icon className="w-6 h-6 text-[#2ECC71]" />
                 <h4 className="mt-3 font-extrabold text-[#2C3E50]">{v.title}</h4>
-                <p className="mt-1 text-sm text-[#2C3E50]/65">{v.body}</p>
+                <p className="mt-1 text-sm text-[#2C3E50]/65 leading-relaxed">{v.body}</p>
               </div>
             ))}
           </div>
-        </section>
+        </PageSection>
       </div>
     </MarketingLayout>
   );
