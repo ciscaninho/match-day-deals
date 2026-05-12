@@ -135,15 +135,10 @@ const FAQPage = () => {
 
   return (
     <MarketingLayout>
-      <section dir={dir} className="bg-gradient-to-br from-[#2C3E50] via-[#243342] to-[#1a2530] text-white">
-        <div className="max-w-4xl mx-auto px-5 py-20 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">{data.title}</h1>
-          <p className="mt-5 text-white/70 text-lg max-w-2xl mx-auto">{data.subtitle}</p>
-        </div>
-      </section>
+      <div dir={dir}>
+        <PageHero title={data.title} subtitle={data.subtitle} />
 
-      <section dir={dir} className="py-20 bg-white">
-        <div className="max-w-3xl mx-auto px-5">
+        <PageSection tone="white" width="narrow">
           <Accordion type="single" collapsible className="w-full">
             {data.items.map((f, i) => (
               <AccordionItem key={i} value={`item-${i}`}>
@@ -152,8 +147,8 @@ const FAQPage = () => {
               </AccordionItem>
             ))}
           </Accordion>
-        </div>
-      </section>
+        </PageSection>
+      </div>
     </MarketingLayout>
   );
 };
