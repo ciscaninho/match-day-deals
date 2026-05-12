@@ -57,7 +57,7 @@ export const AdminAssistantPage = () => {
     }
   };
 
-  const suggestions = language === "fr" ? SUGGESTIONS_FR : SUGGESTIONS_EN;
+  const suggestions = locale === "fr" ? SUGGESTIONS_FR : SUGGESTIONS_EN;
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-9rem)] lg:h-[calc(100vh-7rem)]">
