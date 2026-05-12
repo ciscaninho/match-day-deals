@@ -208,17 +208,34 @@ Deno.serve(async (req) => {
             result = await proposeAction("detach_club_from_stadium", { club_slug: args.club_slug }, { club, reason: args.reason }, supabase, userId, thread_id);
             if (result.proposed_action) proposedActions.push(result.proposed_action);
           } else if (fname === "propose_merge_stadiums") {
-            const { data: canonical } = await supabase.from("stadiums").select("id,slug,stadium_name,city,country,aliases,clubs").eq("slug", args.canonical_slug).maybeSingle();
-            const { data: duplicate } = await supabase.from("stadiums").select("id,slug,stadium_name,city,country,aliases,clubs").eq("slug", args.duplicate_slug).maybeSingle();
-            result = await proposeAction(
-              "merge_stadium_duplicate",
-              { canonical_slug: args.canonical_slug, duplicate_slug: args.duplicate_slug, reason: args.reason },
-              { canonical, duplicate, reason: args.reason },
-              supabase,
-              userId,
-              thread_id,
-            );
-            if (result.proposed_action) proposedActions.push(result.proposed_action);
+            const resolveStadium = async (input: string) => {
+              if (!input) return null;
+              const { data: bySlug } = await supabase.from("stadiums").select("id,slug,stadium_name,city,country,aliases,clubs,archived_at").eq("slug", input).maybeSingle();
+              if (bySlug) return bySlug;
+              const { data: byName } = await supabase.from("stadiums").select("id,slug,stadium_name,city,country,aliases,clubs,archived_at").ilike("stadium_name", input).maybeSingle();
+              if (byName) return byName;
+              const { data: byAlias } = await supabase.from("stadiums").select("id,slug,stadium_name,city,country,aliases,clubs,archived_at").contains("aliases", [input]).maybeSingle();
+              return byAlias || null;
+            };
+            const canonical = await resolveStadium(args.canonical_slug);
+            const duplicate = await resolveStadium(args.duplicate_slug);
+            if (!canonical || !duplicate) {
+              result = { error: "stadium_not_found", canonical_input: args.canonical_slug, duplicate_input: args.duplicate_slug, canonical_resolved: !!canonical, duplicate_resolved: !!duplicate, hint: "Use find_duplicate_stadiums first to obtain real slugs from the database." };
+            } else if (canonical.archived_at || duplicate.archived_at) {
+              result = { error: "stadium_archived", canonical, duplicate };
+            } else if (canonical.id === duplicate.id) {
+              result = { error: "same_stadium", canonical };
+            } else {
+              result = await proposeAction(
+                "merge_stadium_duplicate",
+                { canonical_slug: canonical.slug, duplicate_slug: duplicate.slug, reason: args.reason },
+                { canonical, duplicate, reason: args.reason },
+                supabase,
+                userId,
+                thread_id,
+              );
+              if (result.proposed_action) proposedActions.push(result.proposed_action);
+            }
           } else {
             result = await runReadTool(fname, args, supabase);
           }
