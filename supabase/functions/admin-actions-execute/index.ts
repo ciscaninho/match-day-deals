@@ -82,6 +82,15 @@ async function fetchRows<T = any>(supabase: any, table: string, select: string, 
   return data || [];
 }
 
+function dedupeById<T extends { id?: string; slug?: string; user_id?: string }>(rows: T[]) {
+  const map = new Map<string, T>();
+  for (const row of rows) {
+    const key = row.id || row.slug || row.user_id;
+    if (key) map.set(key, row);
+  }
+  return Array.from(map.values());
+}
+
 async function captureMergeUndo(payload: any, supabase: any) {
   const canonicalSlug = payload?.canonical_slug;
   const duplicateSlug = payload?.duplicate_slug;
@@ -103,17 +112,23 @@ async function captureMergeUndo(payload: any, supabase: any) {
 
   if (!canonicalBefore || !duplicateBefore) throw new Error("stadium_not_found");
 
-  const [clubRows, matchRows, experienceTipRows, reviewRows, tipRows, visitRows, profileRows, preferenceRows, suggestionRows, mediaRows, imageRows, masterRows] = await Promise.all([
-    fetchRows(supabase, "club_ticketing_profiles", "slug,stadium_slug,stadium_name", (q) => q.or(`stadium_slug.eq.${duplicateBefore.slug},and(stadium_slug.is.null,stadium_name.eq.${duplicateBefore.stadium_name})`)),
+  const [clubBySlug, clubByName, matchRows, experienceTipRows, reviewBySlug, reviewByName, tipRows, visitBySlug, visitByName, profileRows, preferenceRows, suggestionRows, mediaById, mediaBySlug, mediaByName, mediaByManualId, imageRows, masterRows] = await Promise.all([
+    fetchRows(supabase, "club_ticketing_profiles", "slug,stadium_slug,stadium_name", (q) => q.eq("stadium_slug", duplicateBefore.slug)),
+    fetchRows(supabase, "club_ticketing_profiles", "slug,stadium_slug,stadium_name", (q) => q.is("stadium_slug", null).eq("stadium_name", duplicateBefore.stadium_name)),
     fetchRows(supabase, "matches", "id", (q) => q.eq("stadium", duplicateBefore.stadium_name)),
     fetchRows(supabase, "stadium_experience_tips", "id", (q) => q.eq("stadium_slug", duplicateBefore.slug)),
-    fetchRows(supabase, "stadium_reviews", "id,stadium_slug,stadium_name", (q) => q.or(`stadium_slug.eq.${duplicateBefore.slug},stadium_name.eq.${duplicateBefore.stadium_name}`)),
+    fetchRows(supabase, "stadium_reviews", "id,stadium_slug,stadium_name", (q) => q.eq("stadium_slug", duplicateBefore.slug)),
+    fetchRows(supabase, "stadium_reviews", "id,stadium_slug,stadium_name", (q) => q.eq("stadium_name", duplicateBefore.stadium_name)),
     fetchRows(supabase, "stadium_tips", "id", (q) => q.eq("stadium_slug", duplicateBefore.slug)),
-    fetchRows(supabase, "stadium_visits", "id,stadium_slug,stadium_name", (q) => q.or(`stadium_slug.eq.${duplicateBefore.slug},stadium_name.eq.${duplicateBefore.stadium_name}`)),
+    fetchRows(supabase, "stadium_visits", "id,stadium_slug,stadium_name", (q) => q.eq("stadium_slug", duplicateBefore.slug)),
+    fetchRows(supabase, "stadium_visits", "id,stadium_slug,stadium_name", (q) => q.eq("stadium_name", duplicateBefore.stadium_name)),
     fetchRows(supabase, "profiles", "user_id,favorite_stadium_slug", (q) => q.eq("favorite_stadium_slug", duplicateBefore.slug)),
     fetchRows(supabase, "user_preferences", "user_id,dream_stadium_slug", (q) => q.eq("dream_stadium_slug", duplicateBefore.slug)),
     fetchRows(supabase, "stadium_suggestions", "id,resulting_stadium_slug", (q) => q.eq("resulting_stadium_slug", duplicateBefore.slug)),
-    fetchRows(supabase, "stadium_media_history", "id,matched_stadium_id,matched_stadium_slug,matched_stadium_name,manual_stadium_id", (q) => q.or(`matched_stadium_id.eq.${duplicateBefore.id},matched_stadium_slug.eq.${duplicateBefore.slug},matched_stadium_name.eq.${duplicateBefore.stadium_name},manual_stadium_id.eq.${duplicateBefore.id}`)),
+    fetchRows(supabase, "stadium_media_history", "id,matched_stadium_id,matched_stadium_slug,matched_stadium_name,manual_stadium_id", (q) => q.eq("matched_stadium_id", duplicateBefore.id)),
+    fetchRows(supabase, "stadium_media_history", "id,matched_stadium_id,matched_stadium_slug,matched_stadium_name,manual_stadium_id", (q) => q.eq("matched_stadium_slug", duplicateBefore.slug)),
+    fetchRows(supabase, "stadium_media_history", "id,matched_stadium_id,matched_stadium_slug,matched_stadium_name,manual_stadium_id", (q) => q.eq("matched_stadium_name", duplicateBefore.stadium_name)),
+    fetchRows(supabase, "stadium_media_history", "id,matched_stadium_id,matched_stadium_slug,matched_stadium_name,manual_stadium_id", (q) => q.eq("manual_stadium_id", duplicateBefore.id)),
     fetchRows(supabase, "stadium_image_staging", "id,suggested_stadium_id,published_stadium_id", (q) => q.or(`suggested_stadium_id.eq.${duplicateBefore.id},published_stadium_id.eq.${duplicateBefore.id}`)),
     fetchRows(supabase, "stadiums_master_staging", "id,production_stadium_id", (q) => q.eq("production_stadium_id", duplicateBefore.id)),
   ]);
@@ -123,16 +138,16 @@ async function captureMergeUndo(payload: any, supabase: any) {
     payload: {
       canonical_before: canonicalBefore,
       duplicate_before: duplicateBefore,
-      club_rows: clubRows,
+      club_rows: dedupeById([...(clubBySlug || []), ...(clubByName || [])]),
       match_ids: matchRows.map((row: any) => row.id),
       experience_tip_ids: experienceTipRows.map((row: any) => row.id),
-      review_rows: reviewRows,
+      review_rows: dedupeById([...(reviewBySlug || []), ...(reviewByName || [])]),
       tip_ids: tipRows.map((row: any) => row.id),
-      visit_rows: visitRows,
+      visit_rows: dedupeById([...(visitBySlug || []), ...(visitByName || [])]),
       profile_rows: profileRows,
       preference_rows: preferenceRows,
       suggestion_rows: suggestionRows,
-      media_rows: mediaRows,
+      media_rows: dedupeById([...(mediaById || []), ...(mediaBySlug || []), ...(mediaByName || []), ...(mediaByManualId || [])]),
       image_rows: imageRows,
       master_rows: masterRows,
     },
