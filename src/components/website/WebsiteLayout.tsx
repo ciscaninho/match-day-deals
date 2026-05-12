@@ -23,7 +23,7 @@ const XIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 export const WebsiteLayout = ({ children }: Props) => {
   const [open, setOpen] = useState(false);
-  const { t, dir } = useLanguage();
+  const { t, tf, dir } = useLanguage();
 
   const navItems = [
     { label: t("website.nav.matches"), to: "/matches" },
@@ -101,10 +101,10 @@ export const WebsiteLayout = ({ children }: Props) => {
         {/* Trust strip */}
         <div className="bg-[#0B1424]/80 border-b border-white/5 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-5 py-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[11px] sm:text-[11.5px] text-white/55 text-center">
-            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.compare")}</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.no_sale")}</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.affiliate")}</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.gdpr")}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {tf("website.trust.compare", "We compare official ticket providers")}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {tf("website.trust.no_sale", "We do not sell tickets directly")}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {tf("website.trust.affiliate", "Some outbound links may earn us a commission")}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {tf("website.trust.gdpr", "GDPR-compliant")}</span>
           </div>
         </div>
 
@@ -139,40 +139,38 @@ export const WebsiteLayout = ({ children }: Props) => {
           </div>
 
           <div className="md:col-span-2">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{t("website.footer.browse")}</h4>
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{tf("website.footer.browse", "Browse")}</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link to="/matches" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.all_matches")}</Link></li>
-              <li><Link to="/leagues" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.leagues")}</Link></li>
-              <li><Link to="/clubs" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.clubs") || "Clubs"}</Link></li>
-              <li><Link to="/stadiums" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.stadiums") || "Stadiums"}</Link></li>
-              <li><Link to="/pricing" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.pricing")}</Link></li>
+              <li><Link to="/matches" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.all_matches", "All matches")}</Link></li>
+              <li><Link to="/leagues" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.leagues", "Leagues")}</Link></li>
+              <li><Link to="/pricing" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.pricing", "Pricing")}</Link></li>
             </ul>
           </div>
 
           <div className="md:col-span-3">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{t("website.footer.editorial") || "Editorial"}</h4>
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{tf("website.footer.editorial", "Editorial")}</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link to="/guides" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.guides") || "All guides"}</Link></li>
-              <li><Link to="/guides/how-to-buy-tickets-safely" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.guide_safe") || "Buy tickets safely"}</Link></li>
-              <li><Link to="/guides/matchday-travel-checklist" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.guide_travel") || "Matchday & travel"}</Link></li>
-              <li><Link to="/guides/league-coverage" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.guide_leagues") || "League guides"}</Link></li>
-              <li><Link to="/guides/stadium-experience" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.guide_stadiums") || "Stadium guides"}</Link></li>
-              <li><Link to="/about" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.about") || "About us"}</Link></li>
-              <li><Link to="/contact" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.contact_link") || "Contact"}</Link></li>
-              <li><Link to="/faq" className="hover:text-[#2ECC71] transition-colors">{t("website.nav.faq")}</Link></li>
+              <li><Link to="/guides" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.guides", "All guides")}</Link></li>
+              <li><Link to="/guides/how-to-buy-tickets-safely" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.guide_safe", "Buy tickets safely")}</Link></li>
+              <li><Link to="/guides/matchday-travel-checklist" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.guide_travel", "Matchday & travel")}</Link></li>
+              <li><Link to="/guides/league-coverage" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.guide_leagues", "League guides")}</Link></li>
+              <li><Link to="/guides/stadium-experience" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.guide_stadiums", "Stadium guides")}</Link></li>
+              <li><Link to="/about" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.about", "About us")}</Link></li>
+              <li><Link to="/contact" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.contact_link", "Contact")}</Link></li>
+              <li><Link to="/faq" className="hover:text-[#2ECC71] transition-colors">{tf("website.nav.faq", "FAQ")}</Link></li>
             </ul>
           </div>
 
           <div className="md:col-span-3">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{t("website.footer.legal")}</h4>
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{tf("website.footer.legal", "Legal")}</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link to="/terms" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.terms")}</Link></li>
-              <li><Link to="/privacy" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.privacy")}</Link></li>
-              <li><Link to="/cookies" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.cookies") || "Cookie policy"}</Link></li>
-              <li><Link to="/affiliate-disclosure" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.affiliate") || "Affiliate disclosure"}</Link></li>
-              <li><Link to="/editorial-policy" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.editorial_policy") || "Editorial policy"}</Link></li>
-              <li><Link to="/ticket-policy" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.ticket_policy") || "Ticket & buyer protection"}</Link></li>
-              <li><Link to="/refund-policy" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.refund")}</Link></li>
+              <li><Link to="/terms" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.terms", "Terms")}</Link></li>
+              <li><Link to="/privacy" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.privacy", "Privacy")}</Link></li>
+              <li><Link to="/cookies" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.cookies", "Cookie policy")}</Link></li>
+              <li><Link to="/affiliate-disclosure" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.affiliate", "Affiliate disclosure")}</Link></li>
+              <li><Link to="/editorial-policy" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.editorial_policy", "Editorial policy")}</Link></li>
+              <li><Link to="/ticket-policy" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.ticket_policy", "Ticket & buyer protection")}</Link></li>
+              <li><Link to="/refund-policy" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.refund", "Refunds")}</Link></li>
             </ul>
           </div>
         </div>
