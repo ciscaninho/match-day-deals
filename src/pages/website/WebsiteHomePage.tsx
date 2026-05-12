@@ -284,7 +284,7 @@ const WebsiteHomePage = () => {
             </div>
           )}
         </div>
-      </section>
+      </PageSection>
 
       {/* Dream matches: emotional, fan-centric storytelling */}
       <DreamMatchesRail />
