@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "./AuthGate";
-import { LogIn, User as UserIcon, LayoutDashboard, Shield, LogOut, Sparkles } from "lucide-react";
+import { LogIn, User as UserIcon, Heart, Bell, Trophy, Settings as SettingsIcon, Shield, LogOut, Sparkles } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
