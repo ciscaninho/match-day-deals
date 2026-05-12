@@ -20,6 +20,7 @@ const AdminShell = () => {
     { to: "/admin/leagues", label: t("admin.nav.leagues"), icon: Trophy },
     { to: "/admin/ticketing", label: t("admin.nav.ticketing"), icon: Ticket },
     { to: "/admin/media", label: t("admin.nav.media"), icon: ImageIcon },
+    { to: "/admin/map", label: t("admin.nav.map"), icon: MapIcon },
     { to: "/admin/map-review", label: t("admin.nav.map_review"), icon: MapIcon },
     { to: "/admin/suggestions", label: t("admin.nav.suggestions"), icon: Inbox },
     { to: "/admin/assistant", label: t("admin.nav.assistant"), icon: Sparkles },
