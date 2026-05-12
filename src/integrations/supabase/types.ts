@@ -1154,34 +1154,46 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          alert_preferences: Json
           created_at: string
+          dream_stadium_slug: string | null
           favorite_leagues: string[]
           favorite_teams: string[]
           id: string
+          matchday_style: string | null
           onboarding_completed: boolean
           onboarding_skipped_at: string | null
+          stadiums_visited_bucket: string | null
           updated_at: string
           user_id: string
           user_intent: string[]
         }
         Insert: {
+          alert_preferences?: Json
           created_at?: string
+          dream_stadium_slug?: string | null
           favorite_leagues?: string[]
           favorite_teams?: string[]
           id?: string
+          matchday_style?: string | null
           onboarding_completed?: boolean
           onboarding_skipped_at?: string | null
+          stadiums_visited_bucket?: string | null
           updated_at?: string
           user_id: string
           user_intent?: string[]
         }
         Update: {
+          alert_preferences?: Json
           created_at?: string
+          dream_stadium_slug?: string | null
           favorite_leagues?: string[]
           favorite_teams?: string[]
           id?: string
+          matchday_style?: string | null
           onboarding_completed?: boolean
           onboarding_skipped_at?: string | null
+          stadiums_visited_bucket?: string | null
           updated_at?: string
           user_id?: string
           user_intent?: string[]
