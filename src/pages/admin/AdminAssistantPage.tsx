@@ -23,7 +23,7 @@ const SUGGESTIONS_FR = [
 ];
 
 export const AdminAssistantPage = () => {
-  const { t, language } = useLanguage();
+  const { t, locale } = useLanguage();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
