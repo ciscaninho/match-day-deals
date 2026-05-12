@@ -272,18 +272,22 @@ const OnboardingPage = () => {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-b from-slate-950 via-[#0b1726] to-slate-950 text-white"
+      className="min-h-screen relative overflow-hidden bg-[#0F1A2E] text-white"
       dir={dir}
     >
-      {/* Atmospheric glow */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-sky-500/10 blur-3xl" />
-      </div>
+      {/* Atmospheric glow — unified cinematic base */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 opacity-40"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, rgba(46,204,113,0.35), transparent 60%), radial-gradient(ellipse at bottom right, rgba(52,152,219,0.28), transparent 55%)",
+        }}
+      />
 
-      <div className="relative max-w-3xl mx-auto px-5 py-10 md:py-14">
+      <div className="relative max-w-3xl mx-auto px-5 sm:px-8 py-14 sm:py-20 md:py-24">
         {/* Progress */}
-        <div className="flex items-center gap-2 mb-8">
+        <div className="flex items-center gap-2 mb-10">
           {[1, 2, 3, 4, 5].map((s) => (
             <div
               key={s}
@@ -315,7 +319,7 @@ const OnboardingPage = () => {
             <p className="text-xs font-bold text-white/60 uppercase tracking-wider mb-2">
               {t("onb2.s1.eyebrow")}
             </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">{t("onb2.s1.title")}</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.08]">{t("onb2.s1.title")}</h1>
             <p className="mt-2 text-white/70">{t("onb2.s1.subtitle")}</p>
 
             <div className="mt-5 flex items-center justify-between gap-3">
@@ -433,7 +437,7 @@ const OnboardingPage = () => {
             <p className="text-xs font-bold text-white/60 uppercase tracking-wider mb-2">
               {t("onb2.s2.eyebrow")}
             </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">{t("onb2.s2.title")}</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.08]">{t("onb2.s2.title")}</h1>
             <p className="mt-2 text-white/70">{t("onb2.s2.subtitle")}</p>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -494,7 +498,7 @@ const OnboardingPage = () => {
             <p className="text-xs font-bold text-white/60 uppercase tracking-wider mb-2">
               {t("onb2.s3.eyebrow")}
             </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">{t("onb2.s3.title")}</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.08]">{t("onb2.s3.title")}</h1>
             <p className="mt-2 text-white/70">{t("onb2.s3.subtitle")}</p>
 
             <div
@@ -565,7 +569,7 @@ const OnboardingPage = () => {
             <p className="text-xs font-bold text-white/60 uppercase tracking-wider mb-2">
               {t("onb2.s4.eyebrow")}
             </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">{t("onb2.s4.title")}</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.08]">{t("onb2.s4.title")}</h1>
             <p className="mt-2 text-white/70">{t("onb2.s4.subtitle")}</p>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -611,7 +615,7 @@ const OnboardingPage = () => {
             <p className="text-xs font-bold text-white/60 uppercase tracking-wider mb-2">
               {t("onb2.s5.eyebrow")}
             </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">{t("onb2.s5.title")}</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.08]">{t("onb2.s5.title")}</h1>
             <p className="mt-2 text-white/70">{t("onb2.s5.subtitle")}</p>
 
             <div className="mt-6 flex flex-col gap-3">

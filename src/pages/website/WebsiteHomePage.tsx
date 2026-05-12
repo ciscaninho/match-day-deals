@@ -25,7 +25,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { SmartSearch } from "@/components/SmartSearch";
 import { DreamMatchesRail } from "@/components/home/DreamMatchesRail";
 import { StadiumSocialProof } from "@/components/stadium/StadiumSocialProof";
-// RecommendedSections removed (was: import { RecommendedSections } from "@/components/RecommendedSections";)
+import { PageSection, SectionHeading, wideContainerCls } from "@/components/layout/Page";
 
 const PROVIDERS = ["StubHub", "Viagogo", "Ticketmaster", "Seatpick", "LiveFootballTickets", "OneFootball"];
 
@@ -82,20 +82,27 @@ const WebsiteHomePage = () => {
 
   return (
     <WebsiteLayout>
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#2C3E50] via-[#243342] to-[#1a2530] text-white">
+      {/* HERO — cinematic, unified base with the rest of the platform */}
+      <section className="relative overflow-hidden bg-[#0F1A2E] text-white">
         <div
-          className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          aria-hidden="true"
+          className="absolute inset-0 opacity-30"
+          style={{
+            background:
+              "radial-gradient(ellipse at top, rgba(46,204,113,0.45), transparent 60%), radial-gradient(ellipse at bottom right, rgba(52,152,219,0.32), transparent 55%)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-[0.06] pointer-events-none"
           style={{
             backgroundImage:
               "linear-gradient(90deg, #2ECC71 1px, transparent 1px), linear-gradient(#2ECC71 1px, transparent 1px)",
             backgroundSize: "60px 60px",
           }}
         />
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#2ECC71]/20 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-[#2ECC71]/10 blur-3xl" />
 
-        <div className="relative max-w-6xl mx-auto px-5 pt-14 pb-16 md:pt-20 md:pb-24 text-center">
+        <div className={`relative ${wideContainerCls} py-20 sm:py-24 md:py-28 text-center`}>
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 mb-6">
             <span className="w-2 h-2 rounded-full bg-[#2ECC71] animate-pulse" />
             {t("wh.hero.live_badge")}
@@ -103,7 +110,7 @@ const WebsiteHomePage = () => {
           <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.05] tracking-tight max-w-4xl mx-auto">
             {t("wh.hero.title_1")} <span className="text-[#2ECC71]">{t("wh.hero.title_2")}</span>{t("wh.hero.title_dot")}
           </h1>
-          <p className="mt-5 max-w-2xl mx-auto text-base md:text-lg text-white/70">
+          <p className="mt-5 max-w-2xl mx-auto text-base md:text-lg text-white/75 leading-relaxed">
             {t("wh.hero.subtitle")}
           </p>
 
@@ -111,7 +118,6 @@ const WebsiteHomePage = () => {
             <SmartSearch variant="hero" placeholder={t("wh.hero.search_placeholder")} />
           </div>
 
-          {/* Live featured match under the search bar */}
           {heroExample && (
             <Link
               to={`/matches/${heroExample.id}`}
@@ -129,8 +135,7 @@ const WebsiteHomePage = () => {
             </Link>
           )}
 
-          {/* Primary + secondary CTA */}
-          <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               to="/matches"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3 font-bold text-sm transition-colors shadow-lg shadow-[#2ECC71]/30"
@@ -151,11 +156,17 @@ const WebsiteHomePage = () => {
             <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#2ECC71]" /> {t("wh.hero.trust_nosignup")}</span>
           </div>
         </div>
+
+        {/* cinematic fade into next white section */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-white/[0.04]"
+        />
       </section>
 
       {/* TRUST / PROVIDERS */}
-      <section className="py-12 bg-white border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-5 text-center">
+      <PageSection tone="white" size="tight" width="wide" className="border-b border-slate-100">
+        <div className="text-center">
           <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]/50">{t("wh.providers.eyebrow")}</p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
             {PROVIDERS.map((p) => (
@@ -169,39 +180,37 @@ const WebsiteHomePage = () => {
             <span>{t("wh.providers.daily")}</span>
           </div>
         </div>
-      </section>
+      </PageSection>
 
       {/* HOW IT WORKS */}
-      <section className="py-16 md:py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-5">
-          <div className="text-center mb-12">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">{t("wh.how.eyebrow")}</span>
-            <h2 className="mt-2 text-3xl md:text-4xl font-extrabold">{t("wh.how.title")}</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            {[
-              { icon: Search, title: t("wh.how.s1.title"), desc: t("wh.how.s1.desc") },
-              { icon: TrendingDown, title: t("wh.how.s2.title"), desc: t("wh.how.s2.desc") },
-              { icon: CheckCircle2, title: t("wh.how.s3.title"), desc: t("wh.how.s3.desc") },
-            ].map((s, i) => (
-              <div key={s.title} className="relative rounded-2xl border border-slate-200 p-7 hover:border-[#2ECC71]/40 hover:shadow-lg transition">
-                <span className="absolute -top-3 left-7 inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#2ECC71] text-white text-xs font-extrabold shadow-md">
-                  {i + 1}
-                </span>
-                <div className="w-12 h-12 rounded-xl bg-[#2ECC71]/10 flex items-center justify-center mb-5 mt-2">
-                  <s.icon className="w-6 h-6 text-[#2ECC71]" />
-                </div>
-                <h3 className="font-extrabold text-lg">{s.title}</h3>
-                <p className="mt-2 text-sm text-[#2C3E50]/65 leading-relaxed">{s.desc}</p>
+      <PageSection tone="white" width="wide">
+        <SectionHeading
+          eyebrow={t("wh.how.eyebrow")}
+          title={t("wh.how.title")}
+        />
+        <div className="grid md:grid-cols-3 gap-5">
+          {[
+            { icon: Search, title: t("wh.how.s1.title"), desc: t("wh.how.s1.desc") },
+            { icon: TrendingDown, title: t("wh.how.s2.title"), desc: t("wh.how.s2.desc") },
+            { icon: CheckCircle2, title: t("wh.how.s3.title"), desc: t("wh.how.s3.desc") },
+          ].map((s, i) => (
+            <div key={s.title} className="relative rounded-2xl border border-slate-200 bg-white p-7 hover:border-[#2ECC71]/40 hover:shadow-[0_12px_30px_-14px_rgba(46,204,113,0.35)] transition-all">
+              <span className="absolute -top-3 left-7 inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#2ECC71] text-white text-xs font-extrabold shadow-md">
+                {i + 1}
+              </span>
+              <div className="w-12 h-12 rounded-xl bg-[#2ECC71]/10 flex items-center justify-center mb-5 mt-2">
+                <s.icon className="w-6 h-6 text-[#2ECC71]" />
               </div>
-            ))}
-          </div>
+              <h3 className="font-extrabold text-lg">{s.title}</h3>
+              <p className="mt-2 text-sm text-[#2C3E50]/65 leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
         </div>
-      </section>
+      </PageSection>
 
       {/* LIVE MATCH EXAMPLES */}
-      <section className="py-16 md:py-20 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-5">
+      <PageSection tone="slate" width="wide">
+        <div>
           <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#2ECC71]">{t("wh.live.eyebrow")}</span>
@@ -275,7 +284,7 @@ const WebsiteHomePage = () => {
             </div>
           )}
         </div>
-      </section>
+      </PageSection>
 
       {/* Dream matches: emotional, fan-centric storytelling */}
       <DreamMatchesRail />
@@ -283,10 +292,16 @@ const WebsiteHomePage = () => {
       {/* Stadium experience: top fan reviews, most atmospheric grounds, recent visits */}
       <StadiumSocialProof variant="light" />
 
-      <section className="py-16 md:py-24 bg-[#2C3E50] text-white relative overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-[#2ECC71]/20 blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-[#2ECC71]/10 blur-3xl" />
-        <div className="relative max-w-6xl mx-auto px-5 grid md:grid-cols-2 gap-12 items-center">
+      <section className="relative overflow-hidden bg-[#0F1A2E] text-white">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-30"
+          style={{
+            background:
+              "radial-gradient(ellipse at top left, rgba(46,204,113,0.4), transparent 55%), radial-gradient(ellipse at bottom right, rgba(52,152,219,0.3), transparent 55%)",
+          }}
+        />
+        <div className={`relative ${wideContainerCls} py-20 sm:py-24 md:py-28 grid md:grid-cols-2 gap-12 items-center`}>
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-[#2ECC71]/30 bg-[#2ECC71]/10 px-3 py-1 text-xs font-bold text-[#2ECC71] mb-5">
               <Bell className="w-3.5 h-3.5" /> {t("wh.app.badge")}
