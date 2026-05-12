@@ -122,6 +122,7 @@ const App = () => (
                 <Route path="ticketing" element={<AdminTicketingPage />} />
                 <Route path="suggestions" element={<AdminSuggestionsPage />} />
                 <Route path="assistant" element={<AdminAssistantPage />} />
+                <Route path="map" element={<AdminWorldMapPage />} />
                 <Route path="legacy" element={<AdminLegacyPage />} />
               </Route>
               <Route path="/admin/media" element={<RequireAdmin><StadiumMediaSyncPage /></RequireAdmin>} />
