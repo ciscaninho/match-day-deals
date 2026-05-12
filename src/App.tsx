@@ -34,6 +34,7 @@ import AdminTicketingPage from "./pages/admin/AdminTicketingPage";
 import AdminAssistantPage from "./pages/admin/AdminAssistantPage";
 import AdminSuggestionsPage from "./pages/admin/AdminSuggestionsPage";
 import AdminLegacyPage from "./pages/admin/AdminLegacyPage";
+import AdminWorldMapPage from "./pages/admin/AdminWorldMapPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
