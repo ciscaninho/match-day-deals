@@ -97,7 +97,7 @@ export const HeaderAuthButton = () => {
       className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 text-[#2C3E50] text-xs font-bold px-3.5 py-2 hover:bg-slate-50 transition-colors"
     >
       <LogIn className="w-3.5 h-3.5" />
-      <span className="hidden sm:inline">Sign in</span>
+      <span className="hidden sm:inline">{t("account.menu.signin") || "Sign in"}</span>
     </button>
   );
 };
