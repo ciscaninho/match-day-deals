@@ -92,26 +92,33 @@ function dedupeById<T extends { id?: string; slug?: string; user_id?: string }>(
   return Array.from(map.values());
 }
 
+async function resolveStadiumBySlugOrAlias(supabase: any, input: string, columns: string) {
+  if (!input) return null;
+  const { data: bySlug } = await supabase.from("stadiums").select(columns).eq("slug", input).maybeSingle();
+  if (bySlug) return bySlug;
+  const { data: byName } = await supabase.from("stadiums").select(columns).ilike("stadium_name", input).maybeSingle();
+  if (byName) return byName;
+  const { data: byAlias } = await supabase.from("stadiums").select(columns).contains("aliases", [input]).maybeSingle();
+  return byAlias || null;
+}
+
 async function captureMergeUndo(payload: any, supabase: any) {
-  const canonicalSlug = payload?.canonical_slug;
-  const duplicateSlug = payload?.duplicate_slug;
-  if (!canonicalSlug || !duplicateSlug) throw new Error("invalid_payload");
+  const canonicalInput = payload?.canonical_slug;
+  const duplicateInput = payload?.duplicate_slug;
+  if (!canonicalInput || !duplicateInput) throw new Error("invalid_payload");
 
-  const { data: canonicalBefore, error: canonicalErr } = await supabase
-    .from("stadiums")
-    .select("id,slug,stadium_name,aliases,clubs")
-    .eq("slug", canonicalSlug)
-    .maybeSingle();
-  if (canonicalErr) throw canonicalErr;
+  const canonicalBefore = await resolveStadiumBySlugOrAlias(supabase, canonicalInput, "id,slug,stadium_name,aliases,clubs,archived_at");
+  const duplicateBefore = await resolveStadiumBySlugOrAlias(supabase, duplicateInput, "id,slug,stadium_name,aliases,clubs,archived_at,archived_reason,archived_into_stadium_id,archived_into_slug");
 
-  const { data: duplicateBefore, error: duplicateErr } = await supabase
-    .from("stadiums")
-    .select("id,slug,stadium_name,aliases,clubs,archived_at,archived_reason,archived_into_stadium_id,archived_into_slug")
-    .eq("slug", duplicateSlug)
-    .maybeSingle();
-  if (duplicateErr) throw duplicateErr;
+  if (!canonicalBefore) throw new Error(`canonical_not_found:${canonicalInput}`);
+  if (!duplicateBefore) throw new Error(`duplicate_not_found:${duplicateInput}`);
+  if (canonicalBefore.archived_at) throw new Error(`canonical_archived:${canonicalBefore.slug}`);
+  if (duplicateBefore.archived_at) throw new Error(`duplicate_archived:${duplicateBefore.slug}`);
+  if (canonicalBefore.id === duplicateBefore.id) throw new Error("same_stadium");
 
-  if (!canonicalBefore || !duplicateBefore) throw new Error("stadium_not_found");
+  // Normalize payload to actual slugs for the RPC call
+  payload.canonical_slug = canonicalBefore.slug;
+  payload.duplicate_slug = duplicateBefore.slug;
 
   const [clubBySlug, clubByName, matchRows, experienceTipRows, reviewBySlug, reviewByName, tipRows, visitBySlug, visitByName, profileRows, preferenceRows, suggestionRows, mediaById, mediaBySlug, mediaByName, mediaByManualId, imageRows, masterRows] = await Promise.all([
     fetchRows(supabase, "club_ticketing_profiles", "slug,stadium_slug,stadium_name", (q) => q.eq("stadium_slug", duplicateBefore.slug)),
