@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
-import { Search, ExternalLink, MapPin, Image as ImageIcon, Users, CalendarDays, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { StadiumDrawer, type StadiumDrawerRow } from "@/components/admin/StadiumDrawer";
 
 type StadiumRow = {
   slug: string;
