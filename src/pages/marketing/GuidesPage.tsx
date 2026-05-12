@@ -16,7 +16,7 @@ const GUIDE_KEYS: Record<string, GuideKey> = {
 };
 
 export const GuidesIndexPage = () => {
-  const { locale, dir, t } = useLanguage();
+  const { locale, dir, tf } = useLanguage();
   const guides = listGuides(locale);
 
   return (
@@ -34,14 +34,13 @@ export const GuidesIndexPage = () => {
           <div className="relative max-w-5xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
             <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#2ECC71] bg-[#2ECC71]/10 border border-[#2ECC71]/30 rounded-full px-3 py-1 mb-5">
               <BookOpen className="w-3.5 h-3.5" />
-              {t("guides.eyebrow") || "Editorial guides"}
+              {tf("guides.eyebrow", "Editorial guides")}
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.1]">
-              {t("guides.index.title") || "Football tickets, explained"}
+              {tf("guides.index.title", "Football tickets, explained")}
             </h1>
             <p className="mt-5 text-base sm:text-lg text-white/75 max-w-3xl leading-relaxed">
-              {t("guides.index.subtitle") ||
-                "Independent, fan-written guides to buying real tickets, navigating any matchday, and getting the most out of every league and stadium we cover."}
+              {tf("guides.index.subtitle", "Independent, fan-written guides to buying real tickets, navigating any matchday, and getting the most out of every league and stadium we cover.")}
             </p>
           </div>
         </section>
@@ -75,8 +74,7 @@ export const GuidesIndexPage = () => {
           <div className="max-w-5xl mx-auto px-5 sm:px-8 py-12 flex items-start gap-4">
             <ShieldCheck className="w-5 h-5 text-[#2ECC71] mt-1 shrink-0" />
             <p className="text-sm text-[#2C3E50]/80 leading-relaxed max-w-3xl">
-              {t("guides.disclosure") ||
-                "Every guide on Foot Ticket Finder is written and reviewed by our editorial team. We do not sell tickets and our recommendations are independent of any affiliate commission we may earn from outbound links."}
+              {tf("guides.disclosure", "Every guide on Foot Ticket Finder is written and reviewed by our editorial team. We do not sell tickets and our recommendations are independent of any affiliate commission we may earn from outbound links.")}
             </p>
           </div>
         </section>
@@ -87,7 +85,7 @@ export const GuidesIndexPage = () => {
 
 export const GuideDetailPage = () => {
   const { slug } = useParams();
-  const { locale, dir, t } = useLanguage();
+  const { locale, dir, tf } = useLanguage();
   const key = slug ? GUIDE_KEYS[slug] : undefined;
   if (!key) return <Navigate to="/guides" replace />;
   const guide = getGuide(locale, key);
@@ -106,9 +104,9 @@ export const GuideDetailPage = () => {
           />
           <div className="relative max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
             <nav className="flex items-center gap-1.5 text-xs text-white/70 mb-6" aria-label="Breadcrumb">
-              <Link to="/" className="hover:text-[#2ECC71]">{t("website.nav.home") || "Home"}</Link>
+              <Link to="/" className="hover:text-[#2ECC71]">{tf("website.nav.home", "Home")}</Link>
               <ChevronRight className="w-3.5 h-3.5" />
-              <Link to="/guides" className="hover:text-[#2ECC71]">{t("guides.eyebrow") || "Guides"}</Link>
+              <Link to="/guides" className="hover:text-[#2ECC71]">{tf("guides.eyebrow", "Guides")}</Link>
               <ChevronRight className="w-3.5 h-3.5" />
               <span className="text-white/90 font-medium truncate">{guide.title}</span>
             </nav>
@@ -119,7 +117,7 @@ export const GuideDetailPage = () => {
             <p className="mt-5 text-base sm:text-lg text-white/75 leading-relaxed">{guide.intro}</p>
             <p className="mt-6 inline-flex items-center gap-2 text-xs text-white/60">
               <Clock className="w-3.5 h-3.5" />
-              {guide.readMinutes} min read
+              {guide.readMinutes} {tf("guides.min_read", "min read")}
             </p>
           </div>
         </section>
@@ -138,7 +136,7 @@ export const GuideDetailPage = () => {
             {guide.takeaways.length > 0 && (
               <aside className="mt-12 rounded-2xl bg-[#0F1A2E] text-white p-6 sm:p-8">
                 <h3 className="text-sm font-bold uppercase tracking-widest text-[#2ECC71] mb-4">
-                  {t("guides.takeaways") || "Key takeaways"}
+                  {tf("guides.takeaways", "Key takeaways")}
                 </h3>
                 <ul className="space-y-2.5">
                   {guide.takeaways.map((tk, i) => (
@@ -157,7 +155,7 @@ export const GuideDetailPage = () => {
                 className="inline-flex items-center gap-2 text-sm font-semibold text-[#2C3E50] hover:text-[#2ECC71] transition-colors"
               >
                 <ChevronRight className="w-4 h-4 rotate-180" />
-                {t("guides.back") || "Back to all guides"}
+                {tf("guides.back", "Back to all guides")}
               </Link>
             </div>
           </article>
