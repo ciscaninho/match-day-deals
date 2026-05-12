@@ -1,156 +1,88 @@
-## Goal
 
-Two major product shifts before continuing batches:
+# Football Operations Center — v2 Polish
 
-1. Kill the `/app/*` "hidden app" feel — unify everything under the public website domain (`/profile`, `/favorites`, `/alerts`, `/passport`, `/settings`) using the same cinematic design system already used on `/`, `/stadiums`, `/clubs`.
-2. Rebuild the admin into a real **Football Operations Center** with full entity visibility, inline/visual editing, relationship views, an admin AI copilot, and FR/EN localization.
+Scope split into 3 sub-batches so we ship value quickly and you can validate as we go.
 
 ---
 
-## Part 1 — Remove the `/app/*` split, unify under the public website
+## Sub-batch C1 — Readability + Inline Stadium Editor (HIGHEST PRIORITY)
 
-### Routing changes (`src/App.tsx`)
-- Add new public routes that reuse `WebsiteLayout` (the same shell as `/stadiums`, `/clubs`, etc.):
-  - `/profile` → new `ProfilePage` (rebuilt on website shell)
-  - `/favorites` → new `FavoritesPage`
-  - `/alerts` → new `AlertsPage` (move from `/app/alerts`)
-  - `/passport` → new `PassportPage` (Stadium Passport)
-  - `/settings` → new `SettingsPage` (language, notifications, account)
-- Keep `/app/*` routes alive as **301-style redirects** (via `<Navigate replace>`) so existing links, emails, deep links, and SEO don't 404:
-  - `/app/home` → `/`
-  - `/app/profile` → `/profile`
-  - `/app/favorites` → `/favorites`
-  - `/app/alerts` → `/alerts`
-  - `/app/notifications` → `/alerts`
-  - `/app/calendar` → `/matches`
-  - `/app/matches` → `/matches`, `/app/matches/:id` → `/matches/:id`
-  - `/app/match/:id` → `/matches/:id`
-  - `/app/premium` → `/pricing`
-  - `/app/upsell` → `/pricing`
-  - `/app/admin` → `/admin`
-  - `/app/daily-game`, `/app/rewards`, `/app/polls` → `/` (deprioritized, not part of website IA yet)
+### 1. Global admin readability pass
+- Bump base text contrast: replace ad-hoc `text-[#2C3E50]/80`, `text-slate-500` with stronger semantic tokens (`text-foreground`, `text-foreground/90`, `text-muted-foreground`).
+- Operations Copilot: assistant bubble background → `bg-card` with `text-foreground`; user bubble keeps dark + white; suggestion chips → solid white border + bold label.
+- Overview cards: stronger heading weights, larger numbers, real divider lines, hover lift + border-emerald on interactive cards.
+- Bottom mobile admin nav: increase height, bold active pill, underline on active, ensure 44px tap targets, sticky safe-area padding.
+- Drawers/Sheets: solid `bg-background`, larger headers, section dividers, sticky save bar at bottom.
 
-### Header / account dropdown (`HeaderAuthButton.tsx`)
-- Point every menu item at the new public URLs:
-  - Dashboard → removed (no more `/app/home`)
-  - Profile → `/profile`
-  - Favorites → `/favorites`
-  - Passport → `/passport`
-  - Alerts → `/alerts`
-  - Settings → `/settings`
-  - Admin → `/admin` (if `isAdmin`)
-  - Sign out → `/`
+### 2. Inline stadium editor (fixes the "Edit redirects to map" bug)
+- Rebuild `StadiumDrawer` as a tabbed inline editor (no navigation away):
+  - **Overview** — hero image preview, status pills, quick stats
+  - **Edit** — slug, city, country, league, lat/lng, capacity, hero image URL (+ upload to `stadium-media` bucket), description, aliases (chip input)
+  - **Clubs** — searchable picker over `club_ticketing_profiles`, attach/detach via `stadium_slug` field, badge for national teams, list shown as cards with logos
+  - **Matches** — live list of upcoming matches at this stadium (read-only, click to open match drawer later)
+- Sticky footer: Save / Cancel / "Save & Next stadium". Save uses `supabase.from('stadiums').update(...)` with optimistic update + toast.
+- Drawer opens from the list AND from map markers (replace current navigation behavior).
+- After save, drawer stays open; list refreshes in the background.
 
-### Pages
-- Build minimal but on-brand pages wrapped in `WebsiteLayout`:
-  - `src/pages/website/ProfilePage.tsx`
-  - `src/pages/website/FavoritesPage.tsx`
-  - `src/pages/website/AlertsPage.tsx`
-  - `src/pages/website/PassportPage.tsx`
-  - `src/pages/website/SettingsPage.tsx`
-- They reuse existing data hooks (`useUserPreferences`, saved matches query, stadium visits) and the same hero/gradient pattern as `WebsiteHomePage` / `StadiumsPage`.
-- All copy uses `t()` with FR + EN (and the other locales we already maintain).
-
-### Bottom nav / `OnboardingBanner`
-- Remove `BottomNav` from these new pages — it belongs to the app shell and is the main visual indicator of the "hidden app" feeling.
-- Update `OnboardingBanner` CTA target to `/onboarding` (unchanged) but final redirect of onboarding stays `/`.
-
-### Safety
-- Stadium slugs, public SEO routes, `sitemap.xml`, JSON-LD, canonical tags are untouched.
-- Stadium relations and production data untouched.
-- No DB migration.
+### 3. Quick wins on the map page
+- Map markers open the same `StadiumDrawer` (no separate page).
+- "Edit" button on marker popup → opens drawer inline.
 
 ---
 
-## Part 2 — Football Operations Center (Admin 2.0)
+## Sub-batch C2 — Hierarchical Continent → Country → League → Club filters
 
-New admin shell at `/admin` replacing the current `AdminPage.tsx`, with sub-routes.
+Shared `<HierarchicalFilter />` component used in `AdminClubsPage`, `AdminStadiumsPage`, `AdminMatchesPage`.
 
-### Routes
-```
-/admin                       → Overview (KPIs + AI copilot)
-/admin/clubs                 → Clubs browser
-/admin/clubs/:slug           → Club editor (with stadium + ticketing relations)
-/admin/stadiums              → Stadiums browser (table + map toggle)
-/admin/stadiums/:slug        → Stadium editor (images, coords, aliases, SEO)
-/admin/matches               → Matches browser (upcoming/past, filters)
-/admin/matches/:id           → Match editor
-/admin/leagues               → Leagues + their clubs
-/admin/ticketing             → Club ticketing profiles browser
-/admin/media                 → existing stadium media sync (kept)
-/admin/map-review            → existing map review (kept)
-/admin/suggestions           → existing stadium suggestions
-/admin/assistant             → full-page AI copilot
-```
-
-All wrapped in a new `AdminShell` that provides:
-- Left sidebar with sections + counts
-- Top bar: global entity search, language switch (FR/EN), AI copilot drawer toggle
-- All gated by `RequireAdmin`
-
-### A) Full data visibility
-- Each browser page = filterable table + card grid toggle, paginated, with quick-edit:
-  - Clubs: name, slug, league, country, stadium relation, has ticketing profile?, hero image preview
-  - Stadiums: name, slug, city, country, league, capacity, lat/lng, hero/thumb thumbnails, # related clubs, # upcoming matches
-  - Matches: date, home/away (logos), stadium, ticket status, sources count
-  - Leagues: derived from clubs/stadiums, shows club count, match count
-  - Ticketing profiles: club, official URL, resale, membership flag
-
-### B) Better editing
-- **Inline edit drawers** (shadcn `Sheet`) — open on row click, no full page reload.
-- **Side-by-side compare** for stadiums vs. master_staging (already partially exists; promote to first-class).
-- **Image previews** for hero/thumbnail/background — drag-drop into `stadium-media` bucket using existing storage.
-- **SEO panel** per stadium/club: title, description, og preview.
-- **Aliases / slugs** editable as chip input.
-- **Translations**: per-entity `name_fr`, `description_fr` fields surfaced (UI-only; if columns don't exist we render a "Coming soon" badge and don't crash).
-- **Quick moderation** buttons (Approve / Reject / Merge) reused from existing staging cards.
-
-### C) Relations visibility
-- Each entity page shows linked entities as clickable chips:
-  - Club editor → stadium card + upcoming matches list + ticketing profile card
-  - Stadium editor → related clubs (`stadiums.clubs[]` + matches by stadium name) + upcoming matches
-  - Match editor → stadium + both clubs
-- A new `/admin/map` view (Leaflet, already approved in Batch 3) — pins for all stadiums, colored by data-completeness, click → drawer.
-
-### D) Admin AI copilot
-- Floating drawer + full page at `/admin/assistant`.
-- Powered by a new edge function `admin-assistant` (Lovable AI Gateway, `google/gemini-2.5-flash`).
-- Tools/functions it can call server-side:
-  - `find_duplicate_stadiums({ query })` — fuzzy match in `stadiums` + `stadiums_master_staging`
-  - `inspect_entity({ type, slug })` — returns conflicts, missing fields, risk flags
-  - `search_entities({ query, type })`
-  - `explain_conflicts({ slug })` — diffs between staging and prod
-- Returns markdown rendered with `react-markdown`.
-- Admin-only: edge function validates `has_role(user, 'admin')` server-side using JWT.
-
-### E) Localization (FR + EN, plus other 7 locales)
-- New `src/i18n/admin.ts` exporting an admin-only namespace, merged in `translations.ts`.
-- Every admin label uses `t("admin.*")`.
-- FR is the primary target; the other 7 locales fall back to EN (existing pattern).
-- Language switch in the admin top bar mirrors the global one.
-
-### Safety
-- All admin pages gated by `RequireAdmin`.
-- No destructive operations without confirmation dialog.
-- No production stadium overwrites — writes go through existing staging tables where applicable; direct edits on `stadiums` are explicit and logged in `stadium_media_history` style notes.
-- Existing routes `/admin/stadium-map-review`, `/admin/stadium-media-sync` preserved.
+- Continent dropdown (Europe / N. America / S. America / Asia / Africa / Oceania) — derived client-side from country mapping (small static `countryToContinent` map in `src/lib/geo.ts`).
+- Country dropdown — populated from current dataset filtered by continent.
+- League dropdown — filtered by country.
+- Club dropdown (matches/stadiums only) — filtered by league.
+- All filter state in URL params for shareable admin links.
+- Filter chip row at top showing active filters with one-click remove.
 
 ---
+
+## Sub-batch C3 — Copilot v2: memory + admin actions
+
+### Conversation memory
+- Persist chat thread per admin in new `admin_assistant_threads` + `admin_assistant_messages` tables (RLS: admin only).
+- UI: thread sidebar inside `/admin/assistant` (New chat, recent threads, rename/delete).
+- Send full message history to edge function on every turn so it can resolve "fix this stadium too", "merge these", "keep the previous image".
+
+### Action system (preview → approve → execute)
+- New table `admin_actions` (RLS admin-only): `id, kind, payload jsonb, status (proposed|approved|executed|rejected|rolled_back), preview jsonb, created_by, executed_at, undo_payload jsonb`.
+- Edge function `admin-assistant` gains write tools that return **proposed actions** (never execute directly):
+  - `propose_attach_club_to_stadium`
+  - `propose_update_stadium` (slug/coords/capacity/image/aliases)
+  - `propose_merge_stadiums` (keeps target, redirects matches+clubs by name, archives source)
+  - `propose_replace_image`
+  - `propose_enrich_coordinates` (uses existing geocode edge function)
+- Each proposal is inserted into `admin_actions` with a human-readable preview diff and surfaced in the chat as an `<ActionCard>` with **Preview / Approve / Reject** buttons.
+- Approve calls a separate edge function `admin-actions-execute` that:
+  - Re-validates admin role
+  - Captures `undo_payload` (current row before mutation)
+  - Performs the mutation
+  - Marks action `executed`
+- Rollback button (admin-only) reverses using `undo_payload`.
+- Audit log page `/admin/audit` lists all actions with filters.
+
+### Copilot UX upgrades
+- Streaming responses (SSE) for snappier feel.
+- Entity chips in replies are clickable → open drawer inline.
+- "Continue" suggestions after each turn ("Fix next gap", "Inspect related matches").
+
+---
+
+## Out of scope (this iteration)
+- Public site changes
+- New SEO/sitemap work
+- Payments / subscription flows
+- Production stadium row deletion (only soft-archive via merge)
 
 ## Delivery order
+1. **C1 first** (your blocking pain — inline edit + readability)
+2. **C2** (hierarchical filters)
+3. **C3** (memory + actions + audit log)
 
-Because this is large, I'll ship in **2 sub-batches** under your approval:
-
-- **Sub-batch A (this loop)**: Part 1 (unify website, remove `/app/*`) + admin shell scaffolding (sidebar, routes, FR/EN i18n base, sub-pages stubbed with real data tables for clubs/stadiums/matches). No new DB changes.
-- **Sub-batch B (next loop)**: full editors with inline drawers, image upload, relations panels, Leaflet map, `admin-assistant` edge function + copilot UI.
-
----
-
-## Out of scope
-
-- No new DB columns (translations `name_fr` etc. shown as UI placeholders only).
-- No changes to public stadium slugs, SEO, sitemap.
-- No removal of staging data.
-- No payment / subscription changes.
-
-Ready to ship Sub-batch A — confirm and I start.
+Reply **"go C1"** (or just "go") to ship sub-batch C1 immediately. I can chain C2 and C3 right after, or wait for your feedback between each.
