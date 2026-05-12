@@ -69,17 +69,17 @@ const AdminShell = () => {
         </aside>
 
         {/* Mobile horizontal nav */}
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 overflow-x-auto">
-          <div className="flex gap-1 px-2 py-1.5 min-w-max">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 overflow-x-auto shadow-[0_-4px_12px_-4px_rgba(0,0,0,0.08)]" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+          <div className="flex gap-1 px-2 py-2 min-w-max">
             {nav.map((n) => {
               const active = n.end ? pathname === n.to : pathname.startsWith(n.to);
               return (
                 <NavLink key={n.to} to={n.to} end={n.end}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] font-bold ${
-                    active ? "bg-[#2C3E50] text-white" : "text-[#2C3E50]/70"
+                  className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold min-w-[60px] min-h-[52px] transition ${
+                    active ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100 active:bg-slate-200"
                   }`}>
-                  <n.icon className="w-4 h-4" />
-                  <span>{n.label}</span>
+                  <n.icon className="w-5 h-5" />
+                  <span className="truncate max-w-[60px]">{n.label}</span>
                 </NavLink>
               );
             })}

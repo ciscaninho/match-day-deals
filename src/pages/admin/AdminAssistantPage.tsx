@@ -61,24 +61,24 @@ export const AdminAssistantPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-9rem)] lg:h-[calc(100vh-7rem)]">
-      <header className="pb-3 border-b border-slate-200">
-        <h1 className="text-xl font-extrabold text-[#2C3E50] flex items-center gap-2">
-          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2ECC71] to-[#27AE60] flex items-center justify-center"><Sparkles className="w-4 h-4 text-white" /></span>
+      <header className="pb-4 border-b border-slate-200">
+        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
+          <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-md"><Sparkles className="w-5 h-5 text-white" /></span>
           {t("admin.assistant.title")}
         </h1>
-        <p className="text-xs text-muted-foreground mt-1">{t("admin.assistant.subtitle")}</p>
+        <p className="text-sm text-slate-600 mt-2">{t("admin.assistant.subtitle")}</p>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 space-y-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto py-5 space-y-4">
         {messages.length === 0 && (
-          <div className="text-center py-8 space-y-4">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-[#2ECC71] to-[#27AE60] flex items-center justify-center">
-              <Sparkles className="w-7 h-7 text-white" />
+          <div className="text-center py-10 space-y-5">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
+              <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <p className="text-sm font-bold text-[#2C3E50]">{t("admin.assistant.ready")}</p>
+            <p className="text-base font-bold text-slate-900">{t("admin.assistant.ready")}</p>
             <div className="flex flex-wrap gap-2 justify-center max-w-xl mx-auto">
               {suggestions.map((s) => (
-                <button key={s} onClick={() => send(s)} className="text-xs font-medium px-3 py-1.5 rounded-full bg-white border border-slate-200 hover:border-[#2ECC71] hover:bg-emerald-50 transition text-[#2C3E50]">{s}</button>
+                <button key={s} onClick={() => send(s)} className="text-sm font-semibold px-4 py-2 rounded-full bg-white border border-slate-300 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 transition text-slate-800 shadow-sm">{s}</button>
               ))}
             </div>
           </div>
@@ -86,31 +86,31 @@ export const AdminAssistantPage = () => {
 
         {messages.map((m, i) => (
           <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : ""}`}>
-            {m.role === "assistant" && <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2ECC71] to-[#27AE60] flex items-center justify-center shrink-0"><Sparkles className="w-4 h-4 text-white" /></div>}
-            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${m.role === "user" ? "bg-[#2C3E50] text-white" : "bg-white border border-slate-200 text-[#2C3E50]"}`}>
+            {m.role === "assistant" && <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shrink-0 shadow"><Sparkles className="w-4 h-4 text-white" /></div>}
+            <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${m.role === "user" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-900"}`}>
               {m.role === "user" ? (
-                <p className="whitespace-pre-wrap">{m.content}</p>
+                <p className="whitespace-pre-wrap font-medium">{m.content}</p>
               ) : (
-                <div className="prose prose-sm max-w-none prose-headings:text-[#2C3E50] prose-strong:text-[#2C3E50] prose-code:text-[#2ECC71] prose-code:bg-emerald-50 prose-code:px-1 prose-code:rounded prose-code:before:content-none prose-code:after:content-none">
+                <div className="prose prose-sm max-w-none prose-headings:text-slate-900 prose-strong:text-slate-900 prose-p:text-slate-800 prose-li:text-slate-800 prose-code:text-emerald-700 prose-code:bg-emerald-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-bold prose-code:before:content-none prose-code:after:content-none">
                   <ReactMarkdown>{m.content}</ReactMarkdown>
                 </div>
               )}
             </div>
-            {m.role === "user" && <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0"><UserIcon className="w-4 h-4 text-slate-600" /></div>}
+            {m.role === "user" && <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0"><UserIcon className="w-4 h-4 text-slate-700" /></div>}
           </div>
         ))}
 
         {loading && (
           <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2ECC71] to-[#27AE60] flex items-center justify-center"><Sparkles className="w-4 h-4 text-white animate-pulse" /></div>
-            <div className="bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-sm text-slate-500 flex items-center gap-2">
-              <Loader2 className="w-3 h-3 animate-spin" /> {t("admin.assistant.thinking")}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow"><Sparkles className="w-4 h-4 text-white animate-pulse" /></div>
+            <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-600 flex items-center gap-2 shadow-sm">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("admin.assistant.thinking")}
             </div>
           </div>
         )}
       </div>
 
-      <div className="border-t border-slate-200 pt-3 bg-slate-50 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pb-1">
+      <div className="border-t border-slate-200 pt-3 bg-white -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pb-2">
         <div className="flex gap-2 items-end">
           <Textarea
             value={input}
@@ -118,9 +118,9 @@ export const AdminAssistantPage = () => {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
             placeholder={t("admin.assistant.placeholder")}
             rows={1}
-            className="resize-none bg-white"
+            className="resize-none bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
           />
-          <Button onClick={() => send(input)} disabled={loading || !input.trim()} className="bg-[#2ECC71] hover:bg-[#27AE60]">
+          <Button onClick={() => send(input)} disabled={loading || !input.trim()} className="bg-emerald-600 hover:bg-emerald-700 text-white h-10 w-10 p-0">
             <Send className="w-4 h-4" />
           </Button>
         </div>
