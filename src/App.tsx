@@ -108,6 +108,13 @@ const App = () => (
               <Route path="/legal/refund" element={<RefundPage />} />
               <Route path="/refund-policy" element={<RefundPage />} />
               <Route path="/how-it-works" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/cookies" element={<CookiesPage />} />
+              <Route path="/affiliate-disclosure" element={<AffiliateDisclosurePage />} />
+              <Route path="/editorial-policy" element={<EditorialPolicyPage />} />
+              <Route path="/ticket-policy" element={<TicketPolicyPage />} />
+              <Route path="/guides" element={<GuidesIndexPage />} />
+              <Route path="/guides/:slug" element={<GuideDetailPage />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
