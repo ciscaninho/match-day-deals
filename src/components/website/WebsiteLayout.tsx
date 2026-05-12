@@ -98,45 +98,39 @@ export const WebsiteLayout = ({ children }: Props) => {
       <main className="flex-1">{children}</main>
 
       <footer dir={dir} className="bg-[#2C3E50] text-white/80 mt-16">
+        {/* Trust strip */}
+        <div className="bg-[#0F1A2E] border-b border-white/5">
+          <div className="max-w-6xl mx-auto px-5 py-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] sm:text-xs text-white/60 text-center">
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.compare") || "We compare official ticket providers"}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.no_sale") || "We do not sell tickets directly"}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.affiliate") || "Some outbound links may earn us a commission"}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" /> {t("website.trust.gdpr") || "GDPR-compliant"}</span>
+          </div>
+        </div>
+
         <div className="max-w-6xl mx-auto px-5 py-14 grid gap-10 md:grid-cols-12">
-          <div className="md:col-span-5">
+          <div className="md:col-span-4">
             <Link to="/" className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 rounded-xl bg-[#2ECC71] flex items-center justify-center shadow-lg shadow-[#2ECC71]/30">
                 <Ticket className="w-5 h-5 text-white" />
               </div>
               <span className="font-extrabold text-white tracking-tight text-lg">Foot Ticket Finder</span>
             </Link>
-            <p className="text-sm text-white/60 max-w-sm leading-relaxed">
-              {t("website.footer.tagline")}
-            </p>
+            <p className="text-sm text-white/60 max-w-sm leading-relaxed">{t("website.footer.tagline")}</p>
 
             <div className="mt-6">
-              <h4 className="text-[11px] font-bold uppercase tracking-widest text-white/90 mb-3">
-                {t("website.footer.contact")}
-              </h4>
-              <a
-                href="mailto:support@footticketfinder.com"
-                className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-[#2ECC71] transition-colors"
-              >
+              <h4 className="text-[11px] font-bold uppercase tracking-widest text-white/90 mb-3">{t("website.footer.contact")}</h4>
+              <a href="mailto:support@footticketfinder.com" className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-[#2ECC71] transition-colors">
                 <Mail className="w-4 h-4" />
                 support@footticketfinder.com
               </a>
             </div>
 
             <div className="mt-6">
-              <h4 className="text-[11px] font-bold uppercase tracking-widest text-white/90 mb-3">
-                {t("website.footer.follow")}
-              </h4>
+              <h4 className="text-[11px] font-bold uppercase tracking-widest text-white/90 mb-3">{t("website.footer.follow")}</h4>
               <div className="flex items-center gap-2">
                 {socialLinks.map(({ label, href, icon: Icon }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#2ECC71] hover:text-white transition-colors flex items-center justify-center"
-                  >
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#2ECC71] hover:text-white transition-colors flex items-center justify-center">
                     <Icon className="w-4 h-4" />
                   </a>
                 ))}
@@ -144,26 +138,40 @@ export const WebsiteLayout = ({ children }: Props) => {
             </div>
           </div>
 
-          <div className="md:col-span-3">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">
-              {t("website.footer.browse")}
-            </h4>
+          <div className="md:col-span-2">
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{t("website.footer.browse")}</h4>
             <ul className="space-y-2.5 text-sm">
               <li><Link to="/matches" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.all_matches")}</Link></li>
               <li><Link to="/leagues" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.leagues")}</Link></li>
-              <li><Link to="/how-it-works" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.how")}</Link></li>
+              <li><Link to="/clubs" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.clubs") || "Clubs"}</Link></li>
+              <li><Link to="/stadiums" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.stadiums") || "Stadiums"}</Link></li>
               <li><Link to="/pricing" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.pricing")}</Link></li>
+            </ul>
+          </div>
+
+          <div className="md:col-span-3">
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{t("website.footer.editorial") || "Editorial"}</h4>
+            <ul className="space-y-2.5 text-sm">
+              <li><Link to="/guides" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.guides") || "All guides"}</Link></li>
+              <li><Link to="/guides/how-to-buy-tickets-safely" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.guide_safe") || "Buy tickets safely"}</Link></li>
+              <li><Link to="/guides/matchday-travel-checklist" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.guide_travel") || "Matchday & travel"}</Link></li>
+              <li><Link to="/guides/league-coverage" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.guide_leagues") || "League guides"}</Link></li>
+              <li><Link to="/guides/stadium-experience" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.guide_stadiums") || "Stadium guides"}</Link></li>
+              <li><Link to="/about" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.about") || "About us"}</Link></li>
+              <li><Link to="/contact" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.contact_link") || "Contact"}</Link></li>
               <li><Link to="/faq" className="hover:text-[#2ECC71] transition-colors">{t("website.nav.faq")}</Link></li>
             </ul>
           </div>
 
-          <div className="md:col-span-4">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">
-              {t("website.footer.legal")}
-            </h4>
+          <div className="md:col-span-3">
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{t("website.footer.legal")}</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link to="/privacy" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.privacy")}</Link></li>
               <li><Link to="/terms" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.terms")}</Link></li>
+              <li><Link to="/privacy" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.privacy")}</Link></li>
+              <li><Link to="/cookies" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.cookies") || "Cookie policy"}</Link></li>
+              <li><Link to="/affiliate-disclosure" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.affiliate") || "Affiliate disclosure"}</Link></li>
+              <li><Link to="/editorial-policy" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.editorial_policy") || "Editorial policy"}</Link></li>
+              <li><Link to="/ticket-policy" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.ticket_policy") || "Ticket & buyer protection"}</Link></li>
               <li><Link to="/refund-policy" className="hover:text-[#2ECC71] transition-colors">{t("website.footer.refund")}</Link></li>
             </ul>
           </div>
