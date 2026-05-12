@@ -58,6 +58,7 @@ const StadiumDetailPage = () => {
   useSEO({
     title: stadium ? `${stadium.stadium_name} — ${stadium.city} | Foot Ticket Finder` : "Stadium guide",
     description: stadium?.description ?? "Premium football stadium intelligence guide.",
+    noindex: true,
   });
 
   if (isLoading) {

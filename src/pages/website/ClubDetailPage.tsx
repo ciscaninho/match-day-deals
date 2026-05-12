@@ -59,6 +59,7 @@ const ClubDetailPage = () => {
       typeof window !== "undefined" && club
         ? `${window.location.origin}/clubs/${club.slug}`
         : undefined,
+    noindex: true,
     jsonLd: club
       ? [
           {

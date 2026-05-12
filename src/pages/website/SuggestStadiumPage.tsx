@@ -28,7 +28,7 @@ const SuggestStadiumPage = () => {
     notes: "",
   });
 
-  useSEO({ title: `${t("suggest.title")} | Foot Ticket Finder`, description: t("suggest.subtitle") });
+  useSEO({ title: `${t("suggest.title")} | Foot Ticket Finder`, description: t("suggest.subtitle"), noindex: true });
 
   // Lightweight client-side duplicate detection
   const possibleDuplicates = useMemo(() => {
