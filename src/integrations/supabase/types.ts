@@ -14,6 +14,118 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          created_at: string
+          created_by: string
+          error: string | null
+          executed_at: string | null
+          executed_by: string | null
+          id: string
+          kind: string
+          payload: Json
+          preview: Json
+          status: string
+          thread_id: string | null
+          undo_payload: Json | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          error?: string | null
+          executed_at?: string | null
+          executed_by?: string | null
+          id?: string
+          kind: string
+          payload?: Json
+          preview?: Json
+          status?: string
+          thread_id?: string | null
+          undo_payload?: Json | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          error?: string | null
+          executed_at?: string | null
+          executed_by?: string | null
+          id?: string
+          kind?: string
+          payload?: Json
+          preview?: Json
+          status?: string
+          thread_id?: string | null
+          undo_payload?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_actions_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "admin_assistant_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_assistant_messages: {
+        Row: {
+          action_id: string | null
+          content: string
+          created_at: string
+          id: string
+          role: string
+          thread_id: string
+        }
+        Insert: {
+          action_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          role: string
+          thread_id: string
+        }
+        Update: {
+          action_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_assistant_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "admin_assistant_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_assistant_threads: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       assistant_settings: {
         Row: {
           display_name: string
