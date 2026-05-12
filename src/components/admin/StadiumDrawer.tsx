@@ -283,6 +283,9 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
                 </TabsContent>
 
                 <TabsContent value="clubs" className="space-y-4 mt-0">
+                  <div className="text-[11px] font-medium text-slate-600 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                    {t("admin.drawer.clubs_autosave_hint")}
+                  </div>
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-emerald-600" /> {t("admin.drawer.attached_clubs")} · {relations?.clubs.length || 0}
@@ -297,15 +300,15 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
                             <p className="text-sm font-bold text-slate-900 truncate">{c.club_name}</p>
                             <p className="text-[11px] text-slate-500 truncate">{c.league}</p>
                           </div>
-                          <Button variant="ghost" size="sm" onClick={() => handleDetachClub(c.slug)} className="text-rose-600 hover:text-rose-700 hover:bg-rose-50">
-                            <Trash2 className="w-3.5 h-3.5" />
+                          <Button variant="ghost" size="sm" disabled={pendingClub === c.slug} onClick={() => handleDetachClub(c.slug)} className="text-rose-600 hover:text-rose-700 hover:bg-rose-50">
+                            {pendingClub === c.slug ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                           </Button>
                         </div>
                       )) : <p className="text-xs text-slate-400 italic py-2">{t("admin.drawer.no_clubs_attached")}</p>}
                     </div>
                   </div>
                   <Separator />
-                  <ClubAttachPicker excludeSlugs={(relations?.clubs || []).map((c: any) => c.slug)} onAttach={handleAttachClub} />
+                  <ClubAttachPicker excludeSlugs={(relations?.clubs || []).map((c: any) => c.slug)} onAttach={handleAttachClub} pendingSlug={pendingClub} />
                 </TabsContent>
 
                 <TabsContent value="matches" className="space-y-2 mt-0">
