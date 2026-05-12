@@ -10,6 +10,10 @@ export interface UserPreferences {
   user_intent: string[];
   onboarding_completed: boolean;
   onboarding_skipped_at: string | null;
+  matchday_style: string | null;
+  dream_stadium_slug: string | null;
+  stadiums_visited_bucket: string | null;
+  alert_preferences: Record<string, boolean> | null;
 }
 
 export const useUserPreferences = () => {
