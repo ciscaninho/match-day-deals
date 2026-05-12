@@ -15,7 +15,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export const AdminAuditPage = () => {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const qc = useQueryClient();
   const [pending, setPending] = useState<string | null>(null);
 
@@ -34,7 +34,7 @@ export const AdminAuditPage = () => {
     try {
       const { data, error } = await supabase.functions.invoke("admin-actions-execute", {
         body: { action_id: id, mode },
-        headers: { "x-locale": t("admin.nav.audit") === "Journal d'audit" ? "fr" : "en" },
+        headers: { "x-locale": locale },
       });
       if (error || data?.error) throw new Error(data?.error || error?.message);
       toast.success(t(`admin.audit.${mode}_ok`));
