@@ -358,7 +358,7 @@ const FormRow = ({ label, children }: { label: string; children: React.ReactNode
   </div>
 );
 
-function ClubAttachPicker({ excludeSlugs, onAttach }: { excludeSlugs: string[]; onAttach: (slug: string) => void }) {
+function ClubAttachPicker({ excludeSlugs, onAttach, pendingSlug }: { excludeSlugs: string[]; onAttach: (slug: string) => void; pendingSlug?: string | null }) {
   const { t } = useLanguage();
   const [q, setQ] = useState("");
   const { data = [], isFetching } = useQuery({
