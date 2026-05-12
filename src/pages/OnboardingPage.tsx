@@ -384,7 +384,9 @@ const OnboardingPage = () => {
                             <Check className="w-3 h-3 text-slate-900" />
                           </span>
                         )}
-                        <div className="text-2xl mb-1.5">{team.emoji}</div>
+                        <div className="mb-2">
+                          <LogoImg src={team.logo} alt={team.name} fallback={team.fallback} size={44} />
+                        </div>
                         <p className="font-bold text-sm leading-tight">{team.name}</p>
                         <p className="text-[11px] text-white/50 mt-0.5">{team.league}</p>
                       </button>
@@ -410,7 +412,7 @@ const OnboardingPage = () => {
                           : "border-white/10 hover:border-white/30 bg-white/5",
                       )}
                     >
-                      <span className="text-2xl">{l.flag}</span>
+                      <LogoImg src={l.logo} alt={l.name} fallback={l.name.slice(0, 2).toUpperCase()} size={36} />
                       <span className="font-bold text-sm">{l.name}</span>
                       {sel && (
                         <span className="ms-auto w-5 h-5 rounded-full bg-emerald-400 flex items-center justify-center shrink-0">
