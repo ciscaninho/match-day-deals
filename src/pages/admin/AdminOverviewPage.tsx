@@ -32,32 +32,37 @@ export const AdminOverviewPage = () => {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-2xl font-extrabold text-[#2C3E50]">{t("admin.title")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("admin.subtitle")}</p>
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">{t("admin.title")}</h1>
+        <p className="text-sm text-slate-600 mt-1.5">{t("admin.subtitle")}</p>
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {cards.map((c) => (
           <Link key={c.to} to={c.to} className="group">
-            <Card className="hover:border-[#2ECC71] hover:shadow-md transition">
-              <CardContent className="p-4">
-                <c.icon className="w-5 h-5 text-[#2ECC71] mb-2" />
-                <p className="text-2xl font-extrabold text-[#2C3E50]">{c.value ?? "—"}</p>
-                <p className="text-xs text-muted-foreground">{c.label}</p>
+            <Card className="border-slate-200 hover:border-emerald-500 hover:shadow-lg transition bg-white">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <c.icon className="w-5 h-5 text-emerald-600" />
+                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition" />
+                </div>
+                <p className="text-3xl font-extrabold text-slate-900 leading-none">{c.value ?? "—"}</p>
+                <p className="text-xs font-semibold text-slate-600 mt-2 uppercase tracking-wider">{c.label}</p>
               </CardContent>
             </Card>
           </Link>
         ))}
       </div>
 
-      <Card className="bg-gradient-to-br from-[#2C3E50] to-[#1B2A3A] text-white border-none">
+      <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none shadow-xl">
         <CardContent className="p-6 flex items-center gap-4">
-          <Sparkles className="w-8 h-8 text-[#2ECC71]" />
-          <div className="flex-1">
-            <h2 className="font-bold">{t("admin.assistant.title")}</h2>
-            <p className="text-sm text-white/70 mt-1">{t("admin.assistant.subtitle")}</p>
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
+            <Sparkles className="w-6 h-6 text-emerald-400" />
           </div>
-          <Link to="/admin/assistant" className="inline-flex items-center gap-1 text-sm font-bold text-[#2ECC71]">
+          <div className="flex-1 min-w-0">
+            <h2 className="font-extrabold text-base">{t("admin.assistant.title")}</h2>
+            <p className="text-sm text-white/80 mt-1">{t("admin.assistant.subtitle")}</p>
+          </div>
+          <Link to="/admin/assistant" className="inline-flex items-center gap-1 text-sm font-bold text-emerald-400 hover:text-emerald-300 shrink-0">
             {t("admin.open")} <ArrowRight className="w-4 h-4" />
           </Link>
         </CardContent>
