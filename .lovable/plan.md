@@ -1,85 +1,156 @@
-## Foot Ticket Finder — Polish Phase Plan
+## Goal
 
-This phase splits cleanly into 3 independent workstreams. Given the size (admin tooling, onboarding flow, public homepage UX), I want to confirm scope and sequencing before writing code so we don't break SEO, slugs, or stadium relations.
+Two major product shifts before continuing batches:
 
----
-
-### 1. Admin Stadium Control Center (`/app/admin/stadium-directory`)
-
-**New page** with three view modes (grid / table / map) over the `stadiums` + `stadiums_master_staging` tables.
-
-- **Filters**: missing image, missing coords, duplicate risk, multi-club, low confidence, verified-only, production-only, staging-only.
-- **Grouping**: country / league / club (collapsible accordions).
-- **Search**: stadium / city / club / alias (client-side over fetched set).
-- **Status badges** computed from row data: `VERIFIED LIVE`, `SAFE TO APPROVE`, `REVIEW RECOMMENDED`, `MULTI-CLUB`, `DUPLICATE RISK`, `MISSING METADATA`.
-- **Edit drawer**: hero preview, production vs staging side-by-side, inline fields, quick-save, plain-English conflict reasons, slug auto-suggest, reverse-geocode city/country from lat/lng (Lovable AI).
-- **Admin AI Assistant**: floating panel (admin routes only). Edge function `admin-stadium-assistant` calls Lovable AI Gateway with the current staging/production row as context. Read-only — proposes actions, never writes.
-
-Routes added to `App.tsx` under `RequireAdmin`.
+1. Kill the `/app/*` "hidden app" feel — unify everything under the public website domain (`/profile`, `/favorites`, `/alerts`, `/passport`, `/settings`) using the same cinematic design system already used on `/`, `/stadiums`, `/clubs`.
+2. Rebuild the admin into a real **Football Operations Center** with full entity visibility, inline/visual editing, relationship views, an admin AI copilot, and FR/EN localization.
 
 ---
 
-### 2. Premium Onboarding Flow (5 steps)
+## Part 1 — Remove the `/app/*` split, unify under the public website
 
-Rewrite `src/pages/OnboardingPage.tsx`. Stores into existing `user_preferences` + 2 new columns.
+### Routing changes (`src/App.tsx`)
+- Add new public routes that reuse `WebsiteLayout` (the same shell as `/stadiums`, `/clubs`, etc.):
+  - `/profile` → new `ProfilePage` (rebuilt on website shell)
+  - `/favorites` → new `FavoritesPage`
+  - `/alerts` → new `AlertsPage` (move from `/app/alerts`)
+  - `/passport` → new `PassportPage` (Stadium Passport)
+  - `/settings` → new `SettingsPage` (language, notifications, account)
+- Keep `/app/*` routes alive as **301-style redirects** (via `<Navigate replace>`) so existing links, emails, deep links, and SEO don't 404:
+  - `/app/home` → `/`
+  - `/app/profile` → `/profile`
+  - `/app/favorites` → `/favorites`
+  - `/app/alerts` → `/alerts`
+  - `/app/notifications` → `/alerts`
+  - `/app/calendar` → `/matches`
+  - `/app/matches` → `/matches`, `/app/matches/:id` → `/matches/:id`
+  - `/app/match/:id` → `/matches/:id`
+  - `/app/premium` → `/pricing`
+  - `/app/upsell` → `/pricing`
+  - `/app/admin` → `/admin`
+  - `/app/daily-game`, `/app/rewards`, `/app/polls` → `/` (deprioritized, not part of website IA yet)
 
-```text
-Step 1  Your Football Heart       teams + leagues (max 5)
-Step 2  Matchday Style            Ultra / Premium / Family / Explorer
-Step 3  Dream Stadium             cinematic carousel of curated stadiums
-Step 4  Football Passport         0–5 / 5–20 / 20–50 / 50+
-Step 5  Alerts (optional)         tickets / price drops / nearby / dream
+### Header / account dropdown (`HeaderAuthButton.tsx`)
+- Point every menu item at the new public URLs:
+  - Dashboard → removed (no more `/app/home`)
+  - Profile → `/profile`
+  - Favorites → `/favorites`
+  - Passport → `/passport`
+  - Alerts → `/alerts`
+  - Settings → `/settings`
+  - Admin → `/admin` (if `isAdmin`)
+  - Sign out → `/`
+
+### Pages
+- Build minimal but on-brand pages wrapped in `WebsiteLayout`:
+  - `src/pages/website/ProfilePage.tsx`
+  - `src/pages/website/FavoritesPage.tsx`
+  - `src/pages/website/AlertsPage.tsx`
+  - `src/pages/website/PassportPage.tsx`
+  - `src/pages/website/SettingsPage.tsx`
+- They reuse existing data hooks (`useUserPreferences`, saved matches query, stadium visits) and the same hero/gradient pattern as `WebsiteHomePage` / `StadiumsPage`.
+- All copy uses `t()` with FR + EN (and the other locales we already maintain).
+
+### Bottom nav / `OnboardingBanner`
+- Remove `BottomNav` from these new pages — it belongs to the app shell and is the main visual indicator of the "hidden app" feeling.
+- Update `OnboardingBanner` CTA target to `/onboarding` (unchanged) but final redirect of onboarding stays `/`.
+
+### Safety
+- Stadium slugs, public SEO routes, `sitemap.xml`, JSON-LD, canonical tags are untouched.
+- Stadium relations and production data untouched.
+- No DB migration.
+
+---
+
+## Part 2 — Football Operations Center (Admin 2.0)
+
+New admin shell at `/admin` replacing the current `AdminPage.tsx`, with sub-routes.
+
+### Routes
+```
+/admin                       → Overview (KPIs + AI copilot)
+/admin/clubs                 → Clubs browser
+/admin/clubs/:slug           → Club editor (with stadium + ticketing relations)
+/admin/stadiums              → Stadiums browser (table + map toggle)
+/admin/stadiums/:slug        → Stadium editor (images, coords, aliases, SEO)
+/admin/matches               → Matches browser (upcoming/past, filters)
+/admin/matches/:id           → Match editor
+/admin/leagues               → Leagues + their clubs
+/admin/ticketing             → Club ticketing profiles browser
+/admin/media                 → existing stadium media sync (kept)
+/admin/map-review            → existing map review (kept)
+/admin/suggestions           → existing stadium suggestions
+/admin/assistant             → full-page AI copilot
 ```
 
-**Final redirect**: `/` (website homepage), not `/app/home`.
+All wrapped in a new `AdminShell` that provides:
+- Left sidebar with sections + counts
+- Top bar: global entity search, language switch (FR/EN), AI copilot drawer toggle
+- All gated by `RequireAdmin`
 
-Schema additions (migration):
-- `user_preferences.matchday_style text`
-- `user_preferences.dream_stadium_slug text`
-- `user_preferences.stadiums_visited_bucket text`
-- `user_preferences.alert_preferences jsonb default '{}'`
+### A) Full data visibility
+- Each browser page = filterable table + card grid toggle, paginated, with quick-edit:
+  - Clubs: name, slug, league, country, stadium relation, has ticketing profile?, hero image preview
+  - Stadiums: name, slug, city, country, league, capacity, lat/lng, hero/thumb thumbnails, # related clubs, # upcoming matches
+  - Matches: date, home/away (logos), stadium, ticket status, sources count
+  - Leagues: derived from clubs/stadiums, shows club count, match count
+  - Ticketing profiles: club, official URL, resale, membership flag
 
-i18n: all new strings via `t()` for all 9 locales.
+### B) Better editing
+- **Inline edit drawers** (shadcn `Sheet`) — open on row click, no full page reload.
+- **Side-by-side compare** for stadiums vs. master_staging (already partially exists; promote to first-class).
+- **Image previews** for hero/thumbnail/background — drag-drop into `stadium-media` bucket using existing storage.
+- **SEO panel** per stadium/club: title, description, og preview.
+- **Aliases / slugs** editable as chip input.
+- **Translations**: per-entity `name_fr`, `description_fr` fields surfaced (UI-only; if columns don't exist we render a "Coming soon" badge and don't crash).
+- **Quick moderation** buttons (Approve / Reject / Merge) reused from existing staging cards.
+
+### C) Relations visibility
+- Each entity page shows linked entities as clickable chips:
+  - Club editor → stadium card + upcoming matches list + ticketing profile card
+  - Stadium editor → related clubs (`stadiums.clubs[]` + matches by stadium name) + upcoming matches
+  - Match editor → stadium + both clubs
+- A new `/admin/map` view (Leaflet, already approved in Batch 3) — pins for all stadiums, colored by data-completeness, click → drawer.
+
+### D) Admin AI copilot
+- Floating drawer + full page at `/admin/assistant`.
+- Powered by a new edge function `admin-assistant` (Lovable AI Gateway, `google/gemini-2.5-flash`).
+- Tools/functions it can call server-side:
+  - `find_duplicate_stadiums({ query })` — fuzzy match in `stadiums` + `stadiums_master_staging`
+  - `inspect_entity({ type, slug })` — returns conflicts, missing fields, risk flags
+  - `search_entities({ query, type })`
+  - `explain_conflicts({ slug })` — diffs between staging and prod
+- Returns markdown rendered with `react-markdown`.
+- Admin-only: edge function validates `has_role(user, 'admin')` server-side using JWT.
+
+### E) Localization (FR + EN, plus other 7 locales)
+- New `src/i18n/admin.ts` exporting an admin-only namespace, merged in `translations.ts`.
+- Every admin label uses `t("admin.*")`.
+- FR is the primary target; the other 7 locales fall back to EN (existing pattern).
+- Language switch in the admin top bar mirrors the global one.
+
+### Safety
+- All admin pages gated by `RequireAdmin`.
+- No destructive operations without confirmation dialog.
+- No production stadium overwrites — writes go through existing staging tables where applicable; direct edits on `stadiums` are explicit and logged in `stadium_media_history` style notes.
+- Existing routes `/admin/stadium-map-review`, `/admin/stadium-media-sync` preserved.
 
 ---
 
-### 3. Homepage — "Your Next Football Experience"
+## Delivery order
 
-Replace the "Top rated stadiums" / "Fans de foot, vraies expériences" block on `WebsiteHomePage` with an emotional, cinematic rail.
+Because this is large, I'll ship in **2 sub-batches** under your approval:
 
-- New component `src/components/home/NextExperienceRail.tsx`.
-- Each card: curated hero (via `BrandedStadiumImage`), city, vibe chip (🔥 Intense / 👨‍👩‍👧‍👦 Family / 🏟 Historic / 🎶 Loud / 💎 Premium / 🌍 Hidden gem), upcoming-match count, difficulty badge, ticket-availability hint.
-- Vibes derived from existing `stadiums.atmosphere_score`, `family_friendly_score`, `popularity_score`, `capacity`, `opened_year` — no schema changes.
-- Click → existing `/stadiums/:slug` route (already shows upcoming matches + tickets).
-- Personalization: when logged in and onboarded, sort by user's favorite leagues/clubs + dream stadium first.
-
-**Safety**: no changes to slugs, stadium relations, sitemap, or SEO meta. Staging data stays admin-only.
+- **Sub-batch A (this loop)**: Part 1 (unify website, remove `/app/*`) + admin shell scaffolding (sidebar, routes, FR/EN i18n base, sub-pages stubbed with real data tables for clubs/stadiums/matches). No new DB changes.
+- **Sub-batch B (next loop)**: full editors with inline drawers, image upload, relations panels, Leaflet map, `admin-assistant` edge function + copilot UI.
 
 ---
 
-### Technical Notes (collapsible details)
+## Out of scope
 
-- New edge function: `admin-stadium-assistant` (Lovable AI Gateway, model `google/gemini-3-flash-preview`, admin-gated via JWT + `has_role` check, read-only access to `stadiums` + `stadiums_master_staging`).
-- Reverse geocode for edit drawer: Lovable AI prompt with lat/lng → JSON `{city,country}` (no external geocode key needed since one isn't configured for this use).
-- Map view: lightweight — use Leaflet via existing pattern if present; otherwise a simple SVG world map with pins. **Question for you below.**
-- All new admin UI guarded by `RequireAdmin`.
+- No new DB columns (translations `name_fr` etc. shown as UI placeholders only).
+- No changes to public stadium slugs, SEO, sitemap.
+- No removal of staging data.
+- No payment / subscription changes.
 
----
-
-### Suggested order of delivery
-
-Because this is large, I propose shipping in 3 PR-sized batches in this order:
-
-1. **Onboarding rewrite + redirect to `/`** (smallest, user-visible win, unblocks personalization)
-2. **Homepage "Next Experience" rail** (depends on onboarding for personalization signal)
-3. **Admin Control Center + AI Assistant** (largest, isolated to `/app/admin/*`)
-
----
-
-### Open questions
-
-1. **Map view library** — OK to add `leaflet` + `react-leaflet` for the admin map view? (~40KB gz, admin-only chunk)
-2. **Dream Stadium carousel source** — use the curated 4 you uploaded (San Siro, Signal Iduna Park, Allianz Arena, Camp Nou) + top 6 from `stadiums` by `popularity_score`?
-3. **Batch order** — ship in the 1→2→3 order above, or do you want admin first?
-
-Reply with answers (or "go ahead, you decide") and I'll start implementing.
+Ready to ship Sub-batch A — confirm and I start.

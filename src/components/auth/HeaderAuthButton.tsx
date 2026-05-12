@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "./AuthGate";
-import { LogIn, User as UserIcon, LayoutDashboard, Shield, LogOut, Sparkles } from "lucide-react";
+import { LogIn, User as UserIcon, Heart, Bell, Trophy, Settings as SettingsIcon, Shield, LogOut, Sparkles } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,31 +47,43 @@ export const HeaderAuthButton = () => {
             {email}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => navigate("/app/home")}>
-            <LayoutDashboard className="w-4 h-4 mr-2" />
-            Dashboard
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate("/app/profile")}>
+          <DropdownMenuItem onClick={() => navigate("/profile")}>
             <UserIcon className="w-4 h-4 mr-2" />
-            Profile
+            {t("account.menu.profile") || "Profile"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/favorites")}>
+            <Heart className="w-4 h-4 mr-2" />
+            {t("account.menu.favorites") || "Favorites"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/alerts")}>
+            <Bell className="w-4 h-4 mr-2" />
+            {t("account.menu.alerts") || "Alerts"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/passport")}>
+            <Trophy className="w-4 h-4 mr-2" />
+            {t("account.menu.passport") || "Stadium Passport"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/settings")}>
+            <SettingsIcon className="w-4 h-4 mr-2" />
+            {t("account.menu.settings") || "Settings"}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate("/onboarding")}>
             <Sparkles className="w-4 h-4 mr-2" />
-            Personalize
+            {t("account.menu.personalize") || "Personalize"}
           </DropdownMenuItem>
           {isAdmin && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/admin")}>
                 <Shield className="w-4 h-4 mr-2" />
-                Admin
+                {t("account.menu.admin") || "Admin"}
               </DropdownMenuItem>
             </>
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
             <LogOut className="w-4 h-4 mr-2" />
-            Sign out
+            {t("account.menu.signout") || "Sign out"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -85,7 +97,7 @@ export const HeaderAuthButton = () => {
       className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 text-[#2C3E50] text-xs font-bold px-3.5 py-2 hover:bg-slate-50 transition-colors"
     >
       <LogIn className="w-3.5 h-3.5" />
-      <span className="hidden sm:inline">Sign in</span>
+      <span className="hidden sm:inline">{t("account.menu.signin") || "Sign in"}</span>
     </button>
   );
 };

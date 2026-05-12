@@ -1,11 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserProvider } from "@/contexts/UserContext";
 import { LanguageProvider } from "@/i18n/LanguageContext";
-import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
 import Maintenance from "./pages/Maintenance";
 import WebsiteHomePage from "./pages/website/WebsiteHomePage";
@@ -18,22 +17,26 @@ import ClubsPage from "./pages/website/ClubsPage";
 import ClubDetailPage from "./pages/website/ClubDetailPage";
 import SuggestStadiumPage from "./pages/website/SuggestStadiumPage";
 import StadiumDetailPage from "./pages/website/StadiumDetailPage";
-import MatchesPage from "./pages/MatchesPage";
-import MatchDetailPage from "./pages/MatchDetailPage";
-import CalendarPage from "./pages/CalendarPage";
-import NotificationsPage from "./pages/NotificationsPage";
-import ProfilePage from "./pages/ProfilePage";
-import PremiumPage from "./pages/PremiumPage";
-import PollsPage from "./pages/PollsPage";
-import QuizPage from "./pages/QuizPage";
-import AdminPage from "./pages/AdminPage";
+import AccountProfilePage from "./pages/website/AccountProfilePage";
+import FavoritesPage from "./pages/website/FavoritesPage";
+import AccountAlertsPage from "./pages/website/AccountAlertsPage";
+import PassportPage from "./pages/website/PassportPage";
+import SettingsPage from "./pages/website/SettingsPage";
 import StadiumMapReviewPage from "./pages/admin/StadiumMapReviewPage";
 import StadiumMediaSyncPage from "./pages/admin/StadiumMediaSyncPage";
+import AdminShell from "./pages/admin/AdminShell";
+import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
+import AdminClubsPage from "./pages/admin/AdminClubsPage";
+import AdminStadiumsPage from "./pages/admin/AdminStadiumsPage";
+import AdminMatchesPage from "./pages/admin/AdminMatchesPage";
+import AdminLeaguesPage from "./pages/admin/AdminLeaguesPage";
+import AdminTicketingPage from "./pages/admin/AdminTicketingPage";
+import AdminAssistantPage from "./pages/admin/AdminAssistantPage";
+import AdminSuggestionsPage from "./pages/admin/AdminSuggestionsPage";
+import AdminLegacyPage from "./pages/admin/AdminLegacyPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
-import AlertsPage from "./pages/AlertsPage";
-import PremiumUpsellPage from "./pages/PremiumUpsellPage";
 import NotFound from "./pages/NotFound";
 import AboutPage from "./pages/marketing/AboutPage";
 import PricingPage from "./pages/marketing/PricingPage";
@@ -72,7 +75,7 @@ const App = () => (
             <PremiumGateProvider>
             <TrackPriceSheetProvider>
             <Routes>
-              {/* ========== PUBLIC SEO WEBSITE (no login) ========== */}
+              {/* ========== PUBLIC SEO WEBSITE ========== */}
               <Route path="/" element={<WebsiteHomePage />} />
               <Route path="/site" element={<WebsiteHomePage />} />
               <Route path="/matches" element={<WebsiteMatchesPage />} />
@@ -102,34 +105,48 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/onboarding" element={<RequireAuth><OnboardingPage /></RequireAuth>} />
 
-              {/* ========== FULL APPLICATION (logged-in companion) ========== */}
-              <Route path="/app/home" element={<RequireAuth><HomePage /></RequireAuth>} />
-              <Route path="/app/matches" element={<RequireAuth><MatchesPage /></RequireAuth>} />
-              <Route path="/app/matches/:id" element={<RequireAuth><MatchDetailPage /></RequireAuth>} />
-              {/* legacy match detail path */}
-              <Route path="/app/match/:id" element={<RequireAuth><MatchDetailPage /></RequireAuth>} />
-              <Route path="/app/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
-              <Route path="/app/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
-              <Route path="/app/alerts" element={<RequireAuth><AlertsPage /></RequireAuth>} />
-              <Route path="/app/upsell" element={<RequireAuth><PremiumUpsellPage /></RequireAuth>} />
-              <Route path="/app/favorites" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
-              <Route path="/app/daily-game" element={<RequireAuth><QuizPage /></RequireAuth>} />
-              <Route path="/app/rewards" element={<RequireAuth><QuizPage /></RequireAuth>} />
-              <Route path="/app/polls" element={<RequireAuth><PollsPage /></RequireAuth>} />
-              <Route path="/app/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
-              <Route path="/app/premium" element={<RequireAuth><PremiumPage /></RequireAuth>} />
-              <Route
-                path="/app/admin"
-                element={
-                  <RequireAdmin>
-                    <AdminPage />
-                  </RequireAdmin>
-                }
-              />
-              <Route path="/app/admin/stadium-map-review" element={<StadiumMapReviewPage />} />
+              {/* ========== ACCOUNT (public-style pages, login required) ========== */}
+              <Route path="/profile" element={<RequireAuth><AccountProfilePage /></RequireAuth>} />
+              <Route path="/favorites" element={<RequireAuth><FavoritesPage /></RequireAuth>} />
+              <Route path="/alerts" element={<RequireAuth><AccountAlertsPage /></RequireAuth>} />
+              <Route path="/passport" element={<RequireAuth><PassportPage /></RequireAuth>} />
+              <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+
+              {/* ========== ADMIN (Football Operations Center) ========== */}
+              <Route path="/admin" element={<RequireAdmin><AdminShell /></RequireAdmin>}>
+                <Route index element={<AdminOverviewPage />} />
+                <Route path="clubs" element={<AdminClubsPage />} />
+                <Route path="stadiums" element={<AdminStadiumsPage />} />
+                <Route path="matches" element={<AdminMatchesPage />} />
+                <Route path="leagues" element={<AdminLeaguesPage />} />
+                <Route path="ticketing" element={<AdminTicketingPage />} />
+                <Route path="suggestions" element={<AdminSuggestionsPage />} />
+                <Route path="assistant" element={<AdminAssistantPage />} />
+                <Route path="legacy" element={<AdminLegacyPage />} />
+              </Route>
+              <Route path="/admin/media" element={<RequireAdmin><StadiumMediaSyncPage /></RequireAdmin>} />
+              <Route path="/admin/map-review" element={<RequireAdmin><StadiumMapReviewPage /></RequireAdmin>} />
               <Route path="/admin/stadium-map-review" element={<StadiumMapReviewPage />} />
-              <Route path="/app/admin/stadium-media-sync" element={<StadiumMediaSyncPage />} />
               <Route path="/admin/stadium-media-sync" element={<StadiumMediaSyncPage />} />
+
+              {/* ========== LEGACY /app/* REDIRECTS ========== */}
+              <Route path="/app/home" element={<Navigate to="/" replace />} />
+              <Route path="/app/profile" element={<Navigate to="/profile" replace />} />
+              <Route path="/app/favorites" element={<Navigate to="/favorites" replace />} />
+              <Route path="/app/alerts" element={<Navigate to="/alerts" replace />} />
+              <Route path="/app/notifications" element={<Navigate to="/alerts" replace />} />
+              <Route path="/app/calendar" element={<Navigate to="/matches" replace />} />
+              <Route path="/app/matches" element={<Navigate to="/matches" replace />} />
+              <Route path="/app/matches/:id" element={<NavigateMatch />} />
+              <Route path="/app/match/:id" element={<NavigateMatch />} />
+              <Route path="/app/premium" element={<Navigate to="/pricing" replace />} />
+              <Route path="/app/upsell" element={<Navigate to="/pricing" replace />} />
+              <Route path="/app/daily-game" element={<Navigate to="/" replace />} />
+              <Route path="/app/rewards" element={<Navigate to="/" replace />} />
+              <Route path="/app/polls" element={<Navigate to="/" replace />} />
+              <Route path="/app/admin" element={<Navigate to="/admin" replace />} />
+              <Route path="/app/admin/stadium-map-review" element={<Navigate to="/admin/stadium-map-review" replace />} />
+              <Route path="/app/admin/stadium-media-sync" element={<Navigate to="/admin/stadium-media-sync" replace />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -143,5 +160,12 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
+
+// Small helper to redirect /app/matches/:id and /app/match/:id while preserving the id.
+import { useParams } from "react-router-dom";
+function NavigateMatch() {
+  const { id } = useParams();
+  return <Navigate to={`/matches/${id}`} replace />;
+}
 
 export default App;
