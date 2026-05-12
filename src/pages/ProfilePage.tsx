@@ -8,16 +8,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Crown, Star, Heart, Bell, ArrowRight, Globe } from "lucide-react";
 import { StadiumPassportCard } from "@/components/StadiumPassportCard";
 import type { Locale } from "@/i18n/translations";
+import { useUserIdentity } from "@/hooks/useUserIdentity";
+import { UserAvatar } from "@/components/account/UserAvatar";
+import { UserBadge } from "@/components/account/UserBadge";
 
 const ProfilePage = () => {
   const { isPremium, points, followedMatches, unreadCount } = useUser();
   const { t, locale, setLocale } = useLanguage();
   const navigate = useNavigate();
+  const identity = useUserIdentity();
+  const ring = identity.isAdmin ? "admin" : identity.isPremium ? "premium" : "soft";
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="px-5 pt-12">
-        <h1 className="text-xl font-bold text-foreground mb-6">{t("profile.title")}</h1>
+      {/* Premium identity hero */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#2C3E50]" />
+        <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.35),transparent_60%),radial-gradient(circle_at_bottom_left,rgba(251,191,36,0.25),transparent_55%)]" />
+        <div className="relative px-5 pt-12 pb-8 text-white">
+          <div className="flex items-center gap-4">
+            <UserAvatar
+              name={identity.displayName}
+              initials={identity.initials}
+              src={identity.avatarUrl}
+              size="xl"
+              ring={ring as any}
+            />
+            <div className="min-w-0 flex-1">
+              <div className="text-xl font-extrabold leading-tight truncate">
+                {identity.displayName}
+              </div>
+              <div className="mt-2">
+                <UserBadge label={identity.badge} />
+              </div>
+              {identity.email && (
+                <div className="mt-1.5 text-[11px] text-white/55 truncate">
+                  {identity.email}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-5 pt-6">
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
