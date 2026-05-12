@@ -2,6 +2,7 @@ import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { Link } from "react-router-dom";
 import { ArrowRight, Search, BellRing, Trophy, Crown, Calendar, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { PageHero, PageSection, SectionHeading } from "@/components/layout/Page";
 
 const AboutPage = () => {
   const { t, dir } = useLanguage();
@@ -18,17 +19,15 @@ const AboutPage = () => {
   return (
     <MarketingLayout>
       <div dir={dir}>
-        <section className="bg-gradient-to-br from-[#2C3E50] via-[#243342] to-[#1a2530] text-white">
-          <div className="max-w-4xl mx-auto px-5 py-20 text-center">
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">{t("about.hero.title")}</h1>
-            <p className="mt-5 text-white/70 text-lg max-w-2xl mx-auto">{t("about.hero.subtitle")}</p>
-          </div>
-        </section>
+        <PageHero title={t("about.hero.title")} subtitle={t("about.hero.subtitle")} />
 
-        <section className="py-20 bg-white">
-          <div className="max-w-5xl mx-auto px-5 grid md:grid-cols-2 gap-6">
+        <PageSection tone="white">
+          <div className="grid md:grid-cols-2 gap-6">
             {steps.map((s) => (
-              <div key={s.title} className="rounded-2xl border border-slate-200 p-6 hover:border-[#2ECC71]/40 transition-colors">
+              <div
+                key={s.title}
+                className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-[#2ECC71]/40 hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.15)] transition-all"
+              >
                 <div className="w-11 h-11 rounded-xl bg-[#2ECC71]/10 flex items-center justify-center mb-4">
                   <s.icon className="w-5 h-5 text-[#2ECC71]" />
                 </div>
@@ -37,14 +36,16 @@ const AboutPage = () => {
               </div>
             ))}
           </div>
-        </section>
+        </PageSection>
 
-        <section className="py-16 bg-slate-50">
-          <div className="max-w-3xl mx-auto px-5 text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight">{t("about.cta.title")}</h2>
+        <PageSection tone="slate" size="tight" width="narrow">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#2C3E50]">
+              {t("about.cta.title")}
+            </h2>
             <Link
               to="/app"
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold shadow-lg shadow-[#2ECC71]/30"
+              className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] hover:bg-[#27ae60] text-white px-6 py-3.5 font-semibold shadow-lg shadow-[#2ECC71]/30 transition-colors"
             >
               {t("about.cta.button")} <ArrowRight className="w-4 h-4" />
               <span className="ms-1 rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
@@ -53,7 +54,7 @@ const AboutPage = () => {
             </Link>
             <p className="mt-3 text-xs text-[#2C3E50]/55">{t("app.coming_soon_desc")}</p>
           </div>
-        </section>
+        </PageSection>
       </div>
     </MarketingLayout>
   );
