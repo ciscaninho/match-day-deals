@@ -47,24 +47,36 @@ export const HeaderAuthButton = () => {
             {email}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => navigate("/app/home")}>
-            <LayoutDashboard className="w-4 h-4 mr-2" />
-            Dashboard
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate("/app/profile")}>
+          <DropdownMenuItem onClick={() => navigate("/profile")}>
             <UserIcon className="w-4 h-4 mr-2" />
-            Profile
+            {t("account.menu.profile") || "Profile"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/favorites")}>
+            <Heart className="w-4 h-4 mr-2" />
+            {t("account.menu.favorites") || "Favorites"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/alerts")}>
+            <Bell className="w-4 h-4 mr-2" />
+            {t("account.menu.alerts") || "Alerts"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/passport")}>
+            <Trophy className="w-4 h-4 mr-2" />
+            {t("account.menu.passport") || "Stadium Passport"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/settings")}>
+            <SettingsIcon className="w-4 h-4 mr-2" />
+            {t("account.menu.settings") || "Settings"}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate("/onboarding")}>
             <Sparkles className="w-4 h-4 mr-2" />
-            Personalize
+            {t("account.menu.personalize") || "Personalize"}
           </DropdownMenuItem>
           {isAdmin && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/admin")}>
                 <Shield className="w-4 h-4 mr-2" />
-                Admin
+                {t("account.menu.admin") || "Admin"}
               </DropdownMenuItem>
             </>
           )}
