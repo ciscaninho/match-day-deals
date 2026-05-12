@@ -184,6 +184,10 @@ const fr: Record<keyof typeof en, string> = {
   "admin.drawer.club_attached": "Club associé",
   "admin.drawer.club_detached": "Club dissocié",
   "admin.drawer.currently_at": "actuellement à",
+  "admin.drawer.saving": "Enregistrement…",
+  "admin.drawer.no_changes": "Aucun changement",
+  "admin.drawer.no_rows_affected": "Aucune ligne mise à jour. Vous n'avez peut-être pas les droits admin sur cette table.",
+  "admin.drawer.clubs_autosave_hint": "L'association de clubs est enregistrée instantanément — pas besoin d'Enregistrer.",
 };
 
 // Other locales fall back to English (existing project pattern).
