@@ -23,9 +23,9 @@ const formatDate = (locale: string) => {
 };
 
 export const TrustDocPage = ({ doc, eyebrow }: Props) => {
-  const { locale, dir, t } = useLanguage();
+  const { locale, dir, tf } = useLanguage();
   const document = getTrustDoc(locale, doc);
-  const eyebrowText = eyebrow || t("trust.eyebrow") || "Trust & Transparency";
+  const eyebrowText = eyebrow || tf("trust.eyebrow", "Trust & Transparency");
 
   return (
     <WebsiteLayout>
@@ -42,7 +42,7 @@ export const TrustDocPage = ({ doc, eyebrow }: Props) => {
           />
           <div className="relative max-w-4xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
             <nav className="flex items-center gap-1.5 text-xs text-white/70 mb-6" aria-label="Breadcrumb">
-              <Link to="/" className="hover:text-[#2ECC71]">{t("website.nav.home") || "Home"}</Link>
+              <Link to="/" className="hover:text-[#2ECC71]">{tf("website.nav.home", "Home")}</Link>
               <ChevronRight className="w-3.5 h-3.5" />
               <span className="text-white/90 font-medium">{document.title}</span>
             </nav>
@@ -78,8 +78,7 @@ export const TrustDocPage = ({ doc, eyebrow }: Props) => {
             <div className="mt-14 rounded-2xl border border-slate-200 bg-slate-50/70 p-5 sm:p-6 flex items-start gap-4">
               <ShieldCheck className="w-5 h-5 text-[#2ECC71] mt-0.5 shrink-0" />
               <p className="text-sm text-[#2C3E50]/80 leading-relaxed">
-                {t("trust.footer_blurb") ||
-                  "Foot Ticket Finder is an independent comparison service. We do not sell tickets — every purchase is made on the official partner's site. Some outbound links may earn us a commission, which never increases the price you pay."}
+                {tf("trust.footer_blurb", "Foot Ticket Finder is an independent comparison service. We do not sell tickets — every purchase is made on the official partner's site. Some outbound links may earn us a commission, which never increases the price you pay.")}
               </p>
             </div>
           </article>
