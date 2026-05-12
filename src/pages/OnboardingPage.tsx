@@ -272,18 +272,22 @@ const OnboardingPage = () => {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-b from-slate-950 via-[#0b1726] to-slate-950 text-white"
+      className="min-h-screen relative overflow-hidden bg-[#0F1A2E] text-white"
       dir={dir}
     >
-      {/* Atmospheric glow */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-sky-500/10 blur-3xl" />
-      </div>
+      {/* Atmospheric glow — unified cinematic base */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 opacity-40"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, rgba(46,204,113,0.35), transparent 60%), radial-gradient(ellipse at bottom right, rgba(52,152,219,0.28), transparent 55%)",
+        }}
+      />
 
-      <div className="relative max-w-3xl mx-auto px-5 py-10 md:py-14">
+      <div className="relative max-w-3xl mx-auto px-5 sm:px-8 py-14 sm:py-20 md:py-24">
         {/* Progress */}
-        <div className="flex items-center gap-2 mb-8">
+        <div className="flex items-center gap-2 mb-10">
           {[1, 2, 3, 4, 5].map((s) => (
             <div
               key={s}
