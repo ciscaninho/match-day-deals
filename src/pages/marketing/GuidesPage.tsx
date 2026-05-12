@@ -89,37 +89,31 @@ export const GuideDetailPage = () => {
   return (
     <WebsiteLayout>
       <div dir={dir}>
-        <section className="relative overflow-hidden bg-[#0F1A2E] text-white">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 opacity-30"
-            style={{
-              background:
-                "radial-gradient(ellipse at top, rgba(46,204,113,0.4), transparent 60%), radial-gradient(ellipse at bottom right, rgba(52,152,219,0.3), transparent 55%)",
-            }}
-          />
-          <div className="relative max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
-            <nav className="flex items-center gap-1.5 text-xs text-white/70 mb-6" aria-label="Breadcrumb">
-              <Link to="/" className="hover:text-[#2ECC71]">{tf("website.nav.home", "Home")}</Link>
-              <ChevronRight className="w-3.5 h-3.5" />
-              <Link to="/guides" className="hover:text-[#2ECC71]">{tf("guides.eyebrow", "Guides")}</Link>
-              <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-white/90 font-medium truncate">{guide.title}</span>
-            </nav>
-            <div className="text-4xl mb-4" aria-hidden="true">{guide.emoji}</div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.1]">
-              {guide.title}
-            </h1>
-            <p className="mt-5 text-base sm:text-lg text-white/75 leading-relaxed">{guide.intro}</p>
-            <p className="mt-6 inline-flex items-center gap-2 text-xs text-white/60">
+        <PageHero
+          breadcrumbs={[
+            { label: tf("website.nav.home", "Home"), to: "/" },
+            { label: tf("guides.eyebrow", "Guides"), to: "/guides" },
+            { label: guide.title },
+          ]}
+          eyebrow={
+            <>
+              <span className="text-base leading-none" aria-hidden="true">{guide.emoji}</span>
+              {tf("guides.eyebrow", "Editorial guides")}
+            </>
+          }
+          title={guide.title}
+          subtitle={guide.intro}
+          meta={
+            <span className="inline-flex items-center gap-2">
               <Clock className="w-3.5 h-3.5" />
               {guide.readMinutes} {tf("guides.min_read", "min read")}
-            </p>
-          </div>
-        </section>
+            </span>
+          }
+          center={false}
+        />
 
-        <section className="bg-white">
-          <article className="max-w-3xl mx-auto px-5 sm:px-8 py-14 sm:py-16">
+        <PageSection tone="white" width="narrow">
+          <article>
             <div className="prose prose-slate max-w-none prose-headings:font-extrabold prose-headings:tracking-tight prose-h2:text-xl prose-h2:mt-10 prose-p:leading-relaxed prose-a:text-[#2ECC71] prose-a:font-semibold prose-strong:text-[#2C3E50]">
               {guide.sections.map((s, i) => (
                 <section key={i} className="mt-8 first:mt-0">
@@ -155,7 +149,7 @@ export const GuideDetailPage = () => {
               </Link>
             </div>
           </article>
-        </section>
+        </PageSection>
       </div>
     </WebsiteLayout>
   );
