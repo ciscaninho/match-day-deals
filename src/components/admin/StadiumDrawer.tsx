@@ -332,9 +332,9 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
             {/* Sticky save bar */}
             <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-5 py-3 flex items-center gap-2 z-20">
               <Button variant="outline" onClick={onClose} className="flex-1">{dirty ? t("admin.drawer.cancel") : t("admin.drawer.close")}</Button>
-              <Button onClick={handleSave} disabled={!dirty || saving} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Button onClick={handleSave} disabled={saving || !dirty} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-slate-300 disabled:text-slate-500">
                 {saving ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Save className="w-4 h-4 mr-1.5" />}
-                {t("admin.drawer.save")}
+                {saving ? t("admin.drawer.saving") : dirty ? t("admin.drawer.save") : t("admin.drawer.no_changes")}
               </Button>
             </div>
           </div>
