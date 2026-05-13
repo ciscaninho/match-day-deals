@@ -16,6 +16,7 @@ import {
   Search, Trash2, Upload, Users, X, AlertTriangle, CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { StadiumMediaTab } from "./StadiumMediaTab";
 
 export type StadiumDrawerRow = {
   slug: string;
