@@ -22,6 +22,7 @@ import { MatchContextLinks } from "@/components/match/MatchContextLinks";
 import { ImmersiveMatchHero } from "@/components/match/ImmersiveMatchHero";
 import { MatchEmotionalContext } from "@/components/match/MatchEmotionalContext";
 import { MatchdayExperience } from "@/components/match/MatchdayExperience";
+import { MatchdayJourney } from "@/components/match/MatchdayJourney";
 
 // ---------- helpers ----------
 const fmtDate = (iso: string) =>
