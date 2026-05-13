@@ -502,7 +502,7 @@ export const AdminClubsPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("club_ticketing_profiles")
-        .select("slug,club_name,short_name,league,country,city,stadium_name,stadium_slug,logo_url,official_ticketing_url,membership_required,notes,aliases,archived_at,archived_into_slug")
+        .select("slug,club_name,short_name,league,country,city,stadium_name,stadium_slug,logo_url,official_ticketing_url,membership_required,notes,aliases,archived_at,archived_into_slug,publication_status")
         .order("club_name");
       return (data || []) as ClubRow[];
     },
