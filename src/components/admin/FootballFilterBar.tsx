@@ -277,9 +277,16 @@ export const FootballFilterBar = ({
           {state.country !== "all" && (
             <Chip label={state.country} onRemove={() => onChange({ country: "all" })} />
           )}
-          {state.league !== "all" && (
-            <Chip label={state.league} onRemove={() => onChange({ league: "all" })} />
-          )}
+          {state.league !== "all" && (() => {
+            const opt = leagueOptions.find((o) => o.value === state.league);
+            const { country, league } = (() => {
+              const idx = state.league.indexOf("::");
+              return idx === -1
+                ? { country: undefined, league: state.league }
+                : { country: state.league.slice(0, idx), league: state.league.slice(idx + 2) };
+            })();
+            return <Chip label={opt?.label || formatLeagueLabel(league, country)} onRemove={() => onChange({ league: "all" })} />;
+          })()}
           {state.status !== "all" && (
             <Chip label={(t(`admin.pub.status.${state.status}`) || state.status)} onRemove={() => onChange({ status: "all" })} />
           )}
