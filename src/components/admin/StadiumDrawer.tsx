@@ -16,6 +16,7 @@ import {
   Search, Trash2, Upload, Users, X, AlertTriangle, CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { StadiumMediaTab } from "./StadiumMediaTab";
 
 export type StadiumDrawerRow = {
   slug: string;
@@ -224,6 +225,7 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
                 <TabsList className="bg-slate-100">
                   <TabsTrigger value="overview">{t("admin.drawer.tab.overview")}</TabsTrigger>
                   <TabsTrigger value="edit">{t("admin.drawer.tab.edit")}</TabsTrigger>
+                  <TabsTrigger value="media">{t("admin.drawer.tab.media") || "Media"}</TabsTrigger>
                   <TabsTrigger value="clubs">{t("admin.drawer.tab.clubs")} {relations?.clubs.length ? <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px]">{relations.clubs.length}</Badge> : null}</TabsTrigger>
                   <TabsTrigger value="matches">{t("admin.drawer.tab.matches")} {relations?.matches.length ? <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px]">{relations.matches.length}</Badge> : null}</TabsTrigger>
                 </TabsList>
@@ -280,6 +282,10 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
                   <FormRow label={t("admin.drawer.description")}>
                     <Textarea rows={4} value={form.description || ""} onChange={(e) => update("description", e.target.value)} />
                   </FormRow>
+                </TabsContent>
+
+                <TabsContent value="media" className="mt-0">
+                  {slug && <StadiumMediaTab stadiumSlug={slug} />}
                 </TabsContent>
 
                 <TabsContent value="clubs" className="space-y-4 mt-0">

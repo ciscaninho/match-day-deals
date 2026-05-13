@@ -651,6 +651,69 @@ export type Database = {
         }
         Relationships: []
       }
+      stadium_media: {
+        Row: {
+          category: string
+          created_at: string
+          height: number | null
+          id: string
+          is_hero: boolean
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sort_order: number
+          source: string
+          stadium_id: string | null
+          stadium_slug: string
+          status: string
+          storage_path: string | null
+          updated_at: string
+          uploaded_by: string | null
+          url: string
+          width: number | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          height?: number | null
+          id?: string
+          is_hero?: boolean
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sort_order?: number
+          source?: string
+          stadium_id?: string | null
+          stadium_slug: string
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          url: string
+          width?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          height?: number | null
+          id?: string
+          is_hero?: boolean
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sort_order?: number
+          source?: string
+          stadium_id?: string | null
+          stadium_slug?: string
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          url?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
       stadium_media_history: {
         Row: {
           action: string
