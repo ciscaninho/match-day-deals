@@ -225,6 +225,7 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
                 <TabsList className="bg-slate-100">
                   <TabsTrigger value="overview">{t("admin.drawer.tab.overview")}</TabsTrigger>
                   <TabsTrigger value="edit">{t("admin.drawer.tab.edit")}</TabsTrigger>
+                  <TabsTrigger value="media">{t("admin.drawer.tab.media") || "Media"}</TabsTrigger>
                   <TabsTrigger value="clubs">{t("admin.drawer.tab.clubs")} {relations?.clubs.length ? <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px]">{relations.clubs.length}</Badge> : null}</TabsTrigger>
                   <TabsTrigger value="matches">{t("admin.drawer.tab.matches")} {relations?.matches.length ? <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px]">{relations.matches.length}</Badge> : null}</TabsTrigger>
                 </TabsList>
