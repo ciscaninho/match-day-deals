@@ -21,7 +21,7 @@ export const StadiumRelatedClubs = ({
     queryKey: ["clubs-by-stadium", stadiumSlug, stadiumName],
     staleTime: 10 * 60 * 1000,
     queryFn: async (): Promise<ClubTicketingProfile[]> => {
-      const { data } = await supabase.from("club_ticketing_profiles").select("*");
+      const { data } = await supabase.from("club_ticketing_profiles").select("*").is("archived_at", null);
       const list = (data ?? []) as ClubTicketingProfile[];
       const t = norm(stadiumName);
       return list.filter(

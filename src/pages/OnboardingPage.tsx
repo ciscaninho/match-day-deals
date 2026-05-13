@@ -176,10 +176,12 @@ const OnboardingPage = () => {
         supabase
           .from("stadiums")
           .select("slug,stadium_name,city,country,hero_image_url,image_url,popularity_score")
+          .is("archived_at", null)
           .in("slug", CURATED_DREAM_SLUGS),
         supabase
           .from("stadiums")
           .select("slug,stadium_name,city,country,hero_image_url,image_url,popularity_score")
+          .is("archived_at", null)
           .not("hero_image_url", "is", null)
           .order("popularity_score", { ascending: false, nullsFirst: false })
           .limit(20),

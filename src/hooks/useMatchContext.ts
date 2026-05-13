@@ -33,8 +33,8 @@ export const useMatchContext = (params: {
     staleTime: 10 * 60 * 1000,
     queryFn: async (): Promise<MatchContext> => {
       const [clubsRes, stadiumsRes] = await Promise.all([
-        supabase.from("club_ticketing_profiles").select("*"),
-        supabase.from("stadiums").select("*"),
+        supabase.from("club_ticketing_profiles").select("*").is("archived_at", null),
+        supabase.from("stadiums").select("*").is("archived_at", null),
       ]);
       const clubs = (clubsRes.data ?? []) as ClubTicketingProfile[];
       const stadiums = (stadiumsRes.data ?? []) as Stadium[];

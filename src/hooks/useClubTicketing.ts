@@ -48,6 +48,7 @@ export const useClubTicketingList = () =>
       const { data, error } = await supabase
         .from("club_ticketing_profiles")
         .select("*")
+        .is("archived_at", null)
         .order("club_name", { ascending: true });
       if (error) throw error;
       return (data ?? []) as ClubTicketingProfile[];
@@ -65,6 +66,7 @@ export const useClubTicketing = (slug?: string) =>
         .from("club_ticketing_profiles")
         .select("*")
         .eq("slug", slug)
+        .is("archived_at", null)
         .maybeSingle();
       if (error) throw error;
       return (data as ClubTicketingProfile) ?? null;

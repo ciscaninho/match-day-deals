@@ -60,11 +60,13 @@ export const useStadiumSocialProof = () =>
         supabase
           .from("stadiums")
           .select("slug, stadium_name, city, country, hero_image_url, background_image_url, image_url, atmosphere_score, popularity_score, capacity")
+          .is("archived_at", null)
           .order("atmosphere_score", { ascending: false, nullsFirst: false })
           .limit(60),
         supabase
           .from("stadiums")
           .select("slug, stadium_name, city, country, hero_image_url, background_image_url, image_url, atmosphere_score, popularity_score, capacity")
+          .is("archived_at", null)
           .order("popularity_score", { ascending: false, nullsFirst: false })
           .limit(60),
         supabase

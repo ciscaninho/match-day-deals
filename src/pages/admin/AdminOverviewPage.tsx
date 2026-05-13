@@ -12,11 +12,11 @@ export const AdminOverviewPage = () => {
     queryKey: ["admin-kpis"],
     queryFn: async () => {
       const [clubs, stadiums, matches] = await Promise.all([
-        supabase.from("club_ticketing_profiles").select("id", { count: "exact", head: true }),
-        supabase.from("stadiums").select("id", { count: "exact", head: true }),
+        supabase.from("club_ticketing_profiles").select("id", { count: "exact", head: true }).is("archived_at", null),
+        supabase.from("stadiums").select("id", { count: "exact", head: true }).is("archived_at", null),
         supabase.from("matches").select("id", { count: "exact", head: true }),
       ]);
-      const leaguesRes = await supabase.from("stadiums").select("league").not("league", "is", null);
+      const leaguesRes = await supabase.from("stadiums").select("league").is("archived_at", null).not("league", "is", null);
       const leagues = new Set((leaguesRes.data || []).map((r) => r.league)).size;
       return { clubs: clubs.count || 0, stadiums: stadiums.count || 0, matches: matches.count || 0, leagues };
     },

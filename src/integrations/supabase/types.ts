@@ -170,6 +170,11 @@ export type Database = {
       }
       club_ticketing_profiles: {
         Row: {
+          aliases: string[]
+          archived_at: string | null
+          archived_into_club_id: string | null
+          archived_into_slug: string | null
+          archived_reason: string | null
           average_difficulty: string
           ballot_notes: string | null
           ballot_system: boolean
@@ -208,6 +213,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          aliases?: string[]
+          archived_at?: string | null
+          archived_into_club_id?: string | null
+          archived_into_slug?: string | null
+          archived_reason?: string | null
           average_difficulty?: string
           ballot_notes?: string | null
           ballot_system?: boolean
@@ -246,6 +256,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          aliases?: string[]
+          archived_at?: string | null
+          archived_into_club_id?: string | null
+          archived_into_slug?: string | null
+          archived_reason?: string | null
           average_difficulty?: string
           ballot_notes?: string | null
           ballot_system?: boolean
@@ -1374,6 +1389,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      merge_club_records: {
+        Args: {
+          p_canonical_slug: string
+          p_duplicate_slug: string
+          p_reason?: string
+        }
+        Returns: Json
       }
       merge_stadium_records: {
         Args: {

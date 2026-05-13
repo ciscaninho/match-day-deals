@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,9 +6,34 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Search, ExternalLink, Sparkles, Loader2, CheckCircle2, AlertTriangle, Database } from "lucide-react";
+import {
+  Search,
+  ExternalLink,
+  Sparkles,
+  Loader2,
+  CheckCircle2,
+  AlertTriangle,
+  Database,
+  GitMerge,
+  Archive,
+  ImageOff,
+  LinkIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 type Bucket = "new" | "ambiguous" | "existing" | "auto_safe";
@@ -30,6 +55,33 @@ type ScanResult = {
   summary: { total_teams: number; existing: number; auto_safe: number; ambiguous: number; new_incomplete: number };
   candidates: Candidate[];
 };
+
+type ClubRow = {
+  slug: string;
+  club_name: string;
+  short_name: string | null;
+  league: string | null;
+  country: string | null;
+  city: string | null;
+  stadium_name: string | null;
+  stadium_slug: string | null;
+  logo_url: string | null;
+  official_ticketing_url: string | null;
+  membership_required: boolean | null;
+  notes: string | null;
+  aliases: string[] | null;
+  archived_at: string | null;
+  archived_into_slug: string | null;
+};
+
+const norm = (s: string | null | undefined) =>
+  (s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\b(fc|cf|ac|sc|club|de|la|el|los|the)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 
 const BucketBadge = ({ b }: { b: Bucket }) => {
   const cfg: Record<Bucket, { label: string; cls: string }> = {
@@ -58,7 +110,6 @@ const ImportSheet = ({ onImported }: { onImported: () => void }) => {
       });
       if (error) throw error;
       setScan(data as ScanResult);
-      // Pre-select all auto_safe
       const safe = (data as ScanResult).candidates.filter((c) => c.bucket === "auto_safe").map((c) => c.slug);
       setSelected(new Set(safe));
     } catch (e: any) {
@@ -69,10 +120,7 @@ const ImportSheet = ({ onImported }: { onImported: () => void }) => {
   };
 
   const runImport = async () => {
-    if (selected.size === 0) {
-      toast.error("Select at least one club");
-      return;
-    }
+    if (selected.size === 0) { toast.error("Select at least one club"); return; }
     setImporting(true);
     try {
       const { data, error } = await supabase.functions.invoke("import-clubs-from-matches", {
@@ -80,27 +128,17 @@ const ImportSheet = ({ onImported }: { onImported: () => void }) => {
       });
       if (error) throw error;
       const res = data as { inserted: number; attempted: number; errors: string[] };
-      if (res.errors?.length) {
-        toast.warning(`Imported ${res.inserted}/${res.attempted} — ${res.errors[0]}`, { duration: 8000 });
-      } else {
-        toast.success(`Imported ${res.inserted} clubs`);
-      }
+      if (res.errors?.length) toast.warning(`Imported ${res.inserted}/${res.attempted} — ${res.errors[0]}`, { duration: 8000 });
+      else toast.success(`Imported ${res.inserted} clubs`);
       onImported();
-      await runScan(); // refresh
+      await runScan();
       setSelected(new Set());
-    } catch (e: any) {
-      toast.error(e.message || "Import failed");
-    } finally {
-      setImporting(false);
-    }
+    } catch (e: any) { toast.error(e.message || "Import failed"); }
+    finally { setImporting(false); }
   };
 
   const toggle = (slug: string) =>
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(slug) ? next.delete(slug) : next.add(slug);
-      return next;
-    });
+    setSelected((prev) => { const next = new Set(prev); next.has(slug) ? next.delete(slug) : next.add(slug); return next; });
 
   const filtered = scan?.candidates.filter((c) => filter === "all" || c.bucket === filter) ?? [];
   const importable = filtered.filter((c) => c.bucket !== "existing");
@@ -114,17 +152,12 @@ const ImportSheet = ({ onImported }: { onImported: () => void }) => {
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-3xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Database className="w-5 h-5" /> Club enrichment pipeline
-          </SheetTitle>
+          <SheetTitle className="flex items-center gap-2"><Database className="w-5 h-5" /> Club enrichment pipeline</SheetTitle>
         </SheetHeader>
-
         <div className="mt-4 space-y-4">
           <div className="rounded-xl border bg-muted/30 p-4 text-sm text-foreground/90">
             Scans every team referenced in your <strong>matches</strong> dataset and proposes new club entities.
-            Only clubs that already exist in real matches are surfaced — nothing is fabricated.
           </div>
-
           {!scan ? (
             <Button onClick={runScan} disabled={scanning} className="w-full gap-2" size="lg">
               {scanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
@@ -139,67 +172,34 @@ const ImportSheet = ({ onImported }: { onImported: () => void }) => {
                   ["ambiguous", "Review", scan.summary.ambiguous, "bg-amber-50 border-amber-200"],
                   ["existing", "Existing", scan.summary.existing, "bg-sky-50 border-sky-200"],
                 ] as const).map(([key, label, val, cls]) => (
-                  <button
-                    key={key}
-                    onClick={() => setFilter(key as any)}
-                    className={`rounded-xl border p-3 text-left transition ${cls} ${filter === key ? "ring-2 ring-emerald-500" : ""}`}
-                  >
+                  <button key={key} onClick={() => setFilter(key as any)}
+                    className={`rounded-xl border p-3 text-left transition ${cls} ${filter === key ? "ring-2 ring-emerald-500" : ""}`}>
                     <p className="text-[10px] uppercase font-bold text-muted-foreground">{label}</p>
                     <p className="text-2xl font-extrabold text-foreground">{val}</p>
                   </button>
                 ))}
               </div>
-
               <div className="flex items-center justify-between gap-2 sticky top-0 bg-background py-2 z-10 border-b">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <strong className="text-foreground">{selected.size}</strong> selected
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /><strong className="text-foreground">{selected.size}</strong> selected
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelected(new Set(importable.map((c) => c.slug)))}
-                  >
-                    Select all visible
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={runImport}
-                    disabled={importing || selected.size === 0}
-                    className="gap-2 bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    Import {selected.size}
+                  <Button variant="outline" size="sm" onClick={() => setSelected(new Set(importable.map((c) => c.slug)))}>Select all visible</Button>
+                  <Button size="sm" onClick={runImport} disabled={importing || selected.size === 0} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+                    {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Import {selected.size}
                   </Button>
                 </div>
               </div>
-
               <div className="space-y-2">
                 {filtered.map((c) => {
                   const isExisting = c.bucket === "existing";
                   const isSelected = selected.has(c.slug);
                   return (
-                    <div
-                      key={c.slug + c.raw_name}
-                      className={`flex items-start gap-3 rounded-xl border p-3 transition ${
-                        isSelected ? "border-emerald-500 bg-emerald-50/50" : "bg-card"
-                      } ${isExisting ? "opacity-60" : ""}`}
-                    >
-                      {!isExisting && (
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggle(c.slug)}
-                          className="mt-1 w-4 h-4 accent-emerald-600"
-                        />
-                      )}
+                    <div key={c.slug + c.raw_name}
+                      className={`flex items-start gap-3 rounded-xl border p-3 transition ${isSelected ? "border-emerald-500 bg-emerald-50/50" : "bg-card"} ${isExisting ? "opacity-60" : ""}`}>
+                      {!isExisting && <input type="checkbox" checked={isSelected} onChange={() => toggle(c.slug)} className="mt-1 w-4 h-4 accent-emerald-600" />}
                       <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                        {c.logos[0] ? (
-                          <img src={c.logos[0]} alt={c.raw_name} className="w-full h-full object-contain" />
-                        ) : (
-                          <span className="text-[10px] font-bold text-muted-foreground">{c.short_name}</span>
-                        )}
+                        {c.logos[0] ? <img src={c.logos[0]} alt={c.raw_name} className="w-full h-full object-contain" /> : <span className="text-[10px] font-bold text-muted-foreground">{c.short_name}</span>}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -211,21 +211,13 @@ const ImportSheet = ({ onImported }: { onImported: () => void }) => {
                           {c.leagues.join(" / ") || "—"} · {c.countries.join(" / ") || "—"}
                           {c.stadiums[0] && ` · 🏟 ${c.stadiums[0].name}`}
                         </p>
-                        {c.reason && (
-                          <p className="text-[11px] text-amber-700 mt-1 flex items-center gap-1">
-                            <AlertTriangle className="w-3 h-3" /> {c.reason}
-                          </p>
-                        )}
-                        {isExisting && c.matched_existing_slug && (
-                          <p className="text-[11px] text-sky-700 mt-1">→ {c.matched_existing_slug}</p>
-                        )}
+                        {c.reason && <p className="text-[11px] text-amber-700 mt-1 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> {c.reason}</p>}
+                        {isExisting && c.matched_existing_slug && <p className="text-[11px] text-sky-700 mt-1">→ {c.matched_existing_slug}</p>}
                       </div>
                     </div>
                   );
                 })}
-                {filtered.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-8">No teams in this bucket.</p>
-                )}
+                {filtered.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No teams in this bucket.</p>}
               </div>
             </>
           )}
@@ -235,9 +227,85 @@ const ImportSheet = ({ onImported }: { onImported: () => void }) => {
   );
 };
 
+const MergeDialog = ({
+  duplicate, canonical, open, onClose, onMerged,
+}: {
+  duplicate: ClubRow | null;
+  canonical: ClubRow | null;
+  open: boolean;
+  onClose: () => void;
+  onMerged: () => void;
+}) => {
+  const [busy, setBusy] = useState(false);
+  const [reason, setReason] = useState("");
+  const run = async () => {
+    if (!duplicate || !canonical) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("merge_club_records" as any, {
+        p_canonical_slug: canonical.slug,
+        p_duplicate_slug: duplicate.slug,
+        p_reason: reason || null,
+      });
+      if (error) throw error;
+      toast.success(`Merged "${duplicate.club_name}" → "${canonical.club_name}"`);
+      onMerged();
+      onClose();
+    } catch (e: any) { toast.error(e.message || "Merge failed"); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><GitMerge className="w-5 h-5" /> Merge clubs</DialogTitle>
+        </DialogHeader>
+        {duplicate && canonical && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="text-[10px] uppercase font-bold text-amber-700 mb-1">Duplicate (will be archived)</p>
+                <p className="font-bold text-foreground">{duplicate.club_name}</p>
+                <p className="text-[11px] text-muted-foreground">{duplicate.slug}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">{duplicate.country} · {duplicate.league || "—"}</p>
+                {duplicate.stadium_name && <p className="text-[11px] text-muted-foreground">🏟 {duplicate.stadium_name}</p>}
+              </div>
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                <p className="text-[10px] uppercase font-bold text-emerald-700 mb-1">Canonical (kept)</p>
+                <p className="font-bold text-foreground">{canonical.club_name}</p>
+                <p className="text-[11px] text-muted-foreground">{canonical.slug}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">{canonical.country} · {canonical.league || "—"}</p>
+                {canonical.stadium_name && <p className="text-[11px] text-muted-foreground">🏟 {canonical.stadium_name}</p>}
+              </div>
+            </div>
+            <div>
+              <label className="text-[11px] uppercase font-bold text-muted-foreground">Reason (optional)</label>
+              <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Same club, different naming convention" />
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Aliases, missing fields, and references in matches will be reassigned to the canonical row. The duplicate is archived (not deleted) and admins can restore it.
+            </p>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
+          <Button onClick={run} disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 gap-2">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitMerge className="w-4 h-4" />} Merge
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+type Tab = "active" | "duplicates" | "archived";
+
 export const AdminClubsPage = () => {
   const { t } = useLanguage();
   const [q, setQ] = useState("");
+  const [tab, setTab] = useState<Tab>("active");
+  const [mergeState, setMergeState] = useState<{ duplicate: ClubRow | null; canonical: ClubRow | null }>({ duplicate: null, canonical: null });
   const qc = useQueryClient();
 
   const { data = [], isLoading } = useQuery({
@@ -245,23 +313,62 @@ export const AdminClubsPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("club_ticketing_profiles")
-        .select("slug,club_name,short_name,league,country,city,stadium_name,stadium_slug,logo_url,official_ticketing_url,membership_required,notes")
+        .select("slug,club_name,short_name,league,country,city,stadium_name,stadium_slug,logo_url,official_ticketing_url,membership_required,notes,aliases,archived_at,archived_into_slug")
         .order("club_name");
-      return data || [];
+      return (data || []) as ClubRow[];
     },
   });
 
-  const filtered = data.filter((c) => {
+  const active = useMemo(() => data.filter((c) => !c.archived_at), [data]);
+  const archived = useMemo(() => data.filter((c) => !!c.archived_at), [data]);
+
+  // Duplicate detection: group by normalized name OR same stadium_slug+country
+  const duplicateGroups = useMemo(() => {
+    const groups = new Map<string, ClubRow[]>();
+    for (const c of active) {
+      const keys: string[] = [];
+      const n = norm(c.club_name);
+      if (n) keys.push("name:" + n);
+      if (c.stadium_slug && c.country) keys.push(`stad:${c.stadium_slug}:${c.country.toLowerCase()}`);
+      for (const k of keys) {
+        const arr = groups.get(k) || [];
+        arr.push(c);
+        groups.set(k, arr);
+      }
+    }
+    // Keep only groups with 2+ members; dedupe by slug-set
+    const seen = new Set<string>();
+    const result: ClubRow[][] = [];
+    for (const arr of groups.values()) {
+      if (arr.length < 2) continue;
+      const sig = arr.map((c) => c.slug).sort().join("|");
+      if (seen.has(sig)) continue;
+      seen.add(sig);
+      result.push(arr);
+    }
+    return result.sort((a, b) => b.length - a.length);
+  }, [active]);
+
+  const filterRows = (rows: ClubRow[]) => {
     const s = q.toLowerCase();
-    return !s || (c.club_name?.toLowerCase().includes(s) || c.slug?.toLowerCase().includes(s) || c.country?.toLowerCase().includes(s));
-  });
+    return rows.filter((c) => !s || (c.club_name?.toLowerCase().includes(s) || c.slug?.toLowerCase().includes(s) || c.country?.toLowerCase().includes(s) || (c.aliases || []).some((a) => a.toLowerCase().includes(s))));
+  };
+
+  const visible = tab === "active" ? filterRows(active) : tab === "archived" ? filterRows(archived) : [];
+
+  const TabBtn = ({ id, label, count }: { id: Tab; label: string; count: number }) => (
+    <button onClick={() => setTab(id)}
+      className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${tab === id ? "bg-[#2C3E50] text-white border-[#2C3E50]" : "bg-white text-[#2C3E50] border-slate-200 hover:border-emerald-500"}`}>
+      {label} <span className="opacity-60">· {count}</span>
+    </button>
+  );
 
   return (
     <div className="space-y-5">
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-xl font-extrabold text-foreground">{t("admin.nav.clubs")}</h1>
-          <p className="text-xs text-muted-foreground">{data.length} {t("admin.nav.clubs").toLowerCase()}</p>
+          <p className="text-xs text-muted-foreground">{active.length} active · {archived.length} archived · {duplicateGroups.length} duplicate suspects</p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
@@ -272,27 +379,101 @@ export const AdminClubsPage = () => {
         </div>
       </header>
 
+      <div className="flex flex-wrap gap-2">
+        <TabBtn id="active" label="Active" count={active.length} />
+        <TabBtn id="duplicates" label="Possible duplicates" count={duplicateGroups.length} />
+        <TabBtn id="archived" label="Archived" count={archived.length} />
+      </div>
+
       {isLoading ? (
         <p className="text-sm text-muted-foreground">{t("admin.loading")}</p>
-      ) : filtered.length === 0 ? (
+      ) : tab === "duplicates" ? (
+        duplicateGroups.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-12 text-center">No duplicate suspects detected. 🎉</p>
+        ) : (
+          <div className="space-y-4">
+            {duplicateGroups.map((group, idx) => (
+              <Card key={idx} className="border-amber-200">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <p className="text-xs font-bold text-amber-700">{group.length} similar clubs detected</p>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    {group.map((c) => (
+                      <div key={c.slug} className="rounded-lg border bg-white p-3 flex gap-3 items-start">
+                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                          {c.logo_url ? <img src={c.logo_url} alt={c.club_name} className="w-full h-full object-contain" /> : <span className="text-[10px] font-bold text-muted-foreground">{c.short_name || "?"}</span>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-foreground truncate text-sm">{c.club_name}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{c.slug}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{c.country} · {c.league || "—"}</p>
+                          {c.stadium_name && <p className="text-[11px] text-muted-foreground truncate">🏟 {c.stadium_name}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {group.map((dup) => group
+                      .filter((other) => other.slug !== dup.slug)
+                      .map((canon) => (
+                        <Button key={`${dup.slug}->${canon.slug}`} size="sm" variant="outline"
+                          onClick={() => setMergeState({ duplicate: dup, canonical: canon })}
+                          className="gap-1.5 text-xs">
+                          <GitMerge className="w-3 h-3" /> {dup.club_name} → {canon.club_name}
+                        </Button>
+                      )))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )
+      ) : visible.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("admin.empty")}</p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((c) => {
+          {visible.map((c) => {
             const isAuto = c.notes?.startsWith("Auto-imported");
+            const isArchived = !!c.archived_at;
+            const missing: string[] = [];
+            if (!c.logo_url) missing.push("logo");
+            if (!c.stadium_slug) missing.push("stadium");
+            if (!c.league) missing.push("league");
+            if (!c.official_ticketing_url) missing.push("ticketing");
             return (
-              <Card key={c.slug} className="hover:border-emerald-500 transition">
+              <Card key={c.slug} className={`hover:border-emerald-500 transition ${isArchived ? "opacity-70 border-dashed" : ""}`}>
                 <CardContent className="p-4 flex items-start gap-3">
                   <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                    {c.logo_url ? <img src={c.logo_url} alt={c.club_name} className="w-full h-full object-contain" /> : <span className="text-xs font-bold text-muted-foreground">{c.short_name || "?"}</span>}
+                    {c.logo_url ? <img src={c.logo_url} alt={c.club_name} className="w-full h-full object-contain" /> : <ImageOff className="w-5 h-5 text-muted-foreground" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-bold text-foreground truncate">{c.club_name}</p>
                       {isAuto && <Badge variant="outline" className="text-[9px] bg-emerald-50 text-emerald-700 border-emerald-200">Auto</Badge>}
+                      {isArchived && <Badge variant="outline" className="text-[9px] bg-slate-100 text-slate-700 border-slate-300">Archived</Badge>}
                     </div>
-                    <p className="text-[11px] text-muted-foreground truncate">{c.league} · {c.country}</p>
-                    {c.stadium_name && <p className="text-[11px] text-muted-foreground truncate mt-0.5">🏟 {c.stadium_name}</p>}
+                    <p className="text-[11px] text-muted-foreground truncate">{c.league || "—"} · {c.country || "—"}</p>
+                    {c.stadium_name && (
+                      <p className="text-[11px] text-muted-foreground truncate mt-0.5 flex items-center gap-1">
+                        <LinkIcon className="w-3 h-3 shrink-0" />
+                        {c.stadium_slug ? <Link to={`/stadiums/${c.stadium_slug}`} className="hover:text-emerald-600">{c.stadium_name}</Link> : c.stadium_name}
+                      </p>
+                    )}
+                    {c.aliases && c.aliases.length > 0 && (
+                      <p className="text-[10px] text-muted-foreground truncate mt-0.5">aka: {c.aliases.slice(0, 3).join(", ")}</p>
+                    )}
+                    {isArchived && c.archived_into_slug && (
+                      <p className="text-[11px] text-emerald-700 mt-0.5">→ merged into {c.archived_into_slug}</p>
+                    )}
+                    {missing.length > 0 && !isArchived && (
+                      <div className="flex gap-1 flex-wrap mt-1.5">
+                        {missing.map((m) => (
+                          <span key={m} className="text-[9px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">missing {m}</span>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex gap-2 mt-2 text-[11px]">
                       <Link to={`/clubs/${c.slug}`} className="text-emerald-600 font-bold inline-flex items-center gap-1">
                         <ExternalLink className="w-3 h-3" /> {t("admin.view_public")}
@@ -305,6 +486,14 @@ export const AdminClubsPage = () => {
           })}
         </div>
       )}
+
+      <MergeDialog
+        duplicate={mergeState.duplicate}
+        canonical={mergeState.canonical}
+        open={!!(mergeState.duplicate && mergeState.canonical)}
+        onClose={() => setMergeState({ duplicate: null, canonical: null })}
+        onMerged={() => qc.invalidateQueries({ queryKey: ["admin-clubs"] })}
+      />
     </div>
   );
 };
