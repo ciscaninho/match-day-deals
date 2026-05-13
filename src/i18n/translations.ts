@@ -3922,6 +3922,7 @@ import { matchdayI18n } from "./matchday";
 import { authI18n } from "./auth";
 import { onboardingI18n } from "./onboarding";
 import { adminI18n } from "./admin";
+import { pilgrimageI18n } from "./pilgrimage";
 
 const accountI18n: Record<Locale, Record<string, string>> = {
   en: { "account.menu.profile": "Profile", "account.menu.favorites": "Favorites", "account.menu.passport": "Stadium Passport", "account.menu.alerts": "Alerts", "account.menu.settings": "Settings", "account.menu.personalize": "Personalize", "account.menu.admin": "Admin", "account.menu.signout": "Sign out", "account.menu.signin": "Sign in", "page.profile.title": "Your profile", "page.favorites.title": "Your favorites", "page.alerts.title": "Your alerts", "page.passport.title": "Your stadium passport", "page.settings.title": "Settings", "page.settings.language": "Language", "page.settings.account": "Account", "page.empty.cta": "Browse matches" },
@@ -3931,7 +3932,7 @@ const accountI18n: Record<Locale, Record<string, string>> = {
 
 export const translations: Record<Locale, Record<string, string>> = (Object.keys(_translations) as Locale[]).reduce(
   (acc, loc) => {
-    acc[loc] = { ..._translations[loc], ...(marketingPages[loc] || {}), ...(stadiumReviews[loc] || {}), ...(ticketIntel[loc] || {}), ...(stadiumI18n[loc] || {}), ...(recommendationsI18n[loc] || {}), ...(passportI18n[loc] || {}), ...(passportI18n[loc] || {}), ...(smartSearchI18n[loc] || {}), ...(clubsI18n[loc] || {}), ...(fanExperienceI18n[loc] || {}), ...(matchdayI18n[loc] || {}), ...(authI18n[loc] || {}), ...(onboardingI18n[loc] || {}), ...(adminI18n[loc] || {}), ...(accountI18n[loc] || {}) };
+    acc[loc] = { ..._translations[loc], ...(marketingPages[loc] || {}), ...(stadiumReviews[loc] || {}), ...(ticketIntel[loc] || {}), ...(stadiumI18n[loc] || {}), ...(recommendationsI18n[loc] || {}), ...(passportI18n[loc] || {}), ...(passportI18n[loc] || {}), ...(smartSearchI18n[loc] || {}), ...(clubsI18n[loc] || {}), ...(fanExperienceI18n[loc] || {}), ...(matchdayI18n[loc] || {}), ...(authI18n[loc] || {}), ...(onboardingI18n[loc] || {}), ...(adminI18n[loc] || {}), ...(accountI18n[loc] || {}), ...(pilgrimageI18n[loc] || {}) };
     return acc;
   },
   {} as Record<Locale, Record<string, string>>

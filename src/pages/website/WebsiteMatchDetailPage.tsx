@@ -22,6 +22,7 @@ import { MatchContextLinks } from "@/components/match/MatchContextLinks";
 import { ImmersiveMatchHero } from "@/components/match/ImmersiveMatchHero";
 import { MatchEmotionalContext } from "@/components/match/MatchEmotionalContext";
 import { MatchdayExperience } from "@/components/match/MatchdayExperience";
+import { MatchdayJourney } from "@/components/match/MatchdayJourney";
 
 // ---------- helpers ----------
 const fmtDate = (iso: string) =>
@@ -279,6 +280,8 @@ const WebsiteMatchDetailPage = () => {
         />
 
         <MatchdayExperience stadium={dbStadium ?? null} fallbackBest={stadium.bestSections} variant="dark" />
+
+        <MatchdayJourney stadiumName={match.stadium} city={match.city} variant="dark" />
 
         {/* OFFICIAL SALES */}
         <section className="max-w-5xl mx-auto px-5 pb-10">
