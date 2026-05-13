@@ -86,6 +86,7 @@ export const AdminStadiumsPage = () => {
           onChange={filters.update}
           onReset={filters.reset}
           onToggleFlag={filters.toggleFlag}
+          showStatus
           flags={[
             { key: "no_image", labelKey: "admin.filter.flag.no_image", fallback: "Only missing images" },
             { key: "no_coords", labelKey: "admin.filter.flag.no_coords", fallback: "Only missing coords" },
