@@ -29,7 +29,7 @@ export const AdminStadiumsPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("stadiums")
-        .select("slug,stadium_name,city,country,league,capacity,latitude,longitude,hero_image_url,thumbnail_image_url,clubs,description,archived_at,archived_into_slug")
+        .select("slug,stadium_name,city,country,league,capacity,latitude,longitude,hero_image_url,thumbnail_image_url,clubs,description,archived_at,archived_into_slug,publication_status")
         .order("stadium_name")
         .limit(2000);
       return (data || []) as StadiumRow[];
