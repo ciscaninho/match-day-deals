@@ -626,10 +626,28 @@ export const AdminClubsPage = () => {
 
   const filterRows = (rows: ClubRow[]) => {
     const s = q.toLowerCase();
-    return rows.filter((c) => !s || (c.club_name?.toLowerCase().includes(s) || c.slug?.toLowerCase().includes(s) || c.country?.toLowerCase().includes(s) || (c.aliases || []).some((a) => a.toLowerCase().includes(s))));
+    const flagged = rows.filter((c) => {
+      if (filters.state.flags.includes("no_logo") && c.logo_url) return false;
+      if (filters.state.flags.includes("no_stadium") && c.stadium_slug) return false;
+      if (filters.state.flags.includes("no_ticketing") && c.official_ticketing_url) return false;
+      if (filters.state.flags.includes("incomplete") && c.logo_url && c.stadium_slug && c.league && c.official_ticketing_url) return false;
+      return true;
+    });
+    const hierarchy = filters.apply(flagged);
+    return hierarchy.filter((c) => !s || (c.club_name?.toLowerCase().includes(s) || c.slug?.toLowerCase().includes(s) || c.country?.toLowerCase().includes(s) || (c.aliases || []).some((a) => a.toLowerCase().includes(s))));
   };
 
   const visible = tab === "active" ? filterRows(active) : tab === "archived" ? filterRows(archived) : [];
+
+  const flagCounts = useMemo(() => {
+    const base = filters.apply(active);
+    return {
+      no_logo: base.filter((c) => !c.logo_url).length,
+      no_stadium: base.filter((c) => !c.stadium_slug).length,
+      no_ticketing: base.filter((c) => !c.official_ticketing_url).length,
+      incomplete: base.filter((c) => !c.logo_url || !c.stadium_slug || !c.league || !c.official_ticketing_url).length,
+    };
+  }, [active, filters]);
 
   const TabBtn = ({ id, label, count }: { id: Tab; label: string; count: number }) => (
     <button onClick={() => setTab(id)}
@@ -653,6 +671,21 @@ export const AdminClubsPage = () => {
           <ImportSheet onImported={() => qc.invalidateQueries({ queryKey: ["admin-clubs"] })} />
         </div>
       </header>
+
+      <FootballFilterBar
+        rows={active}
+        state={filters.state}
+        onChange={filters.update}
+        onReset={filters.reset}
+        onToggleFlag={filters.toggleFlag}
+        flags={[
+          { key: "incomplete", labelKey: "admin.filter.flag.incomplete", fallback: "Only incomplete" },
+          { key: "no_logo", labelKey: "admin.filter.flag.no_logo", fallback: "Only missing logo" },
+          { key: "no_stadium", labelKey: "admin.filter.flag.no_stadium", fallback: "Only missing stadium" },
+          { key: "no_ticketing", labelKey: "admin.filter.flag.no_ticketing", fallback: "Only missing ticketing" },
+        ]}
+        flagCounts={flagCounts}
+      />
 
       <div className="flex flex-wrap gap-2">
         <TabBtn id="active" label="Active" count={active.length} />
