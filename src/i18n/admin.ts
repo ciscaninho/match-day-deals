@@ -121,6 +121,13 @@ const en = {
   "admin.drawer.no_changes": "No changes",
   "admin.drawer.no_rows_affected": "No rows updated. You may not have admin permission for this table.",
   "admin.drawer.clubs_autosave_hint": "Club attachments save instantly — no need to press Save.",
+  "admin.filter.status": "All statuses",
+  "admin.pub.status.draft": "Draft",
+  "admin.pub.status.internal_review": "In review",
+  "admin.pub.status.verified": "Verified",
+  "admin.pub.status.published": "Published",
+  "admin.pub.move_to": "Move to",
+  "admin.pub.updated": "Status updated",
 };
 
 const fr: Record<keyof typeof en, string> = {
