@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Filter, X, RotateCcw, Globe2, MapPin, Trophy } from "lucide-react";
+import { Filter, X, RotateCcw, Globe2, MapPin, Trophy, FileEdit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { isSharedLeagueName } from "@/lib/leagueLabels";
