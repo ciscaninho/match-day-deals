@@ -35,6 +35,8 @@ import {
   ImageOff,
   LinkIcon,
   MoreVertical,
+  ShieldOff,
+  Undo2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -91,6 +93,29 @@ const norm = (s: string | null | undefined) =>
     .replace(/\b(fc|cf|ac|sc|club|de|la|el|los|the)\b/g, " ")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+
+// Words that DISTINGUISH football clubs sharing a city/region.
+// If one club has it and the other doesn't, they are almost certainly NOT duplicates.
+// (Dundee FC vs Dundee United, Real Madrid vs Real Sociedad, Man City vs Man United.)
+const DIFFERENTIATOR_TOKENS = new Set([
+  "united", "city", "town", "county", "borough", "rovers", "wanderers", "athletic",
+  "atletico", "real", "sporting", "olympique", "racing", "international", "internazionale",
+  "inter", "milan", "milano", "cercle", "red", "blue", "white", "north", "south", "east", "west",
+  "saint", "san", "santos", "junior", "juniors", "b", "ii", "reserves", "u21", "u23", "women",
+  "feminine", "academy",
+]);
+
+const rawTokens = (s: string | null | undefined) =>
+  new Set(
+    (s ?? "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .split(" ")
+      .filter((t) => t.length >= 2 && !["fc", "cf", "ac", "sc", "de", "la", "el", "los", "the", "club"].includes(t))
+  );
+
 
 const BucketBadge = ({ b }: { b: Bucket }) => {
   const cfg: Record<Bucket, { label: string; cls: string }> = {
@@ -478,13 +503,50 @@ export const AdminClubsPage = () => {
     },
   });
 
+  type Dismissal = { id: string; slug_a: string; slug_b: string; reason: string | null; kind: string };
+  const { data: dismissals = [] } = useQuery({
+    queryKey: ["admin-club-dismissals"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("club_duplicate_dismissals" as any)
+        .select("id,slug_a,slug_b,reason,kind")
+        .order("created_at", { ascending: false });
+      return (data || []) as unknown as Dismissal[];
+    },
+  });
+  const dismissedKey = (a: string, b: string) => [a, b].sort().join("|");
+  const dismissedSet = useMemo(
+    () => new Set(dismissals.map((d) => dismissedKey(d.slug_a, d.slug_b))),
+    [dismissals]
+  );
+
+  const dismissPair = async (a: ClubRow, b: ClubRow, kind: "separate_clubs" | "aliases_only", reason: string) => {
+    const [slug_a, slug_b] = [a.slug, b.slug].sort();
+    const { error } = await supabase
+      .from("club_duplicate_dismissals" as any)
+      .insert({ slug_a, slug_b, kind, reason });
+    if (error) { toast.error(error.message); return; }
+    toast.success(
+      kind === "separate_clubs"
+        ? `Marked as intentionally separate: ${a.club_name} ↔ ${b.club_name}`
+        : `Marked as naming alias only — no further suggestions.`
+    );
+    qc.invalidateQueries({ queryKey: ["admin-club-dismissals"] });
+  };
+
+  const reopenDismissal = async (id: string) => {
+    const { error } = await supabase.from("club_duplicate_dismissals" as any).delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Dismissal rule removed — pair may resurface.");
+    qc.invalidateQueries({ queryKey: ["admin-club-dismissals"] });
+  };
+
   const active = useMemo(() => data.filter((c) => !c.archived_at), [data]);
   const archived = useMemo(() => data.filter((c) => !!c.archived_at), [data]);
 
-  // Duplicate detection — IDENTITY-BASED scoring.
-  // Shared stadium / city / league are NEVER enough on their own
-  // (Milan/Inter share San Siro, Roma/Lazio share Olimpico, etc.).
-  // Only escalate when the club's actual identity signals overlap.
+  // Duplicate detection — IDENTITY-BASED scoring with strong negative signals.
+  // Shared stadium / city / league are NEVER enough on their own.
+  // Differentiator tokens (United, City, Real, Sporting, Athletic…) act as hard gates.
   const duplicateGroups = useMemo(() => {
     const tokens = (s: string | null | undefined) => new Set(norm(s).split(" ").filter((t) => t.length >= 3));
     const jaccard = (a: Set<string>, b: Set<string>) => {
@@ -505,25 +567,42 @@ export const AdminClubsPage = () => {
     );
 
     const score = (a: ClubRow, b: ClubRow) => {
-      // Country gate — different countries = not duplicates.
-      if (a.country && b.country && a.country.toLowerCase() !== b.country.toLowerCase()) return { s: 0, reasons: [] as string[] };
       const reasons: string[] = [];
+      // Country gate.
+      if (a.country && b.country && a.country.toLowerCase() !== b.country.toLowerCase()) return { s: 0, reasons };
+
+      // HARD GATE: differentiator tokens. If one club has "united" and the other doesn't,
+      // they are intentionally different clubs (Dundee FC vs Dundee United, Real Madrid vs Real Sociedad).
+      const rawA = rawTokens(a.club_name);
+      const rawB = rawTokens(b.club_name);
+      for (const tok of DIFFERENTIATOR_TOKENS) {
+        if (rawA.has(tok) !== rawB.has(tok)) return { s: 0, reasons };
+      }
+
       let s = 0;
       const nameSim = jaccard(tokens(a.club_name), tokens(b.club_name));
       if (nameSim >= 0.8) { s += 60; reasons.push(`name ${(nameSim * 100).toFixed(0)}%`); }
-      else if (nameSim >= 0.5) { s += 35; reasons.push(`name ${(nameSim * 100).toFixed(0)}%`); }
-      // Alias overlap (one club's name appearing in the other's aliases)
+      else if (nameSim >= 0.5) { s += 30; reasons.push(`name ${(nameSim * 100).toFixed(0)}%`); }
+
       const aliasA = aliasSet(a), aliasB = aliasSet(b);
       let aliasHit = false;
       aliasA.forEach((x) => { if (aliasB.has(x)) aliasHit = true; });
-      if (aliasHit) { s += 40; reasons.push("alias match"); }
-      // Same short name (non-empty)
-      if (a.short_name && b.short_name && norm(a.short_name) === norm(b.short_name)) { s += 25; reasons.push("same short name"); }
-      // Same logo URL
-      if (a.logo_url && b.logo_url && a.logo_url === b.logo_url) { s += 30; reasons.push("identical logo"); }
-      // Same official website / ticketing host
+      if (aliasHit) { s += 45; reasons.push("alias match"); }
+
+      if (a.short_name && b.short_name && norm(a.short_name) === norm(b.short_name)) {
+        s += 15; reasons.push("same short name");
+      }
+
+      // POSITIVE identity signals
+      if (a.logo_url && b.logo_url && a.logo_url === b.logo_url) { s += 35; reasons.push("identical logo"); }
       const hA = host(a.official_ticketing_url), hB = host(b.official_ticketing_url);
-      if (hA && hA === hB) { s += 20; reasons.push("same ticketing domain"); }
+      if (hA && hA === hB) { s += 25; reasons.push("same ticketing domain"); }
+
+      // NEGATIVE identity signals — strong penalties.
+      if (a.logo_url && b.logo_url && a.logo_url !== b.logo_url) { s -= 25; reasons.push("different logos"); }
+      if (a.stadium_slug && b.stadium_slug && a.stadium_slug !== b.stadium_slug) { s -= 30; reasons.push("different stadiums"); }
+      if (hA && hB && hA !== hB) { s -= 25; reasons.push("different ticketing domain"); }
+
       return { s, reasons };
     };
 
@@ -532,16 +611,18 @@ export const AdminClubsPage = () => {
     const out: { rows: ClubRow[]; reasons: string[]; score: number }[] = [];
     for (let i = 0; i < active.length; i++) {
       for (let j = i + 1; j < active.length; j++) {
+        const sig = dismissedKey(active[i].slug, active[j].slug);
+        if (dismissedSet.has(sig)) continue;
         const r = score(active[i], active[j]);
         if (r.s < THRESHOLD) continue;
-        const sig = [active[i].slug, active[j].slug].sort().join("|");
         if (seen.has(sig)) continue;
         seen.add(sig);
         out.push({ rows: [active[i], active[j]], reasons: r.reasons, score: r.s });
       }
     }
     return out.sort((a, b) => b.score - a.score);
-  }, [active]);
+  }, [active, dismissedSet]);
+
 
   const filterRows = (rows: ClubRow[]) => {
     const s = q.toLowerCase();
@@ -616,13 +697,56 @@ export const AdminClubsPage = () => {
                         <Button key={`${dup.slug}->${canon.slug}`} size="sm" variant="outline"
                           onClick={() => setMergeState({ duplicate: dup, canonical: canon })}
                           className="gap-1.5 text-xs">
-                          <GitMerge className="w-3 h-3" /> {dup.club_name} → {canon.club_name}
+                          <GitMerge className="w-3 h-3" /> Merge {dup.club_name} → {canon.club_name}
                         </Button>
                       )))}
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs text-sky-700 border-sky-200"
+                      onClick={() => {
+                        const reason = prompt("Naming variant note (optional):", "Same club, naming variant only");
+                        if (reason === null) return;
+                        dismissPair(g.rows[0], g.rows[1], "aliases_only", reason || "Naming variant");
+                      }}>
+                      <Undo2 className="w-3 h-3" /> Mark as alias only
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs text-rose-700 border-rose-200"
+                      onClick={() => {
+                        const reason = prompt(
+                          `Permanently mark "${g.rows[0].club_name}" and "${g.rows[1].club_name}" as intentionally separate clubs?\n\nReason (optional):`,
+                          "Different clubs sharing city / region"
+                        );
+                        if (reason === null) return;
+                        dismissPair(g.rows[0], g.rows[1], "separate_clubs", reason || "Intentional separate clubs");
+                      }}>
+                      <ShieldOff className="w-3 h-3" /> Mark as separate clubs
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
+
+            {dismissals.length > 0 && (
+              <div className="mt-8">
+                <p className="text-[11px] uppercase font-bold text-muted-foreground mb-2">Dismissed pairs ({dismissals.length})</p>
+                <div className="space-y-1.5">
+                  {dismissals.map((d) => (
+                    <div key={d.id} className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-foreground truncate">
+                          {d.slug_a} ↔ {d.slug_b}
+                          <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded border ${d.kind === "separate_clubs" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-sky-50 text-sky-700 border-sky-200"}`}>
+                            {d.kind === "separate_clubs" ? "separate clubs" : "alias only"}
+                          </span>
+                        </p>
+                        {d.reason && <p className="text-[11px] text-muted-foreground truncate">{d.reason}</p>}
+                      </div>
+                      <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => reopenDismissal(d.id)}>
+                        Re-open
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )
       ) : visible.length === 0 ? (
