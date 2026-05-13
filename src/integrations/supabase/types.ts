@@ -168,6 +168,36 @@ export type Database = {
         }
         Relationships: []
       }
+      club_duplicate_dismissals: {
+        Row: {
+          created_at: string
+          dismissed_by: string | null
+          id: string
+          kind: string
+          reason: string | null
+          slug_a: string
+          slug_b: string
+        }
+        Insert: {
+          created_at?: string
+          dismissed_by?: string | null
+          id?: string
+          kind?: string
+          reason?: string | null
+          slug_a: string
+          slug_b: string
+        }
+        Update: {
+          created_at?: string
+          dismissed_by?: string | null
+          id?: string
+          kind?: string
+          reason?: string | null
+          slug_a?: string
+          slug_b?: string
+        }
+        Relationships: []
+      }
       club_ticketing_profiles: {
         Row: {
           aliases: string[]
