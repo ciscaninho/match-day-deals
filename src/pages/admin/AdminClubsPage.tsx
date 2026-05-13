@@ -683,6 +683,7 @@ export const AdminClubsPage = () => {
         onChange={filters.update}
         onReset={filters.reset}
         onToggleFlag={filters.toggleFlag}
+        showStatus
         flags={[
           { key: "incomplete", labelKey: "admin.filter.flag.incomplete", fallback: "Only incomplete" },
           { key: "no_logo", labelKey: "admin.filter.flag.no_logo", fallback: "Only missing logo" },
