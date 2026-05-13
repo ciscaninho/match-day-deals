@@ -31,9 +31,18 @@ import {
   Database,
   GitMerge,
   Archive,
+  ArchiveRestore,
   ImageOff,
   LinkIcon,
+  MoreVertical,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 type Bucket = "new" | "ambiguous" | "existing" | "auto_safe";
@@ -299,6 +308,133 @@ const MergeDialog = ({
   );
 };
 
+const ManualMergeDialog = ({
+  duplicate, allClubs, open, onClose, onMerged,
+}: {
+  duplicate: ClubRow | null;
+  allClubs: ClubRow[];
+  open: boolean;
+  onClose: () => void;
+  onMerged: () => void;
+}) => {
+  const [search, setSearch] = useState("");
+  const [canonical, setCanonical] = useState<ClubRow | null>(null);
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const candidates = useMemo(() => {
+    if (!duplicate) return [];
+    const s = search.toLowerCase().trim();
+    return allClubs
+      .filter((c) => !c.archived_at && c.slug !== duplicate.slug)
+      .filter((c) => !s
+        || c.club_name.toLowerCase().includes(s)
+        || c.slug.toLowerCase().includes(s)
+        || (c.aliases || []).some((a) => a.toLowerCase().includes(s)))
+      .slice(0, 25);
+  }, [allClubs, duplicate, search]);
+
+  const matchCount = useMemo(() => 0, []); // placeholder; live count would require extra query
+
+  const reset = () => { setSearch(""); setCanonical(null); setReason(""); };
+  const close = () => { reset(); onClose(); };
+
+  const run = async () => {
+    if (!duplicate || !canonical) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("merge_club_records" as any, {
+        p_canonical_slug: canonical.slug,
+        p_duplicate_slug: duplicate.slug,
+        p_reason: reason || "Manual merge",
+      });
+      if (error) throw error;
+      toast.success(`Merged "${duplicate.club_name}" → "${canonical.club_name}"`);
+      onMerged();
+      close();
+    } catch (e: any) { toast.error(e.message || "Merge failed"); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && close()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><GitMerge className="w-5 h-5" /> Manual merge</DialogTitle>
+        </DialogHeader>
+        {duplicate && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+              <p className="text-[10px] uppercase font-bold text-amber-700 mb-1">Duplicate (will be archived)</p>
+              <p className="font-bold text-foreground">{duplicate.club_name}</p>
+              <p className="text-[11px] text-muted-foreground">{duplicate.slug} · {duplicate.country || "—"}</p>
+            </div>
+
+            {!canonical ? (
+              <>
+                <div>
+                  <label className="text-[11px] uppercase font-bold text-muted-foreground">Search canonical club</label>
+                  <Input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Type a name, slug, or alias…" />
+                </div>
+                <div className="max-h-72 overflow-y-auto space-y-1.5 rounded-xl border bg-muted/30 p-2">
+                  {candidates.length === 0 ? (
+                    <p className="text-xs text-muted-foreground p-3 text-center">No matches.</p>
+                  ) : candidates.map((c) => (
+                    <button key={c.slug} onClick={() => setCanonical(c)}
+                      className="w-full text-left rounded-lg border bg-white p-2.5 hover:border-emerald-500 transition flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                        {c.logo_url ? <img src={c.logo_url} alt="" className="w-full h-full object-contain" /> : <span className="text-[9px] font-bold text-muted-foreground">{c.short_name || "?"}</span>}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-sm text-foreground truncate">{c.club_name}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{c.slug} · {c.country || "—"} · {c.league || "—"}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase font-bold text-emerald-700 mb-1">Canonical (kept)</p>
+                      <p className="font-bold text-foreground">{canonical.club_name}</p>
+                      <p className="text-[11px] text-muted-foreground">{canonical.slug} · {canonical.country || "—"} · {canonical.league || "—"}</p>
+                      {canonical.stadium_name && <p className="text-[11px] text-muted-foreground">🏟 {canonical.stadium_name}</p>}
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setCanonical(null)}>Change</Button>
+                  </div>
+                </div>
+                <div className="rounded-lg border bg-muted/40 p-3 space-y-1">
+                  <p className="text-[11px] uppercase font-bold text-muted-foreground">Alias preview</p>
+                  <p className="text-xs text-foreground">
+                    "<strong>{duplicate.club_name}</strong>" and "<strong>{duplicate.slug}</strong>"
+                    {duplicate.short_name ? ` and "${duplicate.short_name}"` : ""} will become aliases of {canonical.club_name}.
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    All matches referencing "{duplicate.club_name}" will be reassigned. Logo / ticketing / stadium are preserved from the canonical row (missing fields filled in from the duplicate).
+                  </p>
+                </div>
+                <div>
+                  <label className="text-[11px] uppercase font-bold text-muted-foreground">Reason (optional)</label>
+                  <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Naming variant — same club" />
+                </div>
+              </>
+            )}
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={close} disabled={busy}>Cancel</Button>
+          <Button onClick={run} disabled={busy || !canonical} className="bg-emerald-600 hover:bg-emerald-700 gap-2">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitMerge className="w-4 h-4" />} Confirm merge
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 type Tab = "active" | "duplicates" | "archived";
 
 export const AdminClubsPage = () => {
@@ -306,7 +442,30 @@ export const AdminClubsPage = () => {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<Tab>("active");
   const [mergeState, setMergeState] = useState<{ duplicate: ClubRow | null; canonical: ClubRow | null }>({ duplicate: null, canonical: null });
+  const [manualMerge, setManualMerge] = useState<ClubRow | null>(null);
   const qc = useQueryClient();
+
+  const archiveClub = async (c: ClubRow) => {
+    if (!confirm(`Archive "${c.club_name}"?\n\nThis hides it from the public site. Matches and aliases stay intact. You can restore it from the Archived tab.`)) return;
+    const { error } = await supabase
+      .from("club_ticketing_profiles")
+      .update({ archived_at: new Date().toISOString(), archived_reason: "Manually archived by admin" })
+      .eq("slug", c.slug);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Archived ${c.club_name}`);
+    qc.invalidateQueries({ queryKey: ["admin-clubs"] });
+  };
+
+  const restoreClub = async (c: ClubRow) => {
+    const { error } = await supabase
+      .from("club_ticketing_profiles")
+      .update({ archived_at: null, archived_reason: null, archived_into_club_id: null, archived_into_slug: null })
+      .eq("slug", c.slug);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Restored ${c.club_name}`);
+    qc.invalidateQueries({ queryKey: ["admin-clubs"] });
+  };
+
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["admin-clubs"],
@@ -516,6 +675,31 @@ export const AdminClubsPage = () => {
                       </Link>
                     </div>
                   </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Club actions">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 bg-popover">
+                      {!isArchived && (
+                        <>
+                          <DropdownMenuItem onClick={() => setManualMerge(c)} className="gap-2">
+                            <GitMerge className="w-4 h-4" /> Merge into another club…
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => archiveClub(c)} className="gap-2 text-amber-700 focus:text-amber-700">
+                            <Archive className="w-4 h-4" /> Archive club
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {isArchived && (
+                        <DropdownMenuItem onClick={() => restoreClub(c)} className="gap-2 text-emerald-700 focus:text-emerald-700">
+                          <ArchiveRestore className="w-4 h-4" /> Restore club
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardContent>
               </Card>
             );
@@ -528,6 +712,13 @@ export const AdminClubsPage = () => {
         canonical={mergeState.canonical}
         open={!!(mergeState.duplicate && mergeState.canonical)}
         onClose={() => setMergeState({ duplicate: null, canonical: null })}
+        onMerged={() => qc.invalidateQueries({ queryKey: ["admin-clubs"] })}
+      />
+      <ManualMergeDialog
+        duplicate={manualMerge}
+        allClubs={data}
+        open={!!manualMerge}
+        onClose={() => setManualMerge(null)}
         onMerged={() => qc.invalidateQueries({ queryKey: ["admin-clubs"] })}
       />
     </div>
