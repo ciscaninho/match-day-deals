@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { StadiumDrawer, type StadiumDrawerRow } from "@/components/admin/StadiumDrawer";
 
-type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null };
+type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null; archived_at?: string | null; archived_into_slug?: string | null };
 
 const StatusPill = ({ ok, label }: { ok: boolean; label: string }) => (
   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${ok ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
@@ -18,7 +18,7 @@ const StatusPill = ({ ok, label }: { ok: boolean; label: string }) => (
 export const AdminStadiumsPage = () => {
   const { t } = useLanguage();
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"all" | "no-image" | "no-coords" | "no-capacity">("all");
+  const [filter, setFilter] = useState<"all" | "no-image" | "no-coords" | "no-capacity" | "archived">("all");
   const [selected, setSelected] = useState<StadiumRow | null>(null);
 
   const { data = [], isLoading } = useQuery({
@@ -26,14 +26,18 @@ export const AdminStadiumsPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("stadiums")
-        .select("slug,stadium_name,city,country,league,capacity,latitude,longitude,hero_image_url,thumbnail_image_url,clubs,description")
+        .select("slug,stadium_name,city,country,league,capacity,latitude,longitude,hero_image_url,thumbnail_image_url,clubs,description,archived_at,archived_into_slug")
         .order("stadium_name")
         .limit(2000);
       return (data || []) as StadiumRow[];
     },
   });
 
-  const filtered = data.filter((s) => {
+  const active = data.filter((s) => !s.archived_at);
+  const archived = data.filter((s) => !!s.archived_at);
+  const baseList = filter === "archived" ? archived : active;
+
+  const filtered = baseList.filter((s) => {
     const term = q.toLowerCase();
     if (term && !`${s.stadium_name} ${s.city} ${s.country} ${s.league}`.toLowerCase().includes(term)) return false;
     if (filter === "no-image" && s.hero_image_url) return false;
