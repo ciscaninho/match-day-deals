@@ -46,6 +46,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 
 type Bucket = "new" | "ambiguous" | "existing" | "auto_safe";
 type Candidate = {
