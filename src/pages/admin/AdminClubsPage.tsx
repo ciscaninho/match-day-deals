@@ -697,13 +697,56 @@ export const AdminClubsPage = () => {
                         <Button key={`${dup.slug}->${canon.slug}`} size="sm" variant="outline"
                           onClick={() => setMergeState({ duplicate: dup, canonical: canon })}
                           className="gap-1.5 text-xs">
-                          <GitMerge className="w-3 h-3" /> {dup.club_name} → {canon.club_name}
+                          <GitMerge className="w-3 h-3" /> Merge {dup.club_name} → {canon.club_name}
                         </Button>
                       )))}
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs text-sky-700 border-sky-200"
+                      onClick={() => {
+                        const reason = prompt("Naming variant note (optional):", "Same club, naming variant only");
+                        if (reason === null) return;
+                        dismissPair(g.rows[0], g.rows[1], "aliases_only", reason || "Naming variant");
+                      }}>
+                      <Undo2 className="w-3 h-3" /> Mark as alias only
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs text-rose-700 border-rose-200"
+                      onClick={() => {
+                        const reason = prompt(
+                          `Permanently mark "${g.rows[0].club_name}" and "${g.rows[1].club_name}" as intentionally separate clubs?\n\nReason (optional):`,
+                          "Different clubs sharing city / region"
+                        );
+                        if (reason === null) return;
+                        dismissPair(g.rows[0], g.rows[1], "separate_clubs", reason || "Intentional separate clubs");
+                      }}>
+                      <ShieldOff className="w-3 h-3" /> Mark as separate clubs
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
+
+            {dismissals.length > 0 && (
+              <div className="mt-8">
+                <p className="text-[11px] uppercase font-bold text-muted-foreground mb-2">Dismissed pairs ({dismissals.length})</p>
+                <div className="space-y-1.5">
+                  {dismissals.map((d) => (
+                    <div key={d.id} className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-foreground truncate">
+                          {d.slug_a} ↔ {d.slug_b}
+                          <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded border ${d.kind === "separate_clubs" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-sky-50 text-sky-700 border-sky-200"}`}>
+                            {d.kind === "separate_clubs" ? "separate clubs" : "alias only"}
+                          </span>
+                        </p>
+                        {d.reason && <p className="text-[11px] text-muted-foreground truncate">{d.reason}</p>}
+                      </div>
+                      <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => reopenDismissal(d.id)}>
+                        Re-open
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )
       ) : visible.length === 0 ? (
