@@ -85,6 +85,7 @@ type ClubRow = {
   aliases: string[] | null;
   archived_at: string | null;
   archived_into_slug: string | null;
+  publication_status: string | null;
 };
 
 const norm = (s: string | null | undefined) =>
