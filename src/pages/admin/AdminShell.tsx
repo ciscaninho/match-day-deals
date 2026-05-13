@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import {
   LayoutDashboard, Users, MapPin, CalendarDays, Trophy, Ticket, Image as ImageIcon,
   Map as MapIcon, Inbox, Sparkles, Settings as SettingsIcon, Shield, Ticket as TicketLogo,
-  ShieldCheck,
+  ShieldCheck, ListChecks,
 } from "lucide-react";
 
 const AdminShell = () => {
@@ -18,6 +18,7 @@ const AdminShell = () => {
     { to: "/admin/clubs", label: t("admin.nav.clubs"), icon: Users },
     { to: "/admin/stadiums", label: t("admin.nav.stadiums"), icon: MapPin },
     { to: "/admin/matches", label: t("admin.nav.matches"), icon: CalendarDays },
+    { to: "/admin/match-review", label: t("admin.nav.match_review"), icon: ListChecks },
     { to: "/admin/leagues", label: t("admin.nav.leagues"), icon: Trophy },
     { to: "/admin/ticketing", label: t("admin.nav.ticketing"), icon: Ticket },
     { to: "/admin/media", label: t("admin.nav.media"), icon: ImageIcon },

@@ -128,6 +128,21 @@ const en = {
   "admin.pub.status.published": "Published",
   "admin.pub.move_to": "Move to",
   "admin.pub.updated": "Status updated",
+  "admin.nav.match_review": "Match review",
+  "admin.match_review.title": "Match Review Center",
+  "admin.match_review.flag.unresolved": "Only unresolved",
+  "admin.match_review.flag.unknown_country": "Country missing",
+  "admin.match_review.flag.unknown_league": "League unknown",
+  "admin.match_review.flag.ambiguous_league": "League ambiguous",
+  "admin.match_review.flag.missing_stadium": "Stadium not linked",
+  "admin.match_review.flag.unresolved_clubs": "Clubs not linked",
+  "admin.match_review.flag.duplicate_fixture": "Duplicate fixture",
+  "admin.match_review.flag.not_verified": "Not verified",
+  "admin.match_review.drawer_title": "Resolve match",
+  "admin.match_review.save": "Save & resolve",
+  "admin.match_review.delete": "Delete this match",
+  "admin.match_review.saved": "Match updated",
+  "admin.match_review.deleted": "Match deleted",
 };
 
 const fr: Record<keyof typeof en, string> = {
@@ -258,6 +273,21 @@ const fr: Record<keyof typeof en, string> = {
   "admin.pub.status.published": "Publié",
   "admin.pub.move_to": "Changer en",
   "admin.pub.updated": "Statut mis à jour",
+  "admin.nav.match_review": "Revue matchs",
+  "admin.match_review.title": "Centre de revue des matchs",
+  "admin.match_review.flag.unresolved": "Seulement non résolus",
+  "admin.match_review.flag.unknown_country": "Pays manquant",
+  "admin.match_review.flag.unknown_league": "Ligue inconnue",
+  "admin.match_review.flag.ambiguous_league": "Ligue ambiguë",
+  "admin.match_review.flag.missing_stadium": "Stade non lié",
+  "admin.match_review.flag.unresolved_clubs": "Clubs non liés",
+  "admin.match_review.flag.duplicate_fixture": "Match dupliqué",
+  "admin.match_review.flag.not_verified": "Non vérifié",
+  "admin.match_review.drawer_title": "Résoudre le match",
+  "admin.match_review.save": "Enregistrer & résoudre",
+  "admin.match_review.delete": "Supprimer ce match",
+  "admin.match_review.saved": "Match mis à jour",
+  "admin.match_review.deleted": "Match supprimé",
 };
 
 // Other locales fall back to English (existing project pattern).
