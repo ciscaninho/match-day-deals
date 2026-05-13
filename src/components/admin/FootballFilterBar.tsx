@@ -277,6 +277,9 @@ export const FootballFilterBar = ({
           {state.league !== "all" && (
             <Chip label={state.league} onRemove={() => onChange({ league: "all" })} />
           )}
+          {state.status !== "all" && (
+            <Chip label={(t(`admin.pub.status.${state.status}`) || state.status)} onRemove={() => onChange({ status: "all" })} />
+          )}
           {state.flags.map((fk) => {
             const f = flags.find((x) => x.key === fk);
             return (
