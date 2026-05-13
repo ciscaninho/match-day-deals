@@ -104,8 +104,14 @@ const AuthPage = () => {
   };
 
   const handleGoogle = async () => {
+    // IMPORTANT: always send Google back to /auth (with the original `next`
+    // preserved) so the AuthPage useEffect can pick up the session and route
+    // to the correct destination. Sending Google straight to a deep link can
+    // land on a 404 if the route requires auth state that hasn't loaded yet
+    // or doesn't exist on the published domain.
+    const callback = `${window.location.origin}/auth?next=${encodeURIComponent(next)}`;
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}${next}`,
+      redirect_uri: callback,
     });
     if (result.error) {
       toast({ title: t("auth.google.failed"), variant: "destructive" });
