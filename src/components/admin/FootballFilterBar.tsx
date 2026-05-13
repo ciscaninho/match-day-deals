@@ -171,7 +171,7 @@ export const FootballFilterBar = ({
   const leagues = leagueOptions.map((o) => o.value);
 
   const isActive =
-    state.continent !== "all" || state.country !== "all" || state.league !== "all" || state.flags.length > 0;
+    state.continent !== "all" || state.country !== "all" || state.league !== "all" || state.status !== "all" || state.flags.length > 0;
 
   // Auto-correct stale selections if list shrinks
   useEffect(() => {
