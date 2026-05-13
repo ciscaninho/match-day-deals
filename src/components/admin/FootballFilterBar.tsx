@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Filter, X, RotateCcw, Globe2, MapPin, Trophy } from "lucide-react";
+import { Filter, X, RotateCcw, Globe2, MapPin, Trophy, FileEdit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { isSharedLeagueName } from "@/lib/leagueLabels";
@@ -29,12 +29,13 @@ export const CONTINENT_BY_COUNTRY: Record<string, string> = {
 export const continentOf = (country: string | null | undefined) =>
   CONTINENT_BY_COUNTRY[country ?? ""] || "Other";
 
-export type FootballRow = { country?: string | null; league?: string | null };
+export type FootballRow = { country?: string | null; league?: string | null; publication_status?: string | null };
 
 export type FootballFilterState = {
   continent: string;
   country: string;
   league: string;
+  status: string;
   flags: string[];
 };
 
@@ -47,6 +48,7 @@ export const useFootballFilters = (defaults?: Partial<FootballFilterState>) => {
     continent: params.get("continent") || defaults?.continent || "all",
     country: params.get("country") || defaults?.country || "all",
     league: params.get("league") || defaults?.league || "all",
+    status: params.get("status") || defaults?.status || "all",
     flags: (params.get("flags") || defaults?.flags?.join(",") || "")
       .split(",")
       .filter(Boolean),
@@ -73,13 +75,14 @@ export const useFootballFilters = (defaults?: Partial<FootballFilterState>) => {
     apply("continent", merged.continent);
     apply("country", merged.country);
     apply("league", merged.league);
+    apply("status", merged.status);
     apply("flags", merged.flags);
     setParams(next, { replace: true });
   };
 
   const reset = () => {
     const next = new URLSearchParams(params);
-    ["continent", "country", "league", "flags"].forEach((k) => next.delete(k));
+    ["continent", "country", "league", "status", "flags"].forEach((k) => next.delete(k));
     setParams(next, { replace: true });
   };
 
@@ -93,11 +96,12 @@ export const useFootballFilters = (defaults?: Partial<FootballFilterState>) => {
       if (state.continent !== "all" && continentOf(r.country) !== state.continent) return false;
       if (state.country !== "all" && (r.country || "").toLowerCase() !== state.country.toLowerCase()) return false;
       if (state.league !== "all" && (r.league || "").toLowerCase() !== state.league.toLowerCase()) return false;
+      if (state.status !== "all" && (r.publication_status || "draft") !== state.status) return false;
       return true;
     });
 
   const isActive =
-    state.continent !== "all" || state.country !== "all" || state.league !== "all" || state.flags.length > 0;
+    state.continent !== "all" || state.country !== "all" || state.league !== "all" || state.status !== "all" || state.flags.length > 0;
 
   return { state, update, reset, toggleFlag, apply, isActive };
 };
@@ -111,10 +115,11 @@ type Props = {
   onToggleFlag: (key: string) => void;
   flags?: FootballFlag[];
   flagCounts?: Record<string, number>;
+  showStatus?: boolean;
 };
 
 export const FootballFilterBar = ({
-  rows, state, onChange, onReset, onToggleFlag, flags = [], flagCounts = {},
+  rows, state, onChange, onReset, onToggleFlag, flags = [], flagCounts = {}, showStatus = false,
 }: Props) => {
   const { t } = useLanguage();
 
@@ -166,7 +171,7 @@ export const FootballFilterBar = ({
   const leagues = leagueOptions.map((o) => o.value);
 
   const isActive =
-    state.continent !== "all" || state.country !== "all" || state.league !== "all" || state.flags.length > 0;
+    state.continent !== "all" || state.country !== "all" || state.league !== "all" || state.status !== "all" || state.flags.length > 0;
 
   // Auto-correct stale selections if list shrinks
   useEffect(() => {
@@ -221,6 +226,18 @@ export const FootballFilterBar = ({
           options={leagueOptions}
           placeholder={t("admin.filter.league") || "All leagues"} />
 
+        {showStatus && (
+          <Select icon={FileEdit} value={state.status}
+            onChange={(v) => onChange({ status: v })}
+            options={[
+              { value: "draft", label: t("admin.pub.status.draft") || "Draft" },
+              { value: "internal_review", label: t("admin.pub.status.internal_review") || "In review" },
+              { value: "verified", label: t("admin.pub.status.verified") || "Verified" },
+              { value: "published", label: t("admin.pub.status.published") || "Published" },
+            ]}
+            placeholder={t("admin.filter.status") || "All statuses"} />
+        )}
+
         <div className="h-6 w-px bg-slate-200 mx-1" />
 
         {flags.map((f) => {
@@ -259,6 +276,9 @@ export const FootballFilterBar = ({
           )}
           {state.league !== "all" && (
             <Chip label={state.league} onRemove={() => onChange({ league: "all" })} />
+          )}
+          {state.status !== "all" && (
+            <Chip label={(t(`admin.pub.status.${state.status}`) || state.status)} onRemove={() => onChange({ status: "all" })} />
           )}
           {state.flags.map((fk) => {
             const f = flags.find((x) => x.key === fk);

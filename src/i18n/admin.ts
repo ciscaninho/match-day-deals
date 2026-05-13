@@ -121,6 +121,13 @@ const en = {
   "admin.drawer.no_changes": "No changes",
   "admin.drawer.no_rows_affected": "No rows updated. You may not have admin permission for this table.",
   "admin.drawer.clubs_autosave_hint": "Club attachments save instantly — no need to press Save.",
+  "admin.filter.status": "All statuses",
+  "admin.pub.status.draft": "Draft",
+  "admin.pub.status.internal_review": "In review",
+  "admin.pub.status.verified": "Verified",
+  "admin.pub.status.published": "Published",
+  "admin.pub.move_to": "Move to",
+  "admin.pub.updated": "Status updated",
 };
 
 const fr: Record<keyof typeof en, string> = {
@@ -244,6 +251,13 @@ const fr: Record<keyof typeof en, string> = {
   "admin.drawer.no_changes": "Aucun changement",
   "admin.drawer.no_rows_affected": "Aucune ligne mise à jour. Vous n'avez peut-être pas les droits admin sur cette table.",
   "admin.drawer.clubs_autosave_hint": "L'association de clubs est enregistrée instantanément — pas besoin d'Enregistrer.",
+  "admin.filter.status": "Tous les statuts",
+  "admin.pub.status.draft": "Brouillon",
+  "admin.pub.status.internal_review": "En relecture",
+  "admin.pub.status.verified": "Vérifié",
+  "admin.pub.status.published": "Publié",
+  "admin.pub.move_to": "Changer en",
+  "admin.pub.updated": "Statut mis à jour",
 };
 
 // Other locales fall back to English (existing project pattern).

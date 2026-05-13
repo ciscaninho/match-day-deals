@@ -48,6 +48,7 @@ import {
 import { toast } from "sonner";
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 import { formatLeagueLabel } from "@/lib/leagueLabels";
+import { PublicationStatusControl } from "@/components/admin/PublicationStatusControl";
 
 type Bucket = "new" | "ambiguous" | "existing" | "auto_safe";
 type Candidate = {
@@ -85,6 +86,7 @@ type ClubRow = {
   aliases: string[] | null;
   archived_at: string | null;
   archived_into_slug: string | null;
+  publication_status: string | null;
 };
 
 const norm = (s: string | null | undefined) =>
@@ -500,7 +502,7 @@ export const AdminClubsPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("club_ticketing_profiles")
-        .select("slug,club_name,short_name,league,country,city,stadium_name,stadium_slug,logo_url,official_ticketing_url,membership_required,notes,aliases,archived_at,archived_into_slug")
+        .select("slug,club_name,short_name,league,country,city,stadium_name,stadium_slug,logo_url,official_ticketing_url,membership_required,notes,aliases,archived_at,archived_into_slug,publication_status")
         .order("club_name");
       return (data || []) as ClubRow[];
     },
@@ -681,6 +683,7 @@ export const AdminClubsPage = () => {
         onChange={filters.update}
         onReset={filters.reset}
         onToggleFlag={filters.toggleFlag}
+        showStatus
         flags={[
           { key: "incomplete", labelKey: "admin.filter.flag.incomplete", fallback: "Only incomplete" },
           { key: "no_logo", labelKey: "admin.filter.flag.no_logo", fallback: "Only missing logo" },
@@ -808,6 +811,16 @@ export const AdminClubsPage = () => {
                       <p className="font-bold text-foreground truncate">{c.club_name}</p>
                       {isAuto && <Badge variant="outline" className="text-[9px] bg-emerald-50 text-emerald-700 border-emerald-200">Auto</Badge>}
                       {isArchived && <Badge variant="outline" className="text-[9px] bg-slate-100 text-slate-700 border-slate-300">Archived</Badge>}
+                      {!isArchived && (
+                        <PublicationStatusControl
+                          table="club_ticketing_profiles"
+                          matchColumn="slug"
+                          matchValue={c.slug}
+                          status={c.publication_status}
+                          entityLabel={c.club_name}
+                          invalidateKeys={[["admin-clubs"]]}
+                        />
+                      )}
                     </div>
                     <p className="text-[11px] text-muted-foreground truncate">{formatLeagueLabel(c.league, c.country) || "—"} · {c.country || "—"}</p>
                     {c.stadium_name && (

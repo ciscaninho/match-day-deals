@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { StadiumDrawer, type StadiumDrawerRow } from "@/components/admin/StadiumDrawer";
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
+import { PublicationStatusControl } from "@/components/admin/PublicationStatusControl";
 
-type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null; archived_at?: string | null; archived_into_slug?: string | null };
+type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null; archived_at?: string | null; archived_into_slug?: string | null; publication_status?: string | null };
 
 const StatusPill = ({ ok, label }: { ok: boolean; label: string }) => (
   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${ok ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
@@ -28,7 +29,7 @@ export const AdminStadiumsPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("stadiums")
-        .select("slug,stadium_name,city,country,league,capacity,latitude,longitude,hero_image_url,thumbnail_image_url,clubs,description,archived_at,archived_into_slug")
+        .select("slug,stadium_name,city,country,league,capacity,latitude,longitude,hero_image_url,thumbnail_image_url,clubs,description,archived_at,archived_into_slug,publication_status")
         .order("stadium_name")
         .limit(2000);
       return (data || []) as StadiumRow[];
@@ -85,6 +86,7 @@ export const AdminStadiumsPage = () => {
           onChange={filters.update}
           onReset={filters.reset}
           onToggleFlag={filters.toggleFlag}
+          showStatus
           flags={[
             { key: "no_image", labelKey: "admin.filter.flag.no_image", fallback: "Only missing images" },
             { key: "no_coords", labelKey: "admin.filter.flag.no_coords", fallback: "Only missing coords" },
@@ -104,10 +106,13 @@ export const AdminStadiumsPage = () => {
             const img = s.hero_image_url || s.thumbnail_image_url;
             const hasCoords = !!(s.latitude && s.longitude);
             return (
-              <button
+              <div
                 key={s.slug}
+                role="button"
+                tabIndex={0}
                 onClick={() => setSelected(s)}
-                className="group text-left bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-[#2ECC71] hover:shadow-lg transition"
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(s); } }}
+                className="group text-left bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-[#2ECC71] hover:shadow-lg transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
               >
                 <div className="aspect-[16/9] bg-slate-100 relative overflow-hidden">
                   {img ? (
@@ -131,12 +136,24 @@ export const AdminStadiumsPage = () => {
                   {s.archived_at && s.archived_into_slug && (
                     <p className="text-[10px] text-emerald-700 truncate">→ {s.archived_into_slug}</p>
                   )}
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-[10px] text-slate-500 truncate">{s.league || "—"}</span>
-                    <span className="text-[10px] font-bold text-[#2C3E50]">{s.capacity ? s.capacity.toLocaleString() : "—"}</span>
+                  <div className="flex items-center justify-between pt-1 gap-2">
+                    <span className="text-[10px] text-slate-500 truncate flex-1">{s.league || "—"}</span>
+                    <span className="text-[10px] font-bold text-[#2C3E50] shrink-0">{s.capacity ? s.capacity.toLocaleString() : "—"}</span>
                   </div>
+                  {!s.archived_at && (
+                    <div className="pt-1.5" onClick={(e) => e.stopPropagation()}>
+                      <PublicationStatusControl
+                        table="stadiums"
+                        matchColumn="slug"
+                        matchValue={s.slug}
+                        status={s.publication_status}
+                        entityLabel={s.stadium_name}
+                        invalidateKeys={[["admin-stadiums-v2"]]}
+                      />
+                    </div>
+                  )}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>

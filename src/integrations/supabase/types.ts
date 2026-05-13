@@ -229,6 +229,7 @@ export type Database = {
           official_ticketing_url: string | null
           official_website: string | null
           public_sale_possible: boolean
+          publication_status: string
           queue_system: string | null
           resale_exchange_available: boolean
           resale_exchange_name: string | null
@@ -272,6 +273,7 @@ export type Database = {
           official_ticketing_url?: string | null
           official_website?: string | null
           public_sale_possible?: boolean
+          publication_status?: string
           queue_system?: string | null
           resale_exchange_available?: boolean
           resale_exchange_name?: string | null
@@ -315,6 +317,7 @@ export type Database = {
           official_ticketing_url?: string | null
           official_website?: string | null
           public_sale_possible?: boolean
+          publication_status?: string
           queue_system?: string | null
           resale_exchange_available?: boolean
           resale_exchange_name?: string | null
@@ -326,6 +329,57 @@ export type Database = {
           stadium_name?: string | null
           stadium_slug?: string | null
           ticket_release_process?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      league_publication: {
+        Row: {
+          aliases: string[]
+          archived_at: string | null
+          archived_reason: string | null
+          continent: string | null
+          country: string
+          created_at: string
+          division_level: number | null
+          id: string
+          league_name: string
+          logo_url: string | null
+          notes: string | null
+          publication_status: string
+          slug: string | null
+          updated_at: string
+        }
+        Insert: {
+          aliases?: string[]
+          archived_at?: string | null
+          archived_reason?: string | null
+          continent?: string | null
+          country: string
+          created_at?: string
+          division_level?: number | null
+          id?: string
+          league_name: string
+          logo_url?: string | null
+          notes?: string | null
+          publication_status?: string
+          slug?: string | null
+          updated_at?: string
+        }
+        Update: {
+          aliases?: string[]
+          archived_at?: string | null
+          archived_reason?: string | null
+          continent?: string | null
+          country?: string
+          created_at?: string
+          division_level?: number | null
+          id?: string
+          league_name?: string
+          logo_url?: string | null
+          notes?: string | null
+          publication_status?: string
+          slug?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -970,6 +1024,7 @@ export type Database = {
           official_ticket_provider: string | null
           opened_year: number | null
           popularity_score: number | null
+          publication_status: string
           slug: string
           stadium_name: string
           thumbnail_image_url: string | null
@@ -1009,6 +1064,7 @@ export type Database = {
           official_ticket_provider?: string | null
           opened_year?: number | null
           popularity_score?: number | null
+          publication_status?: string
           slug: string
           stadium_name: string
           thumbnail_image_url?: string | null
@@ -1048,6 +1104,7 @@ export type Database = {
           official_ticket_provider?: string | null
           opened_year?: number | null
           popularity_score?: number | null
+          publication_status?: string
           slug?: string
           stadium_name?: string
           thumbnail_image_url?: string | null
