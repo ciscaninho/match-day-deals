@@ -322,31 +322,66 @@ export const AdminClubsPage = () => {
   const active = useMemo(() => data.filter((c) => !c.archived_at), [data]);
   const archived = useMemo(() => data.filter((c) => !!c.archived_at), [data]);
 
-  // Duplicate detection: group by normalized name OR same stadium_slug+country
+  // Duplicate detection — IDENTITY-BASED scoring.
+  // Shared stadium / city / league are NEVER enough on their own
+  // (Milan/Inter share San Siro, Roma/Lazio share Olimpico, etc.).
+  // Only escalate when the club's actual identity signals overlap.
   const duplicateGroups = useMemo(() => {
-    const groups = new Map<string, ClubRow[]>();
-    for (const c of active) {
-      const keys: string[] = [];
-      const n = norm(c.club_name);
-      if (n) keys.push("name:" + n);
-      if (c.stadium_slug && c.country) keys.push(`stad:${c.stadium_slug}:${c.country.toLowerCase()}`);
-      for (const k of keys) {
-        const arr = groups.get(k) || [];
-        arr.push(c);
-        groups.set(k, arr);
+    const tokens = (s: string | null | undefined) => new Set(norm(s).split(" ").filter((t) => t.length >= 3));
+    const jaccard = (a: Set<string>, b: Set<string>) => {
+      if (!a.size || !b.size) return 0;
+      let inter = 0;
+      a.forEach((t) => { if (b.has(t)) inter++; });
+      return inter / (a.size + b.size - inter);
+    };
+    const host = (u: string | null | undefined) => {
+      if (!u) return "";
+      try { return new URL(u).hostname.replace(/^www\./, "").toLowerCase(); } catch { return ""; }
+    };
+    const aliasSet = (c: ClubRow) => new Set(
+      [c.club_name, c.short_name, ...(c.aliases || [])]
+        .filter(Boolean)
+        .map((s) => norm(s as string))
+        .filter(Boolean)
+    );
+
+    const score = (a: ClubRow, b: ClubRow) => {
+      // Country gate — different countries = not duplicates.
+      if (a.country && b.country && a.country.toLowerCase() !== b.country.toLowerCase()) return { s: 0, reasons: [] as string[] };
+      const reasons: string[] = [];
+      let s = 0;
+      const nameSim = jaccard(tokens(a.club_name), tokens(b.club_name));
+      if (nameSim >= 0.8) { s += 60; reasons.push(`name ${(nameSim * 100).toFixed(0)}%`); }
+      else if (nameSim >= 0.5) { s += 35; reasons.push(`name ${(nameSim * 100).toFixed(0)}%`); }
+      // Alias overlap (one club's name appearing in the other's aliases)
+      const aliasA = aliasSet(a), aliasB = aliasSet(b);
+      let aliasHit = false;
+      aliasA.forEach((x) => { if (aliasB.has(x)) aliasHit = true; });
+      if (aliasHit) { s += 40; reasons.push("alias match"); }
+      // Same short name (non-empty)
+      if (a.short_name && b.short_name && norm(a.short_name) === norm(b.short_name)) { s += 25; reasons.push("same short name"); }
+      // Same logo URL
+      if (a.logo_url && b.logo_url && a.logo_url === b.logo_url) { s += 30; reasons.push("identical logo"); }
+      // Same official website / ticketing host
+      const hA = host(a.official_ticketing_url), hB = host(b.official_ticketing_url);
+      if (hA && hA === hB) { s += 20; reasons.push("same ticketing domain"); }
+      return { s, reasons };
+    };
+
+    const THRESHOLD = 50;
+    const seen = new Set<string>();
+    const out: { rows: ClubRow[]; reasons: string[]; score: number }[] = [];
+    for (let i = 0; i < active.length; i++) {
+      for (let j = i + 1; j < active.length; j++) {
+        const r = score(active[i], active[j]);
+        if (r.s < THRESHOLD) continue;
+        const sig = [active[i].slug, active[j].slug].sort().join("|");
+        if (seen.has(sig)) continue;
+        seen.add(sig);
+        out.push({ rows: [active[i], active[j]], reasons: r.reasons, score: r.s });
       }
     }
-    // Keep only groups with 2+ members; dedupe by slug-set
-    const seen = new Set<string>();
-    const result: ClubRow[][] = [];
-    for (const arr of groups.values()) {
-      if (arr.length < 2) continue;
-      const sig = arr.map((c) => c.slug).sort().join("|");
-      if (seen.has(sig)) continue;
-      seen.add(sig);
-      result.push(arr);
-    }
-    return result.sort((a, b) => b.length - a.length);
+    return out.sort((a, b) => b.score - a.score);
   }, [active]);
 
   const filterRows = (rows: ClubRow[]) => {
@@ -392,15 +427,16 @@ export const AdminClubsPage = () => {
           <p className="text-sm text-muted-foreground py-12 text-center">No duplicate suspects detected. 🎉</p>
         ) : (
           <div className="space-y-4">
-            {duplicateGroups.map((group, idx) => (
+            {duplicateGroups.map((g, idx) => (
               <Card key={idx} className="border-amber-200">
                 <CardContent className="p-4 space-y-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    <p className="text-xs font-bold text-amber-700">{group.length} similar clubs detected</p>
+                    <p className="text-xs font-bold text-amber-700">Score {g.score}</p>
+                    <p className="text-[11px] text-muted-foreground">{g.reasons.join(" · ")}</p>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-2">
-                    {group.map((c) => (
+                    {g.rows.map((c) => (
                       <div key={c.slug} className="rounded-lg border bg-white p-3 flex gap-3 items-start">
                         <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
                           {c.logo_url ? <img src={c.logo_url} alt={c.club_name} className="w-full h-full object-contain" /> : <span className="text-[10px] font-bold text-muted-foreground">{c.short_name || "?"}</span>}
@@ -415,7 +451,7 @@ export const AdminClubsPage = () => {
                     ))}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {group.map((dup) => group
+                    {g.rows.map((dup) => g.rows
                       .filter((other) => other.slug !== dup.slug)
                       .map((canon) => (
                         <Button key={`${dup.slug}->${canon.slug}`} size="sm" variant="outline"
