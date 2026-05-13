@@ -47,9 +47,9 @@ export const AdminStadiumsPage = () => {
   });
 
   const gapStats = {
-    noImage: data.filter((s) => !s.hero_image_url).length,
-    noCoords: data.filter((s) => !s.latitude || !s.longitude).length,
-    noCapacity: data.filter((s) => !s.capacity).length,
+    noImage: active.filter((s) => !s.hero_image_url).length,
+    noCoords: active.filter((s) => !s.latitude || !s.longitude).length,
+    noCapacity: active.filter((s) => !s.capacity).length,
   };
 
   return (
@@ -58,7 +58,7 @@ export const AdminStadiumsPage = () => {
         <div className="flex items-end justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-xl font-extrabold text-[#2C3E50]">{t("admin.nav.stadiums")}</h1>
-            <p className="text-xs text-muted-foreground">{data.length} {t("admin.nav.stadiums").toLowerCase()} · {filtered.length} {t("admin.shown")}</p>
+            <p className="text-xs text-muted-foreground">{active.length} active · {archived.length} archived · {filtered.length} {t("admin.shown")}</p>
           </div>
           <div className="relative w-full sm:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -68,10 +68,11 @@ export const AdminStadiumsPage = () => {
 
         <div className="flex gap-2 flex-wrap">
           {([
-            ["all", t("admin.filter.all"), data.length],
+            ["all", t("admin.filter.all"), active.length],
             ["no-image", t("admin.filter.no_image"), gapStats.noImage],
             ["no-coords", t("admin.filter.no_coords"), gapStats.noCoords],
             ["no-capacity", t("admin.filter.no_capacity"), gapStats.noCapacity],
+            ["archived", "Archived", archived.length],
           ] as const).map(([key, label, count]) => (
             <button
               key={key}
@@ -111,10 +112,16 @@ export const AdminStadiumsPage = () => {
                   </div>
                 </div>
                 <div className="p-3 space-y-1">
-                  <p className="font-extrabold text-[#2C3E50] truncate text-sm">{s.stadium_name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-extrabold text-[#2C3E50] truncate text-sm flex-1">{s.stadium_name}</p>
+                    {s.archived_at && <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-bold">ARCHIVED</span>}
+                  </div>
                   <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
                     <MapPin className="w-3 h-3 shrink-0" /> {s.city || "—"}, {s.country || "—"}
                   </p>
+                  {s.archived_at && s.archived_into_slug && (
+                    <p className="text-[10px] text-emerald-700 truncate">→ {s.archived_into_slug}</p>
+                  )}
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-[10px] text-slate-500 truncate">{s.league || "—"}</span>
                     <span className="text-[10px] font-bold text-[#2C3E50]">{s.capacity ? s.capacity.toLocaleString() : "—"}</span>
