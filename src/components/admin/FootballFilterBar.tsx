@@ -75,13 +75,14 @@ export const useFootballFilters = (defaults?: Partial<FootballFilterState>) => {
     apply("continent", merged.continent);
     apply("country", merged.country);
     apply("league", merged.league);
+    apply("status", merged.status);
     apply("flags", merged.flags);
     setParams(next, { replace: true });
   };
 
   const reset = () => {
     const next = new URLSearchParams(params);
-    ["continent", "country", "league", "flags"].forEach((k) => next.delete(k));
+    ["continent", "country", "league", "status", "flags"].forEach((k) => next.delete(k));
     setParams(next, { replace: true });
   };
 
@@ -95,11 +96,12 @@ export const useFootballFilters = (defaults?: Partial<FootballFilterState>) => {
       if (state.continent !== "all" && continentOf(r.country) !== state.continent) return false;
       if (state.country !== "all" && (r.country || "").toLowerCase() !== state.country.toLowerCase()) return false;
       if (state.league !== "all" && (r.league || "").toLowerCase() !== state.league.toLowerCase()) return false;
+      if (state.status !== "all" && (r.publication_status || "draft") !== state.status) return false;
       return true;
     });
 
   const isActive =
-    state.continent !== "all" || state.country !== "all" || state.league !== "all" || state.flags.length > 0;
+    state.continent !== "all" || state.country !== "all" || state.league !== "all" || state.status !== "all" || state.flags.length > 0;
 
   return { state, update, reset, toggleFlag, apply, isActive };
 };
@@ -113,6 +115,7 @@ type Props = {
   onToggleFlag: (key: string) => void;
   flags?: FootballFlag[];
   flagCounts?: Record<string, number>;
+  showStatus?: boolean;
 };
 
 export const FootballFilterBar = ({
