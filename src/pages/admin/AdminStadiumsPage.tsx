@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { StadiumDrawer, type StadiumDrawerRow } from "@/components/admin/StadiumDrawer";
+import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 
 type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null; archived_at?: string | null; archived_into_slug?: string | null };
 
@@ -18,8 +19,9 @@ const StatusPill = ({ ok, label }: { ok: boolean; label: string }) => (
 export const AdminStadiumsPage = () => {
   const { t } = useLanguage();
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"all" | "no-image" | "no-coords" | "no-capacity" | "archived">("all");
+  const [showArchived, setShowArchived] = useState(false);
   const [selected, setSelected] = useState<StadiumRow | null>(null);
+  const filters = useFootballFilters();
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["admin-stadiums-v2"],
@@ -33,24 +35,27 @@ export const AdminStadiumsPage = () => {
     },
   });
 
-  const active = data.filter((s) => !s.archived_at);
-  const archived = data.filter((s) => !!s.archived_at);
-  const baseList = filter === "archived" ? archived : active;
+  const active = useMemo(() => data.filter((s) => !s.archived_at), [data]);
+  const archived = useMemo(() => data.filter((s) => !!s.archived_at), [data]);
+  const baseList = showArchived ? archived : active;
 
-  const filtered = baseList.filter((s) => {
+  // Apply hierarchical filters first
+  const hierarchyFiltered = useMemo(() => filters.apply(baseList), [filters, baseList]);
+
+  const flagCounts = useMemo(() => ({
+    no_image: hierarchyFiltered.filter((s) => !s.hero_image_url).length,
+    no_coords: hierarchyFiltered.filter((s) => !s.latitude || !s.longitude).length,
+    incomplete: hierarchyFiltered.filter((s) => !s.hero_image_url || !s.latitude || !s.capacity).length,
+  }), [hierarchyFiltered]);
+
+  const filtered = useMemo(() => hierarchyFiltered.filter((s) => {
     const term = q.toLowerCase();
     if (term && !`${s.stadium_name} ${s.city} ${s.country} ${s.league}`.toLowerCase().includes(term)) return false;
-    if (filter === "no-image" && s.hero_image_url) return false;
-    if (filter === "no-coords" && s.latitude && s.longitude) return false;
-    if (filter === "no-capacity" && s.capacity) return false;
+    if (filters.state.flags.includes("no_image") && s.hero_image_url) return false;
+    if (filters.state.flags.includes("no_coords") && s.latitude && s.longitude) return false;
+    if (filters.state.flags.includes("incomplete") && s.hero_image_url && s.latitude && s.capacity) return false;
     return true;
-  });
-
-  const gapStats = {
-    noImage: active.filter((s) => !s.hero_image_url).length,
-    noCoords: active.filter((s) => !s.latitude || !s.longitude).length,
-    noCapacity: active.filter((s) => !s.capacity).length,
-  };
+  }), [hierarchyFiltered, q, filters.state.flags]);
 
   return (
     <div className="space-y-5">
@@ -60,29 +65,33 @@ export const AdminStadiumsPage = () => {
             <h1 className="text-xl font-extrabold text-[#2C3E50]">{t("admin.nav.stadiums")}</h1>
             <p className="text-xs text-muted-foreground">{active.length} active · {archived.length} archived · {filtered.length} {t("admin.shown")}</p>
           </div>
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.search.placeholder")} className="pl-9" />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowArchived((v) => !v)}
+              className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${showArchived ? "bg-slate-700 text-white border-slate-700" : "bg-white text-[#2C3E50] border-slate-200 hover:border-emerald-500"}`}
+            >
+              {showArchived ? "Archived" : "Active"} <span className="opacity-60">· {showArchived ? archived.length : active.length}</span>
+            </button>
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.search.placeholder")} className="pl-9" />
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-2 flex-wrap">
-          {([
-            ["all", t("admin.filter.all"), active.length],
-            ["no-image", t("admin.filter.no_image"), gapStats.noImage],
-            ["no-coords", t("admin.filter.no_coords"), gapStats.noCoords],
-            ["no-capacity", t("admin.filter.no_capacity"), gapStats.noCapacity],
-            ["archived", "Archived", archived.length],
-          ] as const).map(([key, label, count]) => (
-            <button
-              key={key}
-              onClick={() => setFilter(key as any)}
-              className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${filter === key ? "bg-[#2C3E50] text-white border-[#2C3E50]" : "bg-white text-[#2C3E50] border-slate-200 hover:border-[#2ECC71]"}`}
-            >
-              {label} <span className="opacity-60">· {count}</span>
-            </button>
-          ))}
-        </div>
+        <FootballFilterBar
+          rows={baseList}
+          state={filters.state}
+          onChange={filters.update}
+          onReset={filters.reset}
+          onToggleFlag={filters.toggleFlag}
+          flags={[
+            { key: "no_image", labelKey: "admin.filter.flag.no_image", fallback: "Only missing images" },
+            { key: "no_coords", labelKey: "admin.filter.flag.no_coords", fallback: "Only missing coords" },
+            { key: "incomplete", labelKey: "admin.filter.flag.incomplete", fallback: "Only incomplete" },
+          ]}
+          flagCounts={flagCounts}
+        />
       </header>
 
       {isLoading ? (
