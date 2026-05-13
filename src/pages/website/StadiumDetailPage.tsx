@@ -197,8 +197,14 @@ const StadiumDetailPage = () => {
           )}
         </section>
 
+        <StadiumPilgrimage stadium={stadium} variant="dark" />
+
         <StadiumRelatedClubs stadiumSlug={stadium.slug} stadiumName={stadium.stadium_name} />
         <StadiumUpcomingMatches stadiumName={stadium.stadium_name} />
+
+        <MatchdayJourney stadiumName={stadium.stadium_name} city={stadium.city} variant="dark" />
+        <TravelEssentials stadiumName={stadium.stadium_name} city={stadium.city} variant="dark" />
+
         <TopFanReviews stadiumSlug={stadium.slug} />
 
         <StadiumReviews stadium={stadium.stadium_name} matchDate={undefined} />
