@@ -119,7 +119,7 @@ type Props = {
 };
 
 export const FootballFilterBar = ({
-  rows, state, onChange, onReset, onToggleFlag, flags = [], flagCounts = {},
+  rows, state, onChange, onReset, onToggleFlag, flags = [], flagCounts = {}, showStatus = false,
 }: Props) => {
   const { t } = useLanguage();
 
