@@ -226,6 +226,18 @@ export const FootballFilterBar = ({
           options={leagueOptions}
           placeholder={t("admin.filter.league") || "All leagues"} />
 
+        {showStatus && (
+          <Select icon={FileEdit} value={state.status}
+            onChange={(v) => onChange({ status: v })}
+            options={[
+              { value: "draft", label: t("admin.pub.status.draft") || "Draft" },
+              { value: "internal_review", label: t("admin.pub.status.internal_review") || "In review" },
+              { value: "verified", label: t("admin.pub.status.verified") || "Verified" },
+              { value: "published", label: t("admin.pub.status.published") || "Published" },
+            ]}
+            placeholder={t("admin.filter.status") || "All statuses"} />
+        )}
+
         <div className="h-6 w-px bg-slate-200 mx-1" />
 
         {flags.map((f) => {
