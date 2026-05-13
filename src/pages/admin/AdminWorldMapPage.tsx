@@ -16,6 +16,7 @@ export const AdminWorldMapPage = () => {
       const { data } = await supabase
         .from("stadiums")
         .select("slug,stadium_name,city,country,league,capacity,latitude,longitude,hero_image_url,description")
+        .is("archived_at", null)
         .not("latitude", "is", null)
         .not("longitude", "is", null)
         .limit(3000);
