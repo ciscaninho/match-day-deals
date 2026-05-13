@@ -811,6 +811,16 @@ export const AdminClubsPage = () => {
                       <p className="font-bold text-foreground truncate">{c.club_name}</p>
                       {isAuto && <Badge variant="outline" className="text-[9px] bg-emerald-50 text-emerald-700 border-emerald-200">Auto</Badge>}
                       {isArchived && <Badge variant="outline" className="text-[9px] bg-slate-100 text-slate-700 border-slate-300">Archived</Badge>}
+                      {!isArchived && (
+                        <PublicationStatusControl
+                          table="club_ticketing_profiles"
+                          matchColumn="slug"
+                          matchValue={c.slug}
+                          status={c.publication_status}
+                          entityLabel={c.club_name}
+                          invalidateKeys={[["admin-clubs"]]}
+                        />
+                      )}
                     </div>
                     <p className="text-[11px] text-muted-foreground truncate">{formatLeagueLabel(c.league, c.country) || "—"} · {c.country || "—"}</p>
                     {c.stadium_name && (
