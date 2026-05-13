@@ -714,6 +714,13 @@ export const AdminClubsPage = () => {
         onClose={() => setMergeState({ duplicate: null, canonical: null })}
         onMerged={() => qc.invalidateQueries({ queryKey: ["admin-clubs"] })}
       />
+      <ManualMergeDialog
+        duplicate={manualMerge}
+        allClubs={data}
+        open={!!manualMerge}
+        onClose={() => setManualMerge(null)}
+        onMerged={() => qc.invalidateQueries({ queryKey: ["admin-clubs"] })}
+      />
     </div>
   );
 };
