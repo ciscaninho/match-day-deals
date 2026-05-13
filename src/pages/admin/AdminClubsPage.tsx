@@ -442,7 +442,30 @@ export const AdminClubsPage = () => {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<Tab>("active");
   const [mergeState, setMergeState] = useState<{ duplicate: ClubRow | null; canonical: ClubRow | null }>({ duplicate: null, canonical: null });
+  const [manualMerge, setManualMerge] = useState<ClubRow | null>(null);
   const qc = useQueryClient();
+
+  const archiveClub = async (c: ClubRow) => {
+    if (!confirm(`Archive "${c.club_name}"?\n\nThis hides it from the public site. Matches and aliases stay intact. You can restore it from the Archived tab.`)) return;
+    const { error } = await supabase
+      .from("club_ticketing_profiles")
+      .update({ archived_at: new Date().toISOString(), archived_reason: "Manually archived by admin" })
+      .eq("slug", c.slug);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Archived ${c.club_name}`);
+    qc.invalidateQueries({ queryKey: ["admin-clubs"] });
+  };
+
+  const restoreClub = async (c: ClubRow) => {
+    const { error } = await supabase
+      .from("club_ticketing_profiles")
+      .update({ archived_at: null, archived_reason: null, archived_into_club_id: null, archived_into_slug: null })
+      .eq("slug", c.slug);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Restored ${c.club_name}`);
+    qc.invalidateQueries({ queryKey: ["admin-clubs"] });
+  };
+
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["admin-clubs"],
