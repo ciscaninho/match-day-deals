@@ -106,10 +106,13 @@ export const AdminStadiumsPage = () => {
             const img = s.hero_image_url || s.thumbnail_image_url;
             const hasCoords = !!(s.latitude && s.longitude);
             return (
-              <button
+              <div
                 key={s.slug}
+                role="button"
+                tabIndex={0}
                 onClick={() => setSelected(s)}
-                className="group text-left bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-[#2ECC71] hover:shadow-lg transition"
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(s); } }}
+                className="group text-left bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-[#2ECC71] hover:shadow-lg transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
               >
                 <div className="aspect-[16/9] bg-slate-100 relative overflow-hidden">
                   {img ? (
@@ -133,12 +136,24 @@ export const AdminStadiumsPage = () => {
                   {s.archived_at && s.archived_into_slug && (
                     <p className="text-[10px] text-emerald-700 truncate">→ {s.archived_into_slug}</p>
                   )}
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-[10px] text-slate-500 truncate">{s.league || "—"}</span>
-                    <span className="text-[10px] font-bold text-[#2C3E50]">{s.capacity ? s.capacity.toLocaleString() : "—"}</span>
+                  <div className="flex items-center justify-between pt-1 gap-2">
+                    <span className="text-[10px] text-slate-500 truncate flex-1">{s.league || "—"}</span>
+                    <span className="text-[10px] font-bold text-[#2C3E50] shrink-0">{s.capacity ? s.capacity.toLocaleString() : "—"}</span>
                   </div>
+                  {!s.archived_at && (
+                    <div className="pt-1.5" onClick={(e) => e.stopPropagation()}>
+                      <PublicationStatusControl
+                        table="stadiums"
+                        matchColumn="slug"
+                        matchValue={s.slug}
+                        status={s.publication_status}
+                        entityLabel={s.stadium_name}
+                        invalidateKeys={[["admin-stadiums-v2"]]}
+                      />
+                    </div>
+                  )}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
