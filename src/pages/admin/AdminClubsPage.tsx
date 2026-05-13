@@ -427,15 +427,16 @@ export const AdminClubsPage = () => {
           <p className="text-sm text-muted-foreground py-12 text-center">No duplicate suspects detected. 🎉</p>
         ) : (
           <div className="space-y-4">
-            {duplicateGroups.map((group, idx) => (
+            {duplicateGroups.map((g, idx) => (
               <Card key={idx} className="border-amber-200">
                 <CardContent className="p-4 space-y-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    <p className="text-xs font-bold text-amber-700">{group.length} similar clubs detected</p>
+                    <p className="text-xs font-bold text-amber-700">Score {g.score}</p>
+                    <p className="text-[11px] text-muted-foreground">{g.reasons.join(" · ")}</p>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-2">
-                    {group.map((c) => (
+                    {g.rows.map((c) => (
                       <div key={c.slug} className="rounded-lg border bg-white p-3 flex gap-3 items-start">
                         <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
                           {c.logo_url ? <img src={c.logo_url} alt={c.club_name} className="w-full h-full object-contain" /> : <span className="text-[10px] font-bold text-muted-foreground">{c.short_name || "?"}</span>}
@@ -450,7 +451,7 @@ export const AdminClubsPage = () => {
                     ))}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {group.map((dup) => group
+                    {g.rows.map((dup) => g.rows
                       .filter((other) => other.slug !== dup.slug)
                       .map((canon) => (
                         <Button key={`${dup.slug}->${canon.slug}`} size="sm" variant="outline"
