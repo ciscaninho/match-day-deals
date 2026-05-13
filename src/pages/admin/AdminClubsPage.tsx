@@ -469,6 +469,7 @@ export const AdminClubsPage = () => {
   const [mergeState, setMergeState] = useState<{ duplicate: ClubRow | null; canonical: ClubRow | null }>({ duplicate: null, canonical: null });
   const [manualMerge, setManualMerge] = useState<ClubRow | null>(null);
   const qc = useQueryClient();
+  const filters = useFootballFilters();
 
   const archiveClub = async (c: ClubRow) => {
     if (!confirm(`Archive "${c.club_name}"?\n\nThis hides it from the public site. Matches and aliases stay intact. You can restore it from the Archived tab.`)) return;
