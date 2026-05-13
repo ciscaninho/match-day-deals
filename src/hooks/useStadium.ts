@@ -47,7 +47,7 @@ export const useStadium = (stadiumName?: string | null) => {
     staleTime: 10 * 60 * 1000,
     queryFn: async (): Promise<Stadium | null> => {
       if (!stadiumName) return null;
-      const { data, error } = await supabase.from("stadiums").select("*");
+      const { data, error } = await supabase.from("stadiums").select("*").is("archived_at", null);
       if (error) {
         console.error("stadium fetch error", error);
         return null;
@@ -68,7 +68,7 @@ export const useStadiums = (league?: string) => {
     queryKey: ["stadiums", league ?? "all"],
     staleTime: 10 * 60 * 1000,
     queryFn: async (): Promise<Stadium[]> => {
-      let q = supabase.from("stadiums").select("*").order("popularity_score", { ascending: false });
+      let q = supabase.from("stadiums").select("*").is("archived_at", null).order("popularity_score", { ascending: false });
       if (league) q = q.eq("league", league);
       const { data, error } = await q;
       if (error) throw error;

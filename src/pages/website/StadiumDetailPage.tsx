@@ -52,9 +52,11 @@ const StadiumDetailPage = () => {
     queryKey: ["stadium-by-slug", slug],
     enabled: !!slug,
     queryFn: async (): Promise<Stadium | null> => {
-      const { data, error } = await supabase.from("stadiums").select("*").eq("slug", slug!).maybeSingle();
+      const { data, error } = await supabase.from("stadiums").select("*").eq("slug", slug!).is("archived_at", null).maybeSingle();
       if (error) throw error;
-      return data as Stadium | null;
+      const row = data as (Stadium & { archived_into_slug?: string | null }) | null;
+      // If the URL points to an archived stadium, redirect logic could go here; for now return null.
+      return row;
     },
   });
 
