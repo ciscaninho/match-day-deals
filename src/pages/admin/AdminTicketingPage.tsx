@@ -13,6 +13,7 @@ export const AdminTicketingPage = () => {
       const { data } = await supabase
         .from("club_ticketing_profiles")
         .select("slug,club_name,official_ticketing_url,resale_exchange_available,resale_exchange_url,membership_required,membership_required_for_big_games,country,last_verified_at")
+        .is("archived_at", null)
         .order("club_name");
       return data || [];
     },
