@@ -98,3 +98,31 @@ export const leagueKey = (
   if (!l) return "";
   return isSharedLeagueName(l) && c ? `${c}::${l}` : l;
 };
+
+/** Parses a leagueKey back into { country?, league }. */
+export const parseLeagueKey = (key: string | null | undefined): { country?: string; league: string } => {
+  const k = norm(key);
+  if (!k) return { league: "" };
+  const idx = k.indexOf("::");
+  if (idx === -1) return { league: k };
+  return { country: k.slice(0, idx), league: k.slice(idx + 2) };
+};
+
+/**
+ * Returns true if a row's (country, league) matches a given league filter key.
+ * For shared league names the key carries the country, so Bundesliga (Germany)
+ * does not match Bundesliga (Austria).
+ */
+export const rowMatchesLeagueKey = (
+  row: { country?: string | null; league?: string | null },
+  key: string | null | undefined,
+): boolean => {
+  if (!key || key === "all") return true;
+  const { country, league } = parseLeagueKey(key);
+  const rl = norm(row.league).toLowerCase();
+  if (rl !== league.toLowerCase()) return false;
+  if (country) {
+    return norm(row.country).toLowerCase() === country.toLowerCase();
+  }
+  return true;
+};
