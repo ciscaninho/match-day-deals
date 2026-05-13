@@ -29,6 +29,7 @@ import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminClubsPage from "./pages/admin/AdminClubsPage";
 import AdminStadiumsPage from "./pages/admin/AdminStadiumsPage";
 import AdminMatchesPage from "./pages/admin/AdminMatchesPage";
+import AdminMatchReviewPage from "./pages/admin/AdminMatchReviewPage";
 import AdminLeaguesPage from "./pages/admin/AdminLeaguesPage";
 import AdminTicketingPage from "./pages/admin/AdminTicketingPage";
 import AdminAssistantPage from "./pages/admin/AdminAssistantPage";
@@ -133,6 +134,7 @@ const App = () => (
                 <Route path="clubs" element={<AdminClubsPage />} />
                 <Route path="stadiums" element={<AdminStadiumsPage />} />
                 <Route path="matches" element={<AdminMatchesPage />} />
+                <Route path="match-review" element={<AdminMatchReviewPage />} />
                 <Route path="leagues" element={<AdminLeaguesPage />} />
                 <Route path="ticketing" element={<AdminTicketingPage />} />
                 <Route path="suggestions" element={<AdminSuggestionsPage />} />

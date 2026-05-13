@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Filter, X, RotateCcw, Globe2, MapPin, Trophy, FileEdit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { isSharedLeagueName } from "@/lib/leagueLabels";
+import { isSharedLeagueName, leagueKey, rowMatchesLeagueKey, formatLeagueLabel } from "@/lib/leagueLabels";
 
 // ------- Continent map (kept in sync with AdminLeaguesPage hierarchy) -------
 export const CONTINENT_BY_COUNTRY: Record<string, string> = {
@@ -95,7 +95,7 @@ export const useFootballFilters = (defaults?: Partial<FootballFilterState>) => {
     rows.filter((r) => {
       if (state.continent !== "all" && continentOf(r.country) !== state.continent) return false;
       if (state.country !== "all" && (r.country || "").toLowerCase() !== state.country.toLowerCase()) return false;
-      if (state.league !== "all" && (r.league || "").toLowerCase() !== state.league.toLowerCase()) return false;
+      if (state.league !== "all" && !rowMatchesLeagueKey(r, state.league)) return false;
       if (state.status !== "all" && (r.publication_status || "draft") !== state.status) return false;
       return true;
     });
@@ -139,32 +139,35 @@ export const FootballFilterBar = ({
     return [...set].sort();
   }, [rows, state.continent]);
 
-  // Build league options. When no country is selected and a league name is
-  // shared across multiple countries (e.g. "Superliga" → DK + RO), append the
-  // country to the visible label so admins can tell them apart. The underlying
-  // value stays the raw league string so existing filter logic still works.
+  // Build league options keyed by (country, league) when the league name is
+  // shared across countries (e.g. Bundesliga DE vs AT). The option value is a
+  // composite key so the URL & filter logic distinguish them everywhere.
   const leagueOptions = useMemo(() => {
     const seenCountriesByLeague = new Map<string, Set<string>>();
     rows.forEach((r) => {
       if (!r.league || !r.country) return;
       if (state.continent !== "all" && continentOf(r.country) !== state.continent) return;
-      if (!seenCountriesByLeague.has(r.league)) seenCountriesByLeague.set(r.league, new Set());
-      seenCountriesByLeague.get(r.league)!.add(r.country);
+      const ll = r.league.toLowerCase();
+      if (!seenCountriesByLeague.has(ll)) seenCountriesByLeague.set(ll, new Set());
+      seenCountriesByLeague.get(ll)!.add(r.country);
     });
     const opts: { value: string; label: string }[] = [];
+    const seenKeys = new Set<string>();
     rows.forEach((r) => {
       if (!r.league) return;
       if (state.continent !== "all" && continentOf(r.country) !== state.continent) return;
       if (state.country !== "all" && (r.country || "").toLowerCase() !== state.country.toLowerCase()) return;
-      if (opts.find((o) => o.value === r.league)) return;
-      const ambiguous =
-        state.country === "all" &&
+      const shared =
         isSharedLeagueName(r.league) &&
-        (seenCountriesByLeague.get(r.league)?.size ?? 0) > 1;
-      opts.push({
-        value: r.league,
-        label: ambiguous && r.country ? `${r.league} · ${r.country}` : r.league,
-      });
+        (seenCountriesByLeague.get(r.league.toLowerCase())?.size ?? 0) > 1;
+      const value = shared && r.country ? leagueKey(r.league, r.country) : r.league;
+      if (seenKeys.has(value)) return;
+      seenKeys.add(value);
+      const label =
+        shared && r.country && state.country === "all"
+          ? formatLeagueLabel(r.league, r.country)
+          : r.league;
+      opts.push({ value, label });
     });
     return opts.sort((a, b) => a.label.localeCompare(b.label));
   }, [rows, state.continent, state.country]);
@@ -274,9 +277,16 @@ export const FootballFilterBar = ({
           {state.country !== "all" && (
             <Chip label={state.country} onRemove={() => onChange({ country: "all" })} />
           )}
-          {state.league !== "all" && (
-            <Chip label={state.league} onRemove={() => onChange({ league: "all" })} />
-          )}
+          {state.league !== "all" && (() => {
+            const opt = leagueOptions.find((o) => o.value === state.league);
+            const { country, league } = (() => {
+              const idx = state.league.indexOf("::");
+              return idx === -1
+                ? { country: undefined, league: state.league }
+                : { country: state.league.slice(0, idx), league: state.league.slice(idx + 2) };
+            })();
+            return <Chip label={opt?.label || formatLeagueLabel(league, country)} onRemove={() => onChange({ league: "all" })} />;
+          })()}
           {state.status !== "all" && (
             <Chip label={(t(`admin.pub.status.${state.status}`) || state.status)} onRemove={() => onChange({ status: "all" })} />
           )}
