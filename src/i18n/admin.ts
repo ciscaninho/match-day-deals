@@ -244,6 +244,13 @@ const fr: Record<keyof typeof en, string> = {
   "admin.drawer.no_changes": "Aucun changement",
   "admin.drawer.no_rows_affected": "Aucune ligne mise à jour. Vous n'avez peut-être pas les droits admin sur cette table.",
   "admin.drawer.clubs_autosave_hint": "L'association de clubs est enregistrée instantanément — pas besoin d'Enregistrer.",
+  "admin.filter.status": "Tous les statuts",
+  "admin.pub.status.draft": "Brouillon",
+  "admin.pub.status.internal_review": "En relecture",
+  "admin.pub.status.verified": "Vérifié",
+  "admin.pub.status.published": "Publié",
+  "admin.pub.move_to": "Changer en",
+  "admin.pub.updated": "Statut mis à jour",
 };
 
 // Other locales fall back to English (existing project pattern).
