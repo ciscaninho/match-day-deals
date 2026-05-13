@@ -13,6 +13,9 @@ import { StadiumUpcomingMatches } from "@/components/stadium/StadiumUpcomingMatc
 import { StadiumRelatedClubs } from "@/components/stadium/StadiumRelatedClubs";
 import { TopFanReviews } from "@/components/stadium/TopFanReviews";
 import { MatchdayVibes } from "@/components/match/MatchdayVibes";
+import { StadiumPilgrimage } from "@/components/match/StadiumPilgrimage";
+import { MatchdayJourney } from "@/components/match/MatchdayJourney";
+import { TravelEssentials } from "@/components/match/TravelEssentials";
 import { vibesForStadium } from "@/lib/matchdayVibes";
 import { useSEO } from "@/lib/seo";
 import type { Stadium } from "@/hooks/useStadium";
