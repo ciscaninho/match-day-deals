@@ -94,6 +94,29 @@ const norm = (s: string | null | undefined) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
+// Words that DISTINGUISH football clubs sharing a city/region.
+// If one club has it and the other doesn't, they are almost certainly NOT duplicates.
+// (Dundee FC vs Dundee United, Real Madrid vs Real Sociedad, Man City vs Man United.)
+const DIFFERENTIATOR_TOKENS = new Set([
+  "united", "city", "town", "county", "borough", "rovers", "wanderers", "athletic",
+  "atletico", "real", "sporting", "olympique", "racing", "international", "internazionale",
+  "inter", "milan", "milano", "cercle", "red", "blue", "white", "north", "south", "east", "west",
+  "saint", "san", "santos", "junior", "juniors", "b", "ii", "reserves", "u21", "u23", "women",
+  "feminine", "academy",
+]);
+
+const rawTokens = (s: string | null | undefined) =>
+  new Set(
+    (s ?? "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .split(" ")
+      .filter((t) => t.length >= 2 && !["fc", "cf", "ac", "sc", "de", "la", "el", "los", "the", "club"].includes(t))
+  );
+
+
 const BucketBadge = ({ b }: { b: Bucket }) => {
   const cfg: Record<Bucket, { label: string; cls: string }> = {
     auto_safe: { label: "Safe to import", cls: "bg-emerald-100 text-emerald-700 border-emerald-200" },
