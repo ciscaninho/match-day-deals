@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Filter, X, RotateCcw, Globe2, MapPin, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { isSharedLeagueName } from "@/lib/leagueLabels";
 
 // ------- Continent map (kept in sync with AdminLeaguesPage hierarchy) -------
 export const CONTINENT_BY_COUNTRY: Record<string, string> = {
