@@ -281,6 +281,8 @@ const WebsiteMatchDetailPage = () => {
 
         <MatchdayExperience stadium={dbStadium ?? null} fallbackBest={stadium.bestSections} variant="dark" />
 
+        <MatchdayJourney stadiumName={match.stadium} city={match.city} variant="dark" />
+
         {/* OFFICIAL SALES */}
         <section className="max-w-5xl mx-auto px-5 pb-10">
           <SectionTitle icon={Ticket} title={t("md.official_sales")} subtitle={t("md.official_sales_subtitle")} />
