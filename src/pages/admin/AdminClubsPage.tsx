@@ -675,6 +675,31 @@ export const AdminClubsPage = () => {
                       </Link>
                     </div>
                   </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Club actions">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 bg-popover">
+                      {!isArchived && (
+                        <>
+                          <DropdownMenuItem onClick={() => setManualMerge(c)} className="gap-2">
+                            <GitMerge className="w-4 h-4" /> Merge into another club…
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => archiveClub(c)} className="gap-2 text-amber-700 focus:text-amber-700">
+                            <Archive className="w-4 h-4" /> Archive club
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {isArchived && (
+                        <DropdownMenuItem onClick={() => restoreClub(c)} className="gap-2 text-emerald-700 focus:text-emerald-700">
+                          <ArchiveRestore className="w-4 h-4" /> Restore club
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardContent>
               </Card>
             );
