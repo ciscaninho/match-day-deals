@@ -12,8 +12,8 @@ export const AdminLeaguesPage = () => {
     queryKey: ["admin-leagues"],
     queryFn: async () => {
       const [stadiumsRes, clubsRes, matchesRes] = await Promise.all([
-        supabase.from("stadiums").select("league").not("league", "is", null),
-        supabase.from("club_ticketing_profiles").select("league").not("league", "is", null),
+        supabase.from("stadiums").select("league").is("archived_at", null).not("league", "is", null),
+        supabase.from("club_ticketing_profiles").select("league").is("archived_at", null).not("league", "is", null),
         supabase.from("matches").select("competition").not("competition", "is", null),
       ]);
       const map = new Map<string, { league: string; stadiums: number; clubs: number; matches: number }>();
