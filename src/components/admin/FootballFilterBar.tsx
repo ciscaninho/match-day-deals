@@ -29,12 +29,13 @@ export const CONTINENT_BY_COUNTRY: Record<string, string> = {
 export const continentOf = (country: string | null | undefined) =>
   CONTINENT_BY_COUNTRY[country ?? ""] || "Other";
 
-export type FootballRow = { country?: string | null; league?: string | null };
+export type FootballRow = { country?: string | null; league?: string | null; publication_status?: string | null };
 
 export type FootballFilterState = {
   continent: string;
   country: string;
   league: string;
+  status: string;
   flags: string[];
 };
 
@@ -47,6 +48,7 @@ export const useFootballFilters = (defaults?: Partial<FootballFilterState>) => {
     continent: params.get("continent") || defaults?.continent || "all",
     country: params.get("country") || defaults?.country || "all",
     league: params.get("league") || defaults?.league || "all",
+    status: params.get("status") || defaults?.status || "all",
     flags: (params.get("flags") || defaults?.flags?.join(",") || "")
       .split(",")
       .filter(Boolean),
