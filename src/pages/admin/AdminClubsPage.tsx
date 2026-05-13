@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
+import { formatLeagueLabel } from "@/lib/leagueLabels";
 
 type Bucket = "new" | "ambiguous" | "existing" | "auto_safe";
 type Candidate = {
@@ -303,14 +304,14 @@ const MergeDialog = ({
                 <p className="text-[10px] uppercase font-bold text-amber-700 mb-1">Duplicate (will be archived)</p>
                 <p className="font-bold text-foreground">{duplicate.club_name}</p>
                 <p className="text-[11px] text-muted-foreground">{duplicate.slug}</p>
-                <p className="text-[11px] text-muted-foreground mt-1">{duplicate.country} · {duplicate.league || "—"}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">{duplicate.country} · {formatLeagueLabel(duplicate.league, duplicate.country) || "—"}</p>
                 {duplicate.stadium_name && <p className="text-[11px] text-muted-foreground">🏟 {duplicate.stadium_name}</p>}
               </div>
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
                 <p className="text-[10px] uppercase font-bold text-emerald-700 mb-1">Canonical (kept)</p>
                 <p className="font-bold text-foreground">{canonical.club_name}</p>
                 <p className="text-[11px] text-muted-foreground">{canonical.slug}</p>
-                <p className="text-[11px] text-muted-foreground mt-1">{canonical.country} · {canonical.league || "—"}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">{canonical.country} · {formatLeagueLabel(canonical.league, canonical.country) || "—"}</p>
                 {canonical.stadium_name && <p className="text-[11px] text-muted-foreground">🏟 {canonical.stadium_name}</p>}
               </div>
             </div>
@@ -413,7 +414,7 @@ const ManualMergeDialog = ({
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="font-bold text-sm text-foreground truncate">{c.club_name}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{c.slug} · {c.country || "—"} · {c.league || "—"}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{c.slug} · {c.country || "—"} · {formatLeagueLabel(c.league, c.country) || "—"}</p>
                       </div>
                     </button>
                   ))}
@@ -426,7 +427,7 @@ const ManualMergeDialog = ({
                     <div className="min-w-0">
                       <p className="text-[10px] uppercase font-bold text-emerald-700 mb-1">Canonical (kept)</p>
                       <p className="font-bold text-foreground">{canonical.club_name}</p>
-                      <p className="text-[11px] text-muted-foreground">{canonical.slug} · {canonical.country || "—"} · {canonical.league || "—"}</p>
+                      <p className="text-[11px] text-muted-foreground">{canonical.slug} · {canonical.country || "—"} · {formatLeagueLabel(canonical.league, canonical.country) || "—"}</p>
                       {canonical.stadium_name && <p className="text-[11px] text-muted-foreground">🏟 {canonical.stadium_name}</p>}
                     </div>
                     <Button variant="ghost" size="sm" onClick={() => setCanonical(null)}>Change</Button>
@@ -719,7 +720,7 @@ export const AdminClubsPage = () => {
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-foreground truncate text-sm">{c.club_name}</p>
                           <p className="text-[11px] text-muted-foreground truncate">{c.slug}</p>
-                          <p className="text-[11px] text-muted-foreground truncate">{c.country} · {c.league || "—"}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{c.country} · {formatLeagueLabel(c.league, c.country) || "—"}</p>
                           {c.stadium_name && <p className="text-[11px] text-muted-foreground truncate">🏟 {c.stadium_name}</p>}
                         </div>
                       </div>
@@ -808,7 +809,7 @@ export const AdminClubsPage = () => {
                       {isAuto && <Badge variant="outline" className="text-[9px] bg-emerald-50 text-emerald-700 border-emerald-200">Auto</Badge>}
                       {isArchived && <Badge variant="outline" className="text-[9px] bg-slate-100 text-slate-700 border-slate-300">Archived</Badge>}
                     </div>
-                    <p className="text-[11px] text-muted-foreground truncate">{c.league || "—"} · {c.country || "—"}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{formatLeagueLabel(c.league, c.country) || "—"} · {c.country || "—"}</p>
                     {c.stadium_name && (
                       <p className="text-[11px] text-muted-foreground truncate mt-0.5 flex items-center gap-1">
                         <LinkIcon className="w-3 h-3 shrink-0" />

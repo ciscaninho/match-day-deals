@@ -15,6 +15,7 @@ import {
   ArrowRightLeft, Loader2, Search, Building2, Users,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatLeagueLabel } from "@/lib/leagueLabels";
 
 // ---------- Continent map ----------
 const CONTINENT_BY_COUNTRY: Record<string, string> = {
@@ -280,7 +281,7 @@ export const AdminLeaguesPage = () => {
                                           className="w-full flex items-center gap-2 px-3 py-2 pl-14 hover:bg-muted/20 transition text-left">
                                           {isLeagueOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                                           <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                                          <p className="font-semibold text-sm text-foreground flex-1">{league}</p>
+                                          <p className="font-semibold text-sm text-foreground flex-1">{formatLeagueLabel(league, country)}</p>
                                           <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1"><Users className="w-3 h-3" />{node.clubs.length}</span>
                                           <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1"><Building2 className="w-3 h-3" />{node.stadiums.length}</span>
                                         </button>
