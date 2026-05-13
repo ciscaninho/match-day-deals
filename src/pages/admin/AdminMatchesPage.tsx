@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Input } from "@/components/ui/input";
-import { Search, ExternalLink, MapPin, Calendar, Ticket } from "lucide-react";
+import { Search, MapPin, Calendar, Ticket } from "lucide-react";
+import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 
 const statusPill = (s: string | null) => {
   if (s === "on_sale") return "bg-emerald-100 text-emerald-700";
@@ -17,6 +18,7 @@ export const AdminMatchesPage = () => {
   const { t } = useLanguage();
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const filters = useFootballFilters();
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["admin-matches-v2"],
@@ -31,19 +33,32 @@ export const AdminMatchesPage = () => {
     },
   });
 
-  const filtered = data.filter((m) => {
+  // Map matches → FootballRow shape (competition is the league here)
+  const filterRows = useMemo(
+    () => data.map((m) => ({ country: m.country, league: m.competition })),
+    [data]
+  );
+
+  const hierarchyFiltered = useMemo(() => {
+    const set = new Set<number>();
+    filters.apply(filterRows.map((r, i) => ({ ...r, _i: i }))).forEach((r: any) => set.add(r._i));
+    return data.filter((_, i) => set.has(i));
+  }, [data, filterRows, filters]);
+
+  const filtered = hierarchyFiltered.filter((m) => {
     const s = q.toLowerCase();
     if (s && !`${m.home_team} ${m.away_team} ${m.competition} ${m.stadium} ${m.city}`.toLowerCase().includes(s)) return false;
     if (statusFilter !== "all" && m.ticket_status !== statusFilter) return false;
+    if (filters.state.flags.includes("unpublished") && m.featured) return false;
     return true;
   });
 
   const counts = {
-    all: data.length,
-    on_sale: data.filter((m) => m.ticket_status === "on_sale").length,
-    presale: data.filter((m) => m.ticket_status === "presale").length,
-    sold_out: data.filter((m) => m.ticket_status === "sold_out").length,
-    not_released: data.filter((m) => m.ticket_status === "not_released").length,
+    all: hierarchyFiltered.length,
+    on_sale: hierarchyFiltered.filter((m) => m.ticket_status === "on_sale").length,
+    presale: hierarchyFiltered.filter((m) => m.ticket_status === "presale").length,
+    sold_out: hierarchyFiltered.filter((m) => m.ticket_status === "sold_out").length,
+    not_released: hierarchyFiltered.filter((m) => m.ticket_status === "not_released").length,
   };
 
   return (
@@ -59,6 +74,18 @@ export const AdminMatchesPage = () => {
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.search.placeholder")} className="pl-9" />
           </div>
         </div>
+
+        <FootballFilterBar
+          rows={filterRows}
+          state={filters.state}
+          onChange={filters.update}
+          onReset={filters.reset}
+          onToggleFlag={filters.toggleFlag}
+          flags={[
+            { key: "unpublished", labelKey: "admin.filter.flag.unpublished", fallback: "Only unpublished" },
+          ]}
+        />
+
         <div className="flex gap-2 flex-wrap">
           {(["all", "on_sale", "presale", "sold_out", "not_released"] as const).map((k) => (
             <button key={k} onClick={() => setStatusFilter(k)} className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${statusFilter === k ? "bg-[#2C3E50] text-white border-[#2C3E50]" : "bg-white text-[#2C3E50] border-slate-200 hover:border-[#2ECC71]"}`}>
