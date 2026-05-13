@@ -54,7 +54,7 @@ export function StadiumMediaTab({ stadiumSlug }: { stadiumSlug: string }) {
         .order("is_hero", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as MediaRow[];
+      return ((data as unknown) as MediaRow[]) || [];
     },
   });
 
