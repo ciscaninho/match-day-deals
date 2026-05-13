@@ -3932,7 +3932,7 @@ const accountI18n: Record<Locale, Record<string, string>> = {
 
 export const translations: Record<Locale, Record<string, string>> = (Object.keys(_translations) as Locale[]).reduce(
   (acc, loc) => {
-    acc[loc] = { ..._translations[loc], ...(marketingPages[loc] || {}), ...(stadiumReviews[loc] || {}), ...(ticketIntel[loc] || {}), ...(stadiumI18n[loc] || {}), ...(recommendationsI18n[loc] || {}), ...(passportI18n[loc] || {}), ...(passportI18n[loc] || {}), ...(smartSearchI18n[loc] || {}), ...(clubsI18n[loc] || {}), ...(fanExperienceI18n[loc] || {}), ...(matchdayI18n[loc] || {}), ...(authI18n[loc] || {}), ...(onboardingI18n[loc] || {}), ...(adminI18n[loc] || {}), ...(accountI18n[loc] || {}) };
+    acc[loc] = { ..._translations[loc], ...(marketingPages[loc] || {}), ...(stadiumReviews[loc] || {}), ...(ticketIntel[loc] || {}), ...(stadiumI18n[loc] || {}), ...(recommendationsI18n[loc] || {}), ...(passportI18n[loc] || {}), ...(passportI18n[loc] || {}), ...(smartSearchI18n[loc] || {}), ...(clubsI18n[loc] || {}), ...(fanExperienceI18n[loc] || {}), ...(matchdayI18n[loc] || {}), ...(authI18n[loc] || {}), ...(onboardingI18n[loc] || {}), ...(adminI18n[loc] || {}), ...(accountI18n[loc] || {}), ...(pilgrimageI18n[loc] || {}) };
     return acc;
   },
   {} as Record<Locale, Record<string, string>>
