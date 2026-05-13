@@ -35,6 +35,8 @@ import {
   ImageOff,
   LinkIcon,
   MoreVertical,
+  ShieldOff,
+  Undo2,
 } from "lucide-react";
 import {
   DropdownMenu,
