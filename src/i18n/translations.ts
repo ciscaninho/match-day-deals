@@ -3922,6 +3922,7 @@ import { matchdayI18n } from "./matchday";
 import { authI18n } from "./auth";
 import { onboardingI18n } from "./onboarding";
 import { adminI18n } from "./admin";
+import { pilgrimageI18n } from "./pilgrimage";
 
 const accountI18n: Record<Locale, Record<string, string>> = {
   en: { "account.menu.profile": "Profile", "account.menu.favorites": "Favorites", "account.menu.passport": "Stadium Passport", "account.menu.alerts": "Alerts", "account.menu.settings": "Settings", "account.menu.personalize": "Personalize", "account.menu.admin": "Admin", "account.menu.signout": "Sign out", "account.menu.signin": "Sign in", "page.profile.title": "Your profile", "page.favorites.title": "Your favorites", "page.alerts.title": "Your alerts", "page.passport.title": "Your stadium passport", "page.settings.title": "Settings", "page.settings.language": "Language", "page.settings.account": "Account", "page.empty.cta": "Browse matches" },
