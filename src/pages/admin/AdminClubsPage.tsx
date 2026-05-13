@@ -503,13 +503,50 @@ export const AdminClubsPage = () => {
     },
   });
 
+  type Dismissal = { id: string; slug_a: string; slug_b: string; reason: string | null; kind: string };
+  const { data: dismissals = [] } = useQuery({
+    queryKey: ["admin-club-dismissals"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("club_duplicate_dismissals" as any)
+        .select("id,slug_a,slug_b,reason,kind")
+        .order("created_at", { ascending: false });
+      return (data || []) as unknown as Dismissal[];
+    },
+  });
+  const dismissedKey = (a: string, b: string) => [a, b].sort().join("|");
+  const dismissedSet = useMemo(
+    () => new Set(dismissals.map((d) => dismissedKey(d.slug_a, d.slug_b))),
+    [dismissals]
+  );
+
+  const dismissPair = async (a: ClubRow, b: ClubRow, kind: "separate_clubs" | "aliases_only", reason: string) => {
+    const [slug_a, slug_b] = [a.slug, b.slug].sort();
+    const { error } = await supabase
+      .from("club_duplicate_dismissals" as any)
+      .insert({ slug_a, slug_b, kind, reason });
+    if (error) { toast.error(error.message); return; }
+    toast.success(
+      kind === "separate_clubs"
+        ? `Marked as intentionally separate: ${a.club_name} ↔ ${b.club_name}`
+        : `Marked as naming alias only — no further suggestions.`
+    );
+    qc.invalidateQueries({ queryKey: ["admin-club-dismissals"] });
+  };
+
+  const reopenDismissal = async (id: string) => {
+    const { error } = await supabase.from("club_duplicate_dismissals" as any).delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Dismissal rule removed — pair may resurface.");
+    qc.invalidateQueries({ queryKey: ["admin-club-dismissals"] });
+  };
+
   const active = useMemo(() => data.filter((c) => !c.archived_at), [data]);
   const archived = useMemo(() => data.filter((c) => !!c.archived_at), [data]);
 
-  // Duplicate detection — IDENTITY-BASED scoring.
-  // Shared stadium / city / league are NEVER enough on their own
-  // (Milan/Inter share San Siro, Roma/Lazio share Olimpico, etc.).
-  // Only escalate when the club's actual identity signals overlap.
+  // Duplicate detection — IDENTITY-BASED scoring with strong negative signals.
+  // Shared stadium / city / league are NEVER enough on their own.
+  // Differentiator tokens (United, City, Real, Sporting, Athletic…) act as hard gates.
   const duplicateGroups = useMemo(() => {
     const tokens = (s: string | null | undefined) => new Set(norm(s).split(" ").filter((t) => t.length >= 3));
     const jaccard = (a: Set<string>, b: Set<string>) => {
@@ -530,25 +567,42 @@ export const AdminClubsPage = () => {
     );
 
     const score = (a: ClubRow, b: ClubRow) => {
-      // Country gate — different countries = not duplicates.
-      if (a.country && b.country && a.country.toLowerCase() !== b.country.toLowerCase()) return { s: 0, reasons: [] as string[] };
       const reasons: string[] = [];
+      // Country gate.
+      if (a.country && b.country && a.country.toLowerCase() !== b.country.toLowerCase()) return { s: 0, reasons };
+
+      // HARD GATE: differentiator tokens. If one club has "united" and the other doesn't,
+      // they are intentionally different clubs (Dundee FC vs Dundee United, Real Madrid vs Real Sociedad).
+      const rawA = rawTokens(a.club_name);
+      const rawB = rawTokens(b.club_name);
+      for (const tok of DIFFERENTIATOR_TOKENS) {
+        if (rawA.has(tok) !== rawB.has(tok)) return { s: 0, reasons };
+      }
+
       let s = 0;
       const nameSim = jaccard(tokens(a.club_name), tokens(b.club_name));
       if (nameSim >= 0.8) { s += 60; reasons.push(`name ${(nameSim * 100).toFixed(0)}%`); }
-      else if (nameSim >= 0.5) { s += 35; reasons.push(`name ${(nameSim * 100).toFixed(0)}%`); }
-      // Alias overlap (one club's name appearing in the other's aliases)
+      else if (nameSim >= 0.5) { s += 30; reasons.push(`name ${(nameSim * 100).toFixed(0)}%`); }
+
       const aliasA = aliasSet(a), aliasB = aliasSet(b);
       let aliasHit = false;
       aliasA.forEach((x) => { if (aliasB.has(x)) aliasHit = true; });
-      if (aliasHit) { s += 40; reasons.push("alias match"); }
-      // Same short name (non-empty)
-      if (a.short_name && b.short_name && norm(a.short_name) === norm(b.short_name)) { s += 25; reasons.push("same short name"); }
-      // Same logo URL
-      if (a.logo_url && b.logo_url && a.logo_url === b.logo_url) { s += 30; reasons.push("identical logo"); }
-      // Same official website / ticketing host
+      if (aliasHit) { s += 45; reasons.push("alias match"); }
+
+      if (a.short_name && b.short_name && norm(a.short_name) === norm(b.short_name)) {
+        s += 15; reasons.push("same short name");
+      }
+
+      // POSITIVE identity signals
+      if (a.logo_url && b.logo_url && a.logo_url === b.logo_url) { s += 35; reasons.push("identical logo"); }
       const hA = host(a.official_ticketing_url), hB = host(b.official_ticketing_url);
-      if (hA && hA === hB) { s += 20; reasons.push("same ticketing domain"); }
+      if (hA && hA === hB) { s += 25; reasons.push("same ticketing domain"); }
+
+      // NEGATIVE identity signals — strong penalties.
+      if (a.logo_url && b.logo_url && a.logo_url !== b.logo_url) { s -= 25; reasons.push("different logos"); }
+      if (a.stadium_slug && b.stadium_slug && a.stadium_slug !== b.stadium_slug) { s -= 30; reasons.push("different stadiums"); }
+      if (hA && hB && hA !== hB) { s -= 25; reasons.push("different ticketing domain"); }
+
       return { s, reasons };
     };
 
@@ -557,16 +611,18 @@ export const AdminClubsPage = () => {
     const out: { rows: ClubRow[]; reasons: string[]; score: number }[] = [];
     for (let i = 0; i < active.length; i++) {
       for (let j = i + 1; j < active.length; j++) {
+        const sig = dismissedKey(active[i].slug, active[j].slug);
+        if (dismissedSet.has(sig)) continue;
         const r = score(active[i], active[j]);
         if (r.s < THRESHOLD) continue;
-        const sig = [active[i].slug, active[j].slug].sort().join("|");
         if (seen.has(sig)) continue;
         seen.add(sig);
         out.push({ rows: [active[i], active[j]], reasons: r.reasons, score: r.s });
       }
     }
     return out.sort((a, b) => b.score - a.score);
-  }, [active]);
+  }, [active, dismissedSet]);
+
 
   const filterRows = (rows: ClubRow[]) => {
     const s = q.toLowerCase();
