@@ -94,6 +94,7 @@ export const AdminStadiumsPage = () => {
           onReset={filters.reset}
           onToggleFlag={filters.toggleFlag}
           showStatus
+          hideLeague
           flags={[
             { key: "no_image", labelKey: "admin.filter.flag.no_image", fallback: "Only missing images" },
             { key: "no_coords", labelKey: "admin.filter.flag.no_coords", fallback: "Only missing coords" },
