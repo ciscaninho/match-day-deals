@@ -354,10 +354,10 @@ const ReviewDrawer = ({
   const [deleting, setDeleting] = useState(false);
   const [createStadiumOpen, setCreateStadiumOpen] = useState(false);
 
-  const clubMatches = (q: string) =>
-    !q ? [] : clubs.filter((c) => norm(c._alias).includes(norm(q))).slice(0, 5);
-  const stadiumMatches = (q: string) =>
-    !q ? [] : stadiums.filter((s) => norm(s._alias).includes(norm(q))).slice(0, 5);
+  const clubMatches = (qq: string) =>
+    !qq ? [] : clubs.filter((c) => matchesQuery(c._alias, qq)).slice(0, 5);
+  const stadiumMatches = (qq: string) =>
+    !qq ? [] : stadiums.filter((s) => matchesQuery(s._alias, qq)).slice(0, 5);
 
   const dupes = duplicateIds.has(m.id)
     ? allMatches.filter(
