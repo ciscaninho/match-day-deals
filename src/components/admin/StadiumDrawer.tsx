@@ -13,10 +13,11 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   CalendarDays, ExternalLink, ImageIcon, Loader2, MapPin, Plus, Save,
-  Search, Trash2, Upload, Users, X, AlertTriangle, CheckCircle2,
+  Search, Trash2, Upload, Users, X, AlertTriangle, CheckCircle2, GitMerge, Archive,
 } from "lucide-react";
 import { toast } from "sonner";
 import { StadiumMediaTab } from "./StadiumMediaTab";
+import { matchesQuery } from "@/lib/normalize";
 
 export type StadiumDrawerRow = {
   slug: string;
@@ -31,6 +32,8 @@ export type StadiumDrawerRow = {
   thumbnail_image_url?: string | null;
   description: string | null;
   clubs?: string[] | null;
+  archived_at?: string | null;
+  archived_into_slug?: string | null;
 };
 
 type Props = {
