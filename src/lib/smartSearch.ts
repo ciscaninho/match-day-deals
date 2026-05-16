@@ -1,4 +1,5 @@
 import type { Match } from "@/data/matches";
+import { foldText } from "@/lib/normalize";
 
 // ---------------- Aliases ----------------
 // Map any alias / abbreviation / accent variant -> canonical token(s) we match against.
@@ -132,14 +133,8 @@ export const COMPETITION_ALIASES: Record<string, string[]> = {
 };
 
 // ---------------- Normalization ----------------
-const normalize = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+// Delegate to the shared football-aware folder so ø→o, ß→ss, København→kobenhavn, St.→st, etc.
+const normalize = (s: string) => foldText(s);
 
 const ALL_ALIASES = (): Record<string, string[]> => ({
   ...TEAM_ALIASES,
