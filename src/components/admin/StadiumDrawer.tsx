@@ -336,6 +336,17 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
                     </Link>
                   )) : <p className="text-xs text-slate-400 italic">{t("admin.empty")}</p>}
                 </TabsContent>
+
+                <TabsContent value="actions" className="mt-0">
+                  <StadiumActionsTab
+                    slug={form.slug}
+                    stadiumName={form.stadium_name}
+                    country={form.country}
+                    archivedAt={form.archived_at ?? null}
+                    archivedIntoSlug={form.archived_into_slug ?? null}
+                    onDone={() => { qc.invalidateQueries({ queryKey: ["admin-stadiums-v2"] }); onClose(); }}
+                  />
+                </TabsContent>
               </div>
             </Tabs>
 
