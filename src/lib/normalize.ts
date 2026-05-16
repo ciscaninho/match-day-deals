@@ -31,7 +31,7 @@ const TOKEN_ALIASES: Record<string, string[]> = {
   st: ["saint"], saint: ["st"],
   ste: ["sainte"], sainte: ["ste"],
   ft: ["fort"], mt: ["mount"],
-  fc: [], cf: [], ac: [], sc: [], af: [], cd: [], ud: [], rc: [], as: [],
+  fc: [], cf: [], sc: [], af: [], cd: [], ud: [], rc: [], as: [],
   // City / place aliases
   kobenhavn: ["copenhagen"], copenhagen: ["kobenhavn"],
   munchen: ["munich"], munich: ["munchen"],
