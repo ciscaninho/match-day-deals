@@ -9,8 +9,9 @@ import { StadiumDrawer, type StadiumDrawerRow } from "@/components/admin/Stadium
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 import { PublicationStatusControl } from "@/components/admin/PublicationStatusControl";
 import { StadiumCreateDialog } from "@/components/admin/StadiumCreateDialog";
+import { matchesQuery } from "@/lib/normalize";
 
-type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null; archived_at?: string | null; archived_into_slug?: string | null; publication_status?: string | null };
+type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null; archived_at?: string | null; archived_into_slug?: string | null; publication_status?: string | null; aliases?: string[] | null };
 
 const StatusPill = ({ ok, label }: { ok: boolean; label: string }) => (
   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${ok ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
@@ -33,7 +34,7 @@ export const AdminStadiumsPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("stadiums")
-        .select("slug,stadium_name,city,country,league,capacity,latitude,longitude,hero_image_url,thumbnail_image_url,clubs,description,archived_at,archived_into_slug,publication_status")
+        .select("slug,stadium_name,city,country,league,capacity,latitude,longitude,hero_image_url,thumbnail_image_url,clubs,description,archived_at,archived_into_slug,publication_status,aliases")
         .order("stadium_name")
         .limit(2000);
       return (data || []) as StadiumRow[];
@@ -54,8 +55,7 @@ export const AdminStadiumsPage = () => {
   }), [hierarchyFiltered]);
 
   const filtered = useMemo(() => hierarchyFiltered.filter((s) => {
-    const term = q.toLowerCase();
-    if (term && !`${s.stadium_name} ${s.city} ${s.country} ${s.league}`.toLowerCase().includes(term)) return false;
+    if (q.trim() && !matchesQuery([s.stadium_name, s.slug, s.city, s.country, s.league, ...(s.aliases || []), ...(s.clubs || [])], q)) return false;
     if (filters.state.flags.includes("no_image") && s.hero_image_url) return false;
     if (filters.state.flags.includes("no_coords") && s.latitude && s.longitude) return false;
     if (filters.state.flags.includes("incomplete") && s.hero_image_url && s.latitude && s.capacity) return false;
