@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/contexts/UserContext";
+import { matchesQuery } from "@/lib/normalize";
 
 interface MasterRow {
   id: string;
