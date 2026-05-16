@@ -71,6 +71,9 @@ export const AdminStadiumsPage = () => {
             <p className="text-xs text-muted-foreground">{active.length} active · {archived.length} archived · {filtered.length} {t("admin.shown")}</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button onClick={() => setCreateOpen(true)} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Plus className="w-4 h-4 mr-1" /> {t("admin.create.stadium.cta") || "Create stadium"}
+            </Button>
             <button
               onClick={() => setShowArchived((v) => !v)}
               className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${showArchived ? "bg-slate-700 text-white border-slate-700" : "bg-white text-[#2C3E50] border-slate-200 hover:border-emerald-500"}`}
