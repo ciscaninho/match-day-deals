@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2, Plus } from "lucide-react";
 import { StadiumDrawer, type StadiumDrawerRow } from "@/components/admin/StadiumDrawer";
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 import { PublicationStatusControl } from "@/components/admin/PublicationStatusControl";
+import { StadiumCreateDialog } from "@/components/admin/StadiumCreateDialog";
 
 type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null; archived_at?: string | null; archived_into_slug?: string | null; publication_status?: string | null };
 
