@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { Search, AlertTriangle, ShieldCheck, Trash2, X, Save, Loader2, Calendar, MapPin } from "lucide-react";
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 import { formatLeagueLabel, isSharedLeagueName } from "@/lib/leagueLabels";
+import { StadiumCreateDialog } from "@/components/admin/StadiumCreateDialog";
+import { Plus } from "lucide-react";
 
 type MatchRow = {
   id: string;
