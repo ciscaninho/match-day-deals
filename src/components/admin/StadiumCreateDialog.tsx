@@ -31,17 +31,7 @@ interface Props {
   onCreated?: (stadium: StadiumCreated) => void;
 }
 
-const slugify = (s: string) =>
-  (s || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-
-const norm = (s: string) =>
-  (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+const norm = (s: string) => foldText(s);
 
 type DupRow = { slug: string; stadium_name: string; city: string | null; country: string | null; aliases: string[] | null; archived_at: string | null };
 
