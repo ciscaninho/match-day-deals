@@ -237,6 +237,42 @@ Deno.serve(async (req) => {
               );
               if (result.proposed_action) proposedActions.push(result.proposed_action);
             }
+          } else if (fname === "propose_create_stadium") {
+            const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+            const required = ["stadium_name", "slug", "country", "city"] as const;
+            const missing = required.filter((k) => !args[k] || !String(args[k]).trim());
+            if (missing.length) {
+              result = { error: "missing_fields", missing };
+            } else if (!slugRe.test(String(args.slug))) {
+              result = { error: "invalid_slug", slug: args.slug, hint: "Slug must be kebab-case (a-z, 0-9, dashes)." };
+            } else {
+              const { data: existing } = await supabase.from("stadiums").select("slug,stadium_name,city,country,archived_at").eq("slug", args.slug).maybeSingle();
+              if (existing) {
+                result = { error: "slug_taken", existing, hint: "Pick a different slug or update the existing record." };
+              } else {
+                // Surface possible name-based duplicates in same country
+                const { data: nameDupes } = await supabase.from("stadiums")
+                  .select("slug,stadium_name,city,country,aliases")
+                  .ilike("stadium_name", `%${args.stadium_name}%`)
+                  .is("archived_at", null)
+                  .limit(5);
+                const payload: any = {
+                  stadium_name: String(args.stadium_name).trim(),
+                  slug: String(args.slug).trim(),
+                  country: String(args.country).trim(),
+                  city: String(args.city).trim(),
+                  league: args.league ? String(args.league).trim() : "—",
+                  aliases: Array.isArray(args.aliases) ? args.aliases.filter(Boolean) : [],
+                };
+                if (args.capacity != null) payload.capacity = Number(args.capacity);
+                if (args.latitude != null) payload.latitude = Number(args.latitude);
+                if (args.longitude != null) payload.longitude = Number(args.longitude);
+                if (args.hero_image_url) payload.hero_image_url = String(args.hero_image_url);
+                const preview = { stadium: payload, possible_duplicates: nameDupes || [], reason: args.reason };
+                result = await proposeAction("create_stadium", payload, preview, supabase, userId, thread_id);
+                if (result.proposed_action) proposedActions.push(result.proposed_action);
+              }
+            }
           } else {
             result = await runReadTool(fname, args, supabase);
           }
