@@ -9,6 +9,7 @@ import { Check, X, GitMerge, Loader2, Image as ImageIcon, Layers } from "lucide-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/contexts/UserContext";
+import { matchesQuery } from "@/lib/normalize";
 
 interface StagingRow {
   id: string;
