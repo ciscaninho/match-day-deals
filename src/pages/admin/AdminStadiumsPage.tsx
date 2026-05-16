@@ -21,9 +21,11 @@ const StatusPill = ({ ok, label }: { ok: boolean; label: string }) => (
 
 export const AdminStadiumsPage = () => {
   const { t } = useLanguage();
+  const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [selected, setSelected] = useState<StadiumRow | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const filters = useFootballFilters();
 
   const { data = [], isLoading } = useQuery({
