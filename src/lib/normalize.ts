@@ -138,3 +138,35 @@ export const queryScore = (
   }
   return Math.round(total / tokens.length);
 };
+
+/** kebab-case slug, accent-folded, transliterated. */
+export const slugify = (input: string | null | undefined, max = 80): string => {
+  const folded = foldText(input);
+  if (!folded) return "";
+  return folded.replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, max);
+};
+
+/** Tokenize and expand aliases — useful for jaccard-style similarity. */
+export const aliasTokenSet = (input: string | null | undefined, minLen = 2): Set<string> => {
+  const out = new Set<string>();
+  for (const tok of foldTokens(input)) {
+    if (tok.length < minLen) continue;
+    out.add(tok);
+    for (const v of expandToken(tok)) out.add(v);
+  }
+  return out;
+};
+
+/** Jaccard similarity between two strings (0..1) using football-aware tokens. */
+export const jaccardSimilarity = (
+  a: string | null | undefined,
+  b: string | null | undefined,
+  minLen = 3,
+): number => {
+  const A = aliasTokenSet(a, minLen);
+  const B = aliasTokenSet(b, minLen);
+  if (!A.size || !B.size) return 0;
+  let inter = 0;
+  A.forEach((t) => { if (B.has(t)) inter++; });
+  return inter / (A.size + B.size - inter);
+};
