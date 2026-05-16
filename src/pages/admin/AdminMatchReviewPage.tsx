@@ -353,6 +353,7 @@ const ReviewDrawer = ({
   });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [createStadiumOpen, setCreateStadiumOpen] = useState(false);
 
   const clubMatches = (q: string) =>
     !q ? [] : clubs.filter((c) => norm(c._alias).includes(norm(q))).slice(0, 5);
