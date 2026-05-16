@@ -167,6 +167,11 @@ export const AdminStadiumsPage = () => {
       )}
 
       <StadiumDrawer stadium={selected} onClose={() => setSelected(null)} />
+      <StadiumCreateDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => qc.invalidateQueries({ queryKey: ["admin-stadiums-v2"] })}
+      />
     </div>
   );
 };
