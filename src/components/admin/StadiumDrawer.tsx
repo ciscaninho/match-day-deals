@@ -434,4 +434,209 @@ function ClubAttachPicker({ excludeSlugs, onAttach, pendingSlug }: { excludeSlug
   );
 }
 
+// ---------- Actions tab: Merge + Archive ----------
+function StadiumActionsTab({
+  slug, stadiumName, country, archivedAt, archivedIntoSlug, onDone,
+}: {
+  slug: string;
+  stadiumName: string;
+  country: string | null;
+  archivedAt: string | null;
+  archivedIntoSlug: string | null;
+  onDone: () => void;
+}) {
+  const { t } = useLanguage();
+  const [mergeQuery, setMergeQuery] = useState("");
+  const [mergeTarget, setMergeTarget] = useState<{ slug: string; stadium_name: string; city: string | null; country: string | null } | null>(null);
+  const [mergeReason, setMergeReason] = useState("");
+  const [archiveReason, setArchiveReason] = useState("");
+  const [busy, setBusy] = useState<"merge" | "archive" | null>(null);
+  const [confirm, setConfirm] = useState<"merge" | "archive" | null>(null);
+
+  const { data: candidates = [] } = useQuery({
+    queryKey: ["admin-stadium-merge-search", slug, country, mergeQuery],
+    enabled: !archivedAt && mergeQuery.trim().length >= 2,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("stadiums")
+        .select("slug,stadium_name,city,country,aliases")
+        .is("archived_at", null)
+        .neq("slug", slug)
+        .limit(200);
+      const rows = data || [];
+      return rows.filter((r: any) =>
+        matchesQuery([r.stadium_name, r.slug, r.city, ...(r.aliases || [])], mergeQuery),
+      ).slice(0, 10);
+    },
+  });
+
+  const doMerge = async () => {
+    if (!mergeTarget) return;
+    setBusy("merge");
+    try {
+      const { data, error } = await supabase.rpc("merge_stadium_records", {
+        p_canonical_slug: mergeTarget.slug,
+        p_duplicate_slug: slug,
+        p_reason: mergeReason.trim() || null,
+      });
+      if (error) throw error;
+      toast.success(t("admin.drawer.merge_ok") || "Stadium merged");
+      console.log("[StadiumDrawer] merge result", data);
+      onDone();
+    } catch (e: any) {
+      toast.error(e?.message || t("admin.drawer.merge_error") || "Merge failed", { duration: 6000 });
+    } finally {
+      setBusy(null);
+      setConfirm(null);
+    }
+  };
+
+  const doArchive = async () => {
+    setBusy("archive");
+    try {
+      const { data, error } = await supabase
+        .from("stadiums")
+        .update({
+          archived_at: new Date().toISOString(),
+          archived_reason: archiveReason.trim() || "Archived from admin drawer",
+        })
+        .eq("slug", slug)
+        .select("slug");
+      if (error) throw error;
+      if (!data || data.length === 0) throw new Error(t("admin.drawer.no_rows_affected"));
+      toast.success(t("admin.drawer.archive_ok") || "Stadium archived");
+      onDone();
+    } catch (e: any) {
+      toast.error(e?.message || t("admin.drawer.archive_error") || "Archive failed", { duration: 6000 });
+    } finally {
+      setBusy(null);
+      setConfirm(null);
+    }
+  };
+
+  if (archivedAt) {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-xl border border-slate-300 bg-slate-50 p-4 space-y-2">
+          <div className="flex items-center gap-2 text-slate-700">
+            <Archive className="w-4 h-4" />
+            <p className="text-sm font-bold">{t("admin.drawer.already_archived") || "This stadium is archived"}</p>
+          </div>
+          <p className="text-xs text-slate-600">{new Date(archivedAt).toLocaleString()}</p>
+          {archivedIntoSlug && (
+            <p className="text-xs text-emerald-700">→ {archivedIntoSlug}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* MERGE */}
+      <section className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+        <div className="flex items-start gap-2">
+          <GitMerge className="w-4 h-4 mt-0.5 text-emerald-600" />
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-900">{t("admin.drawer.merge.title") || "Merge into another stadium"}</h3>
+            <p className="text-[11px] text-slate-500">{t("admin.drawer.merge.hint") || "All clubs, matches, media and reviews will be reassigned. This stadium will be archived."}</p>
+          </div>
+        </div>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+          <Input
+            value={mergeQuery}
+            onChange={(e) => { setMergeQuery(e.target.value); setMergeTarget(null); }}
+            placeholder={t("admin.drawer.merge.search") || "Search canonical stadium…"}
+            className="pl-9"
+          />
+        </div>
+
+        {mergeQuery.length >= 2 && !mergeTarget && (
+          <div className="space-y-1 max-h-56 overflow-y-auto">
+            {candidates.length === 0 ? (
+              <p className="text-xs text-slate-400 italic py-2">{t("admin.empty")}</p>
+            ) : candidates.map((c: any) => (
+              <button
+                key={c.slug}
+                type="button"
+                onClick={() => setMergeTarget(c)}
+                className="w-full text-left flex items-center gap-3 p-2.5 rounded-lg border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-slate-900 truncate">{c.stadium_name}</p>
+                  <p className="text-[10px] text-slate-500 truncate">{c.city || "—"}, {c.country || "—"} · {c.slug}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {mergeTarget && (
+          <div className="space-y-2">
+            <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-2.5 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-slate-900 truncate">→ {mergeTarget.stadium_name}</p>
+                <p className="text-[10px] text-slate-600 truncate">{mergeTarget.city || "—"}, {mergeTarget.country || "—"}</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setMergeTarget(null)} className="text-slate-500 h-7 px-2"><X className="w-3 h-3" /></Button>
+            </div>
+            <Textarea
+              rows={2}
+              placeholder={t("admin.drawer.merge.reason") || "Reason (optional)"}
+              value={mergeReason}
+              onChange={(e) => setMergeReason(e.target.value)}
+            />
+            {confirm === "merge" ? (
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => setConfirm(null)}>{t("admin.cancel") || "Cancel"}</Button>
+                <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white" disabled={busy === "merge"} onClick={doMerge}>
+                  {busy === "merge" ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <GitMerge className="w-4 h-4 mr-1.5" />}
+                  {t("admin.drawer.merge.confirm") || `Confirm merge "${stadiumName}" → "${mergeTarget.stadium_name}"`}
+                </Button>
+              </div>
+            ) : (
+              <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => setConfirm("merge")}>
+                <GitMerge className="w-4 h-4 mr-1.5" /> {t("admin.drawer.merge.cta") || "Merge stadium"}
+              </Button>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* ARCHIVE */}
+      <section className="rounded-xl border border-amber-200 bg-amber-50/40 p-4 space-y-3">
+        <div className="flex items-start gap-2">
+          <Archive className="w-4 h-4 mt-0.5 text-amber-700" />
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-900">{t("admin.drawer.archive.title") || "Archive stadium"}</h3>
+            <p className="text-[11px] text-slate-500">{t("admin.drawer.archive.hint") || "Hides from public surfaces. Relationships are preserved. Reversible by clearing archived_at."}</p>
+          </div>
+        </div>
+        <Textarea
+          rows={2}
+          placeholder={t("admin.drawer.archive.reason") || "Reason (optional)"}
+          value={archiveReason}
+          onChange={(e) => setArchiveReason(e.target.value)}
+        />
+        {confirm === "archive" ? (
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setConfirm(null)}>{t("admin.cancel") || "Cancel"}</Button>
+            <Button className="flex-1 bg-amber-600 hover:bg-amber-700 text-white" disabled={busy === "archive"} onClick={doArchive}>
+              {busy === "archive" ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Archive className="w-4 h-4 mr-1.5" />}
+              {t("admin.drawer.archive.confirm") || `Confirm archive "${stadiumName}"`}
+            </Button>
+          </div>
+        ) : (
+          <Button variant="outline" className="w-full border-amber-300 text-amber-800 hover:bg-amber-100" onClick={() => setConfirm("archive")}>
+            <Archive className="w-4 h-4 mr-1.5" /> {t("admin.drawer.archive.cta") || "Archive stadium"}
+          </Button>
+        )}
+      </section>
+    </div>
+  );
+}
+
 export default StadiumDrawer;
