@@ -343,13 +343,9 @@ const ManualMergeDialog = ({
 
   const candidates = useMemo(() => {
     if (!duplicate) return [];
-    const s = search.toLowerCase().trim();
     return allClubs
       .filter((c) => !c.archived_at && c.slug !== duplicate.slug)
-      .filter((c) => !s
-        || c.club_name.toLowerCase().includes(s)
-        || c.slug.toLowerCase().includes(s)
-        || (c.aliases || []).some((a) => a.toLowerCase().includes(s)))
+      .filter((c) => matchesQuery([c.club_name, c.slug, c.short_name, ...(c.aliases || [])], search))
       .slice(0, 25);
   }, [allClubs, duplicate, search]);
 
