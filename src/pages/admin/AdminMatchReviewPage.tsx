@@ -10,6 +10,7 @@ import { FootballFilterBar, useFootballFilters } from "@/components/admin/Footba
 import { formatLeagueLabel, isSharedLeagueName } from "@/lib/leagueLabels";
 import { StadiumCreateDialog } from "@/components/admin/StadiumCreateDialog";
 import { Plus } from "lucide-react";
+import { foldText, matchesQuery } from "@/lib/normalize";
 
 type MatchRow = {
   id: string;
