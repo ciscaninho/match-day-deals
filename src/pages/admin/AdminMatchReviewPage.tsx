@@ -202,8 +202,7 @@ const AdminMatchReviewPage = () => {
 
   const filtered = useMemo(() => {
     return hierarchyFiltered.filter(({ m, flags }) => {
-      const s = q.toLowerCase();
-      if (s && !`${m.home_team} ${m.away_team} ${m.competition} ${m.stadium} ${m.city}`.toLowerCase().includes(s)) return false;
+      if (q && !matchesQuery([m.home_team, m.away_team, m.competition, m.stadium, m.city, m.country], q)) return false;
       const activeFlags = filters.state.flags;
       if (activeFlags.includes("only_unresolved") && Object.values(flags).every((v) => !v)) return false;
       for (const fk of activeFlags) {
