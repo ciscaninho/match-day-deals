@@ -497,6 +497,15 @@ const ReviewDrawer = ({
           <Trash2 className="w-4 h-4" /> {t("admin.match_review.delete") || "Delete this match"}
         </Button>
       </div>
+      <StadiumCreateDialog
+        open={createStadiumOpen}
+        onClose={() => setCreateStadiumOpen(false)}
+        prefill={{ stadium_name: form.stadium, city: form.city, country: form.country, league: form.competition }}
+        onCreated={(s) => {
+          setForm((f) => ({ ...f, stadium: s.stadium_name, city: f.city || s.city || "", country: f.country || s.country || "" }));
+          onChanged();
+        }}
+      />
     </div>
   );
 };
