@@ -90,14 +90,11 @@ type ClubRow = {
   publication_status: string | null;
 };
 
+// Football-aware normalization. Strips noise tokens (FC, CF, …) for fuzzy
+// similarity. Delegates accent/transliteration to the shared layer.
+const NOISE = new Set(["fc", "cf", "ac", "sc", "club", "de", "la", "el", "los", "the"]);
 const norm = (s: string | null | undefined) =>
-  (s ?? "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\b(fc|cf|ac|sc|club|de|la|el|los|the)\b/g, " ")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
+  foldTokens(s).filter((t) => !NOISE.has(t)).join(" ");
 
 // Words that DISTINGUISH football clubs sharing a city/region.
 // If one club has it and the other doesn't, they are almost certainly NOT duplicates.
@@ -111,15 +108,7 @@ const DIFFERENTIATOR_TOKENS = new Set([
 ]);
 
 const rawTokens = (s: string | null | undefined) =>
-  new Set(
-    (s ?? "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, " ")
-      .split(" ")
-      .filter((t) => t.length >= 2 && !["fc", "cf", "ac", "sc", "de", "la", "el", "los", "the", "club"].includes(t))
-  );
+  new Set(foldTokens(s).filter((t) => t.length >= 2 && !NOISE.has(t)));
 
 
 const BucketBadge = ({ b }: { b: Bucket }) => {
