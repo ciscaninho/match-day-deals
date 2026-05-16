@@ -49,6 +49,7 @@ import { toast } from "sonner";
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 import { formatLeagueLabel } from "@/lib/leagueLabels";
 import { PublicationStatusControl } from "@/components/admin/PublicationStatusControl";
+import { foldText, foldTokens, matchesQuery } from "@/lib/normalize";
 
 type Bucket = "new" | "ambiguous" | "existing" | "auto_safe";
 type Candidate = {
