@@ -64,6 +64,13 @@ function buildAssistantMessage(kind: string, result: any, locale?: string | null
       : `Club detached: **${result?.club?.club_name || result?.club?.slug}**.`;
   }
 
+  if (kind === "create_stadium") {
+    const s = result?.stadium;
+    return fr
+      ? `Stade créé en brouillon : **${s?.stadium_name}** (\`${s?.slug}\`) · ${s?.city || "?"}, ${s?.country || "?"}.\nPromouvez-le en vérifié/publié depuis la page Stades.`
+      : `Stadium created as draft: **${s?.stadium_name}** (\`${s?.slug}\`) · ${s?.city || "?"}, ${s?.country || "?"}.\nPromote to verified/published from the Stadiums page.`;
+  }
+
   return fr ? "Action exécutée." : "Action executed.";
 }
 
