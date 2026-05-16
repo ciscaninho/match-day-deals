@@ -81,6 +81,12 @@ function buildRollbackMessage(kind: string, result: any, locale?: string | null)
       ? `Fusion annulée.\n- Stade restauré : **${result?.restored?.stadium_name || result?.restored?.slug}** (${quoteList([result?.restored?.id, result?.restored?.slug].filter(Boolean))})`
       : `Merge rolled back.\n- Restored stadium: **${result?.restored?.stadium_name || result?.restored?.slug}** (${quoteList([result?.restored?.id, result?.restored?.slug].filter(Boolean))})`;
   }
+  if (kind === "delete_stadium") {
+    const d = result?.deleted;
+    return fr
+      ? `Création annulée. Stade supprimé : **${d?.stadium_name || d?.slug}**.`
+      : `Creation rolled back. Stadium deleted: **${d?.stadium_name || d?.slug}**.`;
+  }
   return fr ? "Annulation terminée." : "Rollback completed.";
 }
 
