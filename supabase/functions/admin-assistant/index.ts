@@ -61,7 +61,13 @@ async function runReadTool(name: string, args: any, supabase: any) {
     case "find_duplicate_stadiums": {
       const { data } = await supabase.from("stadiums").select("slug,stadium_name,city,country,aliases").is("archived_at", null).limit(2000);
       if (!data) return [];
-      const norm = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      // Football-aware fold: lowercase + transliterate (ø→o, ß→ss, etc.) + strip diacritics + strip punctuation.
+      const TRANS: Record<string, string> = { "ø":"o","Ø":"o","æ":"ae","Æ":"ae","œ":"oe","Œ":"oe","å":"a","Å":"a","ß":"ss","ł":"l","Ł":"l","đ":"d","Đ":"d","ð":"d","Ð":"d","þ":"th","Þ":"th","ı":"i","İ":"i","ş":"s","Ş":"s","ç":"c","Ç":"c","ğ":"g","Ğ":"g" };
+      const norm = (s: string) => {
+        let out = "";
+        for (const ch of (s || "")) out += TRANS[ch] ?? ch;
+        return out.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+      };
       const groups = new Map<string, any[]>();
       for (const s of data) {
         const k = `${norm(s.city || "")}-${norm(s.stadium_name || "").slice(0, 10)}`;
