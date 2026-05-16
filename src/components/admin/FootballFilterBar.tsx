@@ -116,10 +116,11 @@ type Props = {
   flags?: FootballFlag[];
   flagCounts?: Record<string, number>;
   showStatus?: boolean;
+  hideLeague?: boolean;
 };
 
 export const FootballFilterBar = ({
-  rows, state, onChange, onReset, onToggleFlag, flags = [], flagCounts = {}, showStatus = false,
+  rows, state, onChange, onReset, onToggleFlag, flags = [], flagCounts = {}, showStatus = false, hideLeague = false,
 }: Props) => {
   const { t } = useLanguage();
 
@@ -224,11 +225,12 @@ export const FootballFilterBar = ({
           options={countries}
           placeholder={t("admin.filter.country") || "All countries"} />
 
-        <Select icon={Trophy} value={state.league}
-          onChange={(v) => onChange({ league: v })}
-          options={leagueOptions}
-          placeholder={t("admin.filter.league") || "All leagues"} />
-
+        {!hideLeague && (
+          <Select icon={Trophy} value={state.league}
+            onChange={(v) => onChange({ league: v })}
+            options={leagueOptions}
+            placeholder={t("admin.filter.league") || "All leagues"} />
+        )}
         {showStatus && (
           <Select icon={FileEdit} value={state.status}
             onChange={(v) => onChange({ status: v })}
