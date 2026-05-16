@@ -192,7 +192,7 @@ export const AdminLeaguesPage = () => {
     setter(next);
   };
 
-  const matchesSearch = (s: string) => !q || s.toLowerCase().includes(q.toLowerCase());
+  const matchesSearch = (s: string) => matchesQuery(s, q);
 
   const continentOrder = ["Europe", "South America", "North America", "Africa", "Asia", "Oceania", "Other"];
 
