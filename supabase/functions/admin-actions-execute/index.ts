@@ -64,6 +64,13 @@ function buildAssistantMessage(kind: string, result: any, locale?: string | null
       : `Club detached: **${result?.club?.club_name || result?.club?.slug}**.`;
   }
 
+  if (kind === "create_stadium") {
+    const s = result?.stadium;
+    return fr
+      ? `Stade créé en brouillon : **${s?.stadium_name}** (\`${s?.slug}\`) · ${s?.city || "?"}, ${s?.country || "?"}.\nPromouvez-le en vérifié/publié depuis la page Stades.`
+      : `Stadium created as draft: **${s?.stadium_name}** (\`${s?.slug}\`) · ${s?.city || "?"}, ${s?.country || "?"}.\nPromote to verified/published from the Stadiums page.`;
+  }
+
   return fr ? "Action exécutée." : "Action executed.";
 }
 
@@ -73,6 +80,12 @@ function buildRollbackMessage(kind: string, result: any, locale?: string | null)
     return fr
       ? `Fusion annulée.\n- Stade restauré : **${result?.restored?.stadium_name || result?.restored?.slug}** (${quoteList([result?.restored?.id, result?.restored?.slug].filter(Boolean))})`
       : `Merge rolled back.\n- Restored stadium: **${result?.restored?.stadium_name || result?.restored?.slug}** (${quoteList([result?.restored?.id, result?.restored?.slug].filter(Boolean))})`;
+  }
+  if (kind === "delete_stadium") {
+    const d = result?.deleted;
+    return fr
+      ? `Création annulée. Stade supprimé : **${d?.stadium_name || d?.slug}**.`
+      : `Creation rolled back. Stadium deleted: **${d?.stadium_name || d?.slug}**.`;
   }
   return fr ? "Annulation terminée." : "Rollback completed.";
 }
@@ -287,6 +300,46 @@ async function executeKind(kind: string, payload: any, supabase: any): Promise<{
     case "restore_stadium_merge": {
       const result = await rollbackStadiumMerge(payload, supabase);
       return { undo: null, result };
+    }
+    case "create_stadium": {
+      const required = ["stadium_name", "slug", "country", "city"];
+      for (const k of required) {
+        if (!payload?.[k] || !String(payload[k]).trim()) throw new Error(`missing_field:${k}`);
+      }
+      const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+      if (!slugRe.test(String(payload.slug))) throw new Error("invalid_slug");
+      const { data: clash } = await supabase.from("stadiums").select("slug").eq("slug", payload.slug).maybeSingle();
+      if (clash) throw new Error("slug_taken");
+      const row: any = {
+        stadium_name: payload.stadium_name,
+        slug: payload.slug,
+        country: payload.country,
+        city: payload.city,
+        league: payload.league || "—",
+        aliases: Array.isArray(payload.aliases) ? payload.aliases : [],
+        publication_status: "draft",
+      };
+      if (payload.capacity != null) row.capacity = payload.capacity;
+      if (payload.latitude != null) row.latitude = payload.latitude;
+      if (payload.longitude != null) row.longitude = payload.longitude;
+      if (payload.hero_image_url) row.hero_image_url = payload.hero_image_url;
+      const { data: created, error } = await supabase.from("stadiums").insert(row).select("id,slug,stadium_name,city,country,league,publication_status").single();
+      if (error) throw error;
+      return {
+        undo: { kind: "delete_stadium", payload: { id: created.id, slug: created.slug } },
+        result: { stadium: created },
+      };
+    }
+    case "delete_stadium": {
+      const { id, slug } = payload || {};
+      if (!id && !slug) throw new Error("invalid_payload");
+      const query = supabase.from("stadiums").delete();
+      const { data: before } = id
+        ? await supabase.from("stadiums").select("id,slug,stadium_name").eq("id", id).maybeSingle()
+        : await supabase.from("stadiums").select("id,slug,stadium_name").eq("slug", slug).maybeSingle();
+      const { error } = id ? await query.eq("id", id) : await query.eq("slug", slug);
+      if (error) throw error;
+      return { undo: null, result: { deleted: before } };
     }
   }
   throw new Error("unknown_action_kind:" + kind);

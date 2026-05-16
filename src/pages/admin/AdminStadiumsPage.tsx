@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2, Plus } from "lucide-react";
 import { StadiumDrawer, type StadiumDrawerRow } from "@/components/admin/StadiumDrawer";
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 import { PublicationStatusControl } from "@/components/admin/PublicationStatusControl";
+import { StadiumCreateDialog } from "@/components/admin/StadiumCreateDialog";
 
 type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null; archived_at?: string | null; archived_into_slug?: string | null; publication_status?: string | null };
 
@@ -19,9 +21,11 @@ const StatusPill = ({ ok, label }: { ok: boolean; label: string }) => (
 
 export const AdminStadiumsPage = () => {
   const { t } = useLanguage();
+  const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [selected, setSelected] = useState<StadiumRow | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const filters = useFootballFilters();
 
   const { data = [], isLoading } = useQuery({
@@ -67,6 +71,9 @@ export const AdminStadiumsPage = () => {
             <p className="text-xs text-muted-foreground">{active.length} active · {archived.length} archived · {filtered.length} {t("admin.shown")}</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button onClick={() => setCreateOpen(true)} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Plus className="w-4 h-4 mr-1" /> {t("admin.create.stadium.cta") || "Create stadium"}
+            </Button>
             <button
               onClick={() => setShowArchived((v) => !v)}
               className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${showArchived ? "bg-slate-700 text-white border-slate-700" : "bg-white text-[#2C3E50] border-slate-200 hover:border-emerald-500"}`}
@@ -160,6 +167,11 @@ export const AdminStadiumsPage = () => {
       )}
 
       <StadiumDrawer stadium={selected} onClose={() => setSelected(null)} />
+      <StadiumCreateDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => qc.invalidateQueries({ queryKey: ["admin-stadiums-v2"] })}
+      />
     </div>
   );
 };

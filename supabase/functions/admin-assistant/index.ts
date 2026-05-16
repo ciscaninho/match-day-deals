@@ -35,6 +35,7 @@ const WRITE_TOOLS = [
   { type: "function", function: { name: "propose_attach_club", description: "Propose attaching a club to a stadium (sets stadium_slug on the club ticketing profile).", parameters: { type: "object", properties: { club_slug: { type: "string" }, stadium_slug: { type: "string" }, reason: { type: "string" } }, required: ["club_slug", "stadium_slug"] } } },
   { type: "function", function: { name: "propose_detach_club", description: "Propose detaching a club from its stadium.", parameters: { type: "object", properties: { club_slug: { type: "string" }, reason: { type: "string" } }, required: ["club_slug"] } } },
   { type: "function", function: { name: "propose_merge_stadiums", description: "Propose merging a duplicate stadium into a canonical stadium. This archives the duplicate, moves linked relations, and preserves aliases.", parameters: { type: "object", properties: { canonical_slug: { type: "string" }, duplicate_slug: { type: "string" }, reason: { type: "string" } }, required: ["canonical_slug", "duplicate_slug"] } } },
+  { type: "function", function: { name: "propose_create_stadium", description: "Propose creating a new stadium entity. Always created with publication_status='draft'. ALWAYS call search_stadiums first with the proposed name to avoid duplicates. Slug must be kebab-case unique. Aliases improve future matching.", parameters: { type: "object", properties: { stadium_name: { type: "string" }, slug: { type: "string" }, country: { type: "string" }, city: { type: "string" }, league: { type: "string" }, capacity: { type: "number" }, latitude: { type: "number" }, longitude: { type: "number" }, hero_image_url: { type: "string" }, aliases: { type: "array", items: { type: "string" } }, reason: { type: "string" } }, required: ["stadium_name", "slug", "country", "city"] } } },
 ];
 
 const ALLOWED_STADIUM_FIELDS = new Set(["city", "country", "league", "capacity", "latitude", "longitude", "hero_image_url", "description"]);
@@ -235,6 +236,42 @@ Deno.serve(async (req) => {
                 thread_id,
               );
               if (result.proposed_action) proposedActions.push(result.proposed_action);
+            }
+          } else if (fname === "propose_create_stadium") {
+            const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+            const required = ["stadium_name", "slug", "country", "city"] as const;
+            const missing = required.filter((k) => !args[k] || !String(args[k]).trim());
+            if (missing.length) {
+              result = { error: "missing_fields", missing };
+            } else if (!slugRe.test(String(args.slug))) {
+              result = { error: "invalid_slug", slug: args.slug, hint: "Slug must be kebab-case (a-z, 0-9, dashes)." };
+            } else {
+              const { data: existing } = await supabase.from("stadiums").select("slug,stadium_name,city,country,archived_at").eq("slug", args.slug).maybeSingle();
+              if (existing) {
+                result = { error: "slug_taken", existing, hint: "Pick a different slug or update the existing record." };
+              } else {
+                // Surface possible name-based duplicates in same country
+                const { data: nameDupes } = await supabase.from("stadiums")
+                  .select("slug,stadium_name,city,country,aliases")
+                  .ilike("stadium_name", `%${args.stadium_name}%`)
+                  .is("archived_at", null)
+                  .limit(5);
+                const payload: any = {
+                  stadium_name: String(args.stadium_name).trim(),
+                  slug: String(args.slug).trim(),
+                  country: String(args.country).trim(),
+                  city: String(args.city).trim(),
+                  league: args.league ? String(args.league).trim() : "—",
+                  aliases: Array.isArray(args.aliases) ? args.aliases.filter(Boolean) : [],
+                };
+                if (args.capacity != null) payload.capacity = Number(args.capacity);
+                if (args.latitude != null) payload.latitude = Number(args.latitude);
+                if (args.longitude != null) payload.longitude = Number(args.longitude);
+                if (args.hero_image_url) payload.hero_image_url = String(args.hero_image_url);
+                const preview = { stadium: payload, possible_duplicates: nameDupes || [], reason: args.reason };
+                result = await proposeAction("create_stadium", payload, preview, supabase, userId, thread_id);
+                if (result.proposed_action) proposedActions.push(result.proposed_action);
+              }
             }
           } else {
             result = await runReadTool(fname, args, supabase);

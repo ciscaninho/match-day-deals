@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { Search, AlertTriangle, ShieldCheck, Trash2, X, Save, Loader2, Calendar, MapPin } from "lucide-react";
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 import { formatLeagueLabel, isSharedLeagueName } from "@/lib/leagueLabels";
+import { StadiumCreateDialog } from "@/components/admin/StadiumCreateDialog";
+import { Plus } from "lucide-react";
 
 type MatchRow = {
   id: string;
@@ -351,6 +353,7 @@ const ReviewDrawer = ({
   });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [createStadiumOpen, setCreateStadiumOpen] = useState(false);
 
   const clubMatches = (q: string) =>
     !q ? [] : clubs.filter((c) => norm(c._alias).includes(norm(q))).slice(0, 5);
@@ -445,6 +448,16 @@ const ReviewDrawer = ({
             <Input value={form.stadium} onChange={(e) => setForm({ ...form, stadium: e.target.value })} />
             <Suggestions items={stadiumMatches(form.stadium)} render={(s) => `${s.stadium_name} · ${s.city || "?"}`}
               onPick={(s) => setForm({ ...form, stadium: s.stadium_name, city: form.city || s.city || "", country: form.country || s.country || "" })} />
+            {row.flags.missing_stadium && (
+              <button
+                type="button"
+                onClick={() => setCreateStadiumOpen(true)}
+                className="mt-1.5 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" />
+                {t("admin.create.stadium.cta") || "Create stadium"}{form.stadium ? `: "${form.stadium}"` : ""}
+              </button>
+            )}
           </Field>
           <Field label="City">
             <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
@@ -484,6 +497,15 @@ const ReviewDrawer = ({
           <Trash2 className="w-4 h-4" /> {t("admin.match_review.delete") || "Delete this match"}
         </Button>
       </div>
+      <StadiumCreateDialog
+        open={createStadiumOpen}
+        onClose={() => setCreateStadiumOpen(false)}
+        prefill={{ stadium_name: form.stadium, city: form.city, country: form.country, league: form.competition }}
+        onCreated={(s) => {
+          setForm((f) => ({ ...f, stadium: s.stadium_name, city: f.city || s.city || "", country: f.country || s.country || "" }));
+          onChanged();
+        }}
+      />
     </div>
   );
 };
