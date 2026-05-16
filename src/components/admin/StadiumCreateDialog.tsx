@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, X, AlertTriangle, CheckCircle2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { foldText, slugify } from "@/lib/normalize";
 
 export type StadiumCreatePrefill = Partial<{
   stadium_name: string;
