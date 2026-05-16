@@ -32,8 +32,7 @@ type ClubLite = { slug: string; club_name: string; country: string | null; leagu
 type StadiumLite = { slug: string; stadium_name: string; city: string | null; country: string | null };
 type LeagueLite = { league_name: string; country: string };
 
-const norm = (s: string | null | undefined) =>
-  (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+const norm = (s: string | null | undefined) => foldText(s);
 
 type Flags = {
   unknown_country: boolean;
