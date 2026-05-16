@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatLeagueLabel } from "@/lib/leagueLabels";
+import { matchesQuery } from "@/lib/normalize";
 
 // ---------- Continent map ----------
 const CONTINENT_BY_COUNTRY: Record<string, string> = {
