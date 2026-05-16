@@ -84,15 +84,8 @@ export const StadiumStagingAdminCard = () => {
   });
 
   const filtered = useMemo(() => {
-    const s = search.trim().toLowerCase();
-    if (!s) return rows;
-    return rows.filter(
-      (r) =>
-        r.stadium_name?.toLowerCase().includes(s) ||
-        r.city?.toLowerCase().includes(s) ||
-        r.club?.toLowerCase().includes(s) ||
-        r.country?.toLowerCase().includes(s)
-    );
+    if (!search.trim()) return rows;
+    return rows.filter((r) => matchesQuery([r.stadium_name, r.city, r.club, r.country], search));
   }, [rows, search]);
 
   const counts = useMemo(() => {
