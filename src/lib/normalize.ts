@@ -28,44 +28,43 @@ const TRANSLITERATIONS: Record<string, string> = {
 // Word-level aliases. Each token may expand to extra synonyms. Used as token
 // equivalences both ways (saint ↔ st, copenhagen ↔ kobenhavn, etc.).
 const TOKEN_ALIASES: Record<string, string[]> = {
-  st: ["saint"],
-  saint: ["st"],
-  ste: ["sainte"],
-  sainte: ["ste"],
-  ft: ["fort"],
-  mt: ["mount"],
-  fc: [],
-  cf: [],
-  ac: [],
-  sc: [],
-  af: [],
-  // City/place aliases
-  kobenhavn: ["copenhagen"],
-  copenhagen: ["kobenhavn"],
-  munchen: ["munich"],
-  munich: ["munchen"],
-  milano: ["milan"],
-  milan: ["milano"],
-  roma: ["rome"],
-  rome: ["roma"],
-  napoli: ["naples"],
-  naples: ["napoli"],
-  torino: ["turin"],
-  turin: ["torino"],
-  lisboa: ["lisbon"],
-  lisbon: ["lisboa"],
-  sevilla: ["seville"],
-  seville: ["sevilla"],
-  praha: ["prague"],
-  prague: ["praha"],
-  wien: ["vienna"],
-  vienna: ["wien"],
-  warszawa: ["warsaw"],
-  warsaw: ["warszawa"],
-  moskva: ["moscow"],
-  moscow: ["moskva"],
-  athina: ["athens"],
-  athens: ["athina"],
+  st: ["saint"], saint: ["st"],
+  ste: ["sainte"], sainte: ["ste"],
+  ft: ["fort"], mt: ["mount"],
+  fc: [], cf: [], sc: [], af: [], cd: [], ud: [], rc: [], as: [],
+  // City / place aliases
+  kobenhavn: ["copenhagen"], copenhagen: ["kobenhavn"],
+  munchen: ["munich"], munich: ["munchen"],
+  milano: ["milan"], milan: ["milano"],
+  roma: ["rome"], rome: ["roma"],
+  napoli: ["naples"], naples: ["napoli"],
+  torino: ["turin"], turin: ["torino"],
+  lisboa: ["lisbon"], lisbon: ["lisboa"],
+  sevilla: ["seville"], seville: ["sevilla"],
+  praha: ["prague"], prague: ["praha"],
+  wien: ["vienna"], vienna: ["wien"],
+  warszawa: ["warsaw"], warsaw: ["warszawa"],
+  moskva: ["moscow"], moscow: ["moskva"],
+  athina: ["athens"], athens: ["athina"],
+  genova: ["genoa"], genoa: ["genova"],
+  firenze: ["florence"], florence: ["firenze"],
+  bruxelles: ["brussels"], brussels: ["bruxelles"],
+  // Club aliases — bidirectional
+  internazionale: ["inter"], inter: ["internazionale"],
+  juventus: ["juve"], juve: ["juventus"],
+  bayern: ["fcb"],
+  psg: ["paris"], "paris-sg": ["psg"], paris: ["psg"],
+  manchester: ["man"], man: ["manchester"],
+  tottenham: ["spurs"], spurs: ["tottenham"],
+  wolverhampton: ["wolves"], wolves: ["wolverhampton"],
+  borussia: ["bvb"], bvb: ["borussia", "dortmund"],
+  atletico: ["atleti"], atleti: ["atletico"],
+  sporting: ["scp"], scp: ["sporting"],
+  benfica: ["slb"], slb: ["benfica"],
+  porto: ["fcp"], fcp: ["porto"],
+  feyenoord: ["fey"],
+  ajax: ["afc"],
+  ac: ["associazione"],
 };
 
 /** Strip diacritics + transliterate special glyphs to ASCII. */
@@ -138,4 +137,36 @@ export const queryScore = (
     total += best;
   }
   return Math.round(total / tokens.length);
+};
+
+/** kebab-case slug, accent-folded, transliterated. */
+export const slugify = (input: string | null | undefined, max = 80): string => {
+  const folded = foldText(input);
+  if (!folded) return "";
+  return folded.replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, max);
+};
+
+/** Tokenize and expand aliases — useful for jaccard-style similarity. */
+export const aliasTokenSet = (input: string | null | undefined, minLen = 2): Set<string> => {
+  const out = new Set<string>();
+  for (const tok of foldTokens(input)) {
+    if (tok.length < minLen) continue;
+    out.add(tok);
+    for (const v of expandToken(tok)) out.add(v);
+  }
+  return out;
+};
+
+/** Jaccard similarity between two strings (0..1) using football-aware tokens. */
+export const jaccardSimilarity = (
+  a: string | null | undefined,
+  b: string | null | undefined,
+  minLen = 3,
+): number => {
+  const A = aliasTokenSet(a, minLen);
+  const B = aliasTokenSet(b, minLen);
+  if (!A.size || !B.size) return 0;
+  let inter = 0;
+  A.forEach((t) => { if (B.has(t)) inter++; });
+  return inter / (A.size + B.size - inter);
 };

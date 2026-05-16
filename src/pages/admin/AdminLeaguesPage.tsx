@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatLeagueLabel } from "@/lib/leagueLabels";
+import { matchesQuery } from "@/lib/normalize";
 
 // ---------- Continent map ----------
 const CONTINENT_BY_COUNTRY: Record<string, string> = {
@@ -192,7 +193,7 @@ export const AdminLeaguesPage = () => {
     setter(next);
   };
 
-  const matchesSearch = (s: string) => !q || s.toLowerCase().includes(q.toLowerCase());
+  const matchesSearch = (s: string) => matchesQuery(s, q);
 
   const continentOrder = ["Europe", "South America", "North America", "Africa", "Asia", "Oceania", "Other"];
 

@@ -49,6 +49,7 @@ import { toast } from "sonner";
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 import { formatLeagueLabel } from "@/lib/leagueLabels";
 import { PublicationStatusControl } from "@/components/admin/PublicationStatusControl";
+import { foldTokens, matchesQuery } from "@/lib/normalize";
 
 type Bucket = "new" | "ambiguous" | "existing" | "auto_safe";
 type Candidate = {
@@ -89,14 +90,11 @@ type ClubRow = {
   publication_status: string | null;
 };
 
+// Football-aware normalization. Strips noise tokens (FC, CF, …) for fuzzy
+// similarity. Delegates accent/transliteration to the shared layer.
+const NOISE = new Set(["fc", "cf", "ac", "sc", "club", "de", "la", "el", "los", "the"]);
 const norm = (s: string | null | undefined) =>
-  (s ?? "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\b(fc|cf|ac|sc|club|de|la|el|los|the)\b/g, " ")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
+  foldTokens(s).filter((t) => !NOISE.has(t)).join(" ");
 
 // Words that DISTINGUISH football clubs sharing a city/region.
 // If one club has it and the other doesn't, they are almost certainly NOT duplicates.
@@ -110,15 +108,7 @@ const DIFFERENTIATOR_TOKENS = new Set([
 ]);
 
 const rawTokens = (s: string | null | undefined) =>
-  new Set(
-    (s ?? "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, " ")
-      .split(" ")
-      .filter((t) => t.length >= 2 && !["fc", "cf", "ac", "sc", "de", "la", "el", "los", "the", "club"].includes(t))
-  );
+  new Set(foldTokens(s).filter((t) => t.length >= 2 && !NOISE.has(t)));
 
 
 const BucketBadge = ({ b }: { b: Bucket }) => {
@@ -353,13 +343,9 @@ const ManualMergeDialog = ({
 
   const candidates = useMemo(() => {
     if (!duplicate) return [];
-    const s = search.toLowerCase().trim();
     return allClubs
       .filter((c) => !c.archived_at && c.slug !== duplicate.slug)
-      .filter((c) => !s
-        || c.club_name.toLowerCase().includes(s)
-        || c.slug.toLowerCase().includes(s)
-        || (c.aliases || []).some((a) => a.toLowerCase().includes(s)))
+      .filter((c) => matchesQuery([c.club_name, c.slug, c.short_name, ...(c.aliases || [])], search))
       .slice(0, 25);
   }, [allClubs, duplicate, search]);
 
@@ -630,7 +616,6 @@ export const AdminClubsPage = () => {
 
 
   const filterRows = (rows: ClubRow[]) => {
-    const s = q.toLowerCase();
     const flagged = rows.filter((c) => {
       if (filters.state.flags.includes("no_logo") && c.logo_url) return false;
       if (filters.state.flags.includes("no_stadium") && c.stadium_slug) return false;
@@ -639,7 +624,9 @@ export const AdminClubsPage = () => {
       return true;
     });
     const hierarchy = filters.apply(flagged);
-    return hierarchy.filter((c) => !s || (c.club_name?.toLowerCase().includes(s) || c.slug?.toLowerCase().includes(s) || c.country?.toLowerCase().includes(s) || (c.aliases || []).some((a) => a.toLowerCase().includes(s))));
+    return hierarchy.filter((c) =>
+      matchesQuery([c.club_name, c.short_name, c.slug, c.country, c.city, c.league, ...(c.aliases || [])], q),
+    );
   };
 
   const visible = tab === "active" ? filterRows(active) : tab === "archived" ? filterRows(archived) : [];

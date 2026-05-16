@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/contexts/UserContext";
+import { matchesQuery } from "@/lib/normalize";
 
 interface MasterRow {
   id: string;
@@ -97,14 +98,9 @@ export const StadiumsMasterStagingAdminCard = () => {
   }, [rows]);
 
   const filtered = useMemo(() => {
-    const s = search.trim().toLowerCase();
-    if (!s) return rows;
-    return rows.filter(r =>
-      r.canonical_name?.toLowerCase().includes(s) ||
-      r.city?.toLowerCase().includes(s) ||
-      r.country?.toLowerCase().includes(s) ||
-      r.slug?.toLowerCase().includes(s) ||
-      r.club_names?.some(c => c.toLowerCase().includes(s))
+    if (!search.trim()) return rows;
+    return rows.filter((r) =>
+      matchesQuery([r.canonical_name, r.city, r.country, r.slug, ...(r.club_names || []), ...(r.aliases || [])], search),
     );
   }, [rows, search]);
 

@@ -10,6 +10,7 @@ import { FootballFilterBar, useFootballFilters } from "@/components/admin/Footba
 import { formatLeagueLabel, isSharedLeagueName } from "@/lib/leagueLabels";
 import { StadiumCreateDialog } from "@/components/admin/StadiumCreateDialog";
 import { Plus } from "lucide-react";
+import { foldText, matchesQuery } from "@/lib/normalize";
 
 type MatchRow = {
   id: string;
@@ -31,8 +32,7 @@ type ClubLite = { slug: string; club_name: string; country: string | null; leagu
 type StadiumLite = { slug: string; stadium_name: string; city: string | null; country: string | null };
 type LeagueLite = { league_name: string; country: string };
 
-const norm = (s: string | null | undefined) =>
-  (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+const norm = (s: string | null | undefined) => foldText(s);
 
 type Flags = {
   unknown_country: boolean;
@@ -202,8 +202,7 @@ const AdminMatchReviewPage = () => {
 
   const filtered = useMemo(() => {
     return hierarchyFiltered.filter(({ m, flags }) => {
-      const s = q.toLowerCase();
-      if (s && !`${m.home_team} ${m.away_team} ${m.competition} ${m.stadium} ${m.city}`.toLowerCase().includes(s)) return false;
+      if (q && !matchesQuery([m.home_team, m.away_team, m.competition, m.stadium, m.city, m.country], q)) return false;
       const activeFlags = filters.state.flags;
       if (activeFlags.includes("only_unresolved") && Object.values(flags).every((v) => !v)) return false;
       for (const fk of activeFlags) {
@@ -355,10 +354,10 @@ const ReviewDrawer = ({
   const [deleting, setDeleting] = useState(false);
   const [createStadiumOpen, setCreateStadiumOpen] = useState(false);
 
-  const clubMatches = (q: string) =>
-    !q ? [] : clubs.filter((c) => norm(c._alias).includes(norm(q))).slice(0, 5);
-  const stadiumMatches = (q: string) =>
-    !q ? [] : stadiums.filter((s) => norm(s._alias).includes(norm(q))).slice(0, 5);
+  const clubMatches = (qq: string) =>
+    !qq ? [] : clubs.filter((c) => matchesQuery(c._alias, qq)).slice(0, 5);
+  const stadiumMatches = (qq: string) =>
+    !qq ? [] : stadiums.filter((s) => matchesQuery(s._alias, qq)).slice(0, 5);
 
   const dupes = duplicateIds.has(m.id)
     ? allMatches.filter(
