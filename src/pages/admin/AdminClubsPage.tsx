@@ -616,7 +616,6 @@ export const AdminClubsPage = () => {
 
 
   const filterRows = (rows: ClubRow[]) => {
-    const s = q.toLowerCase();
     const flagged = rows.filter((c) => {
       if (filters.state.flags.includes("no_logo") && c.logo_url) return false;
       if (filters.state.flags.includes("no_stadium") && c.stadium_slug) return false;
@@ -625,7 +624,9 @@ export const AdminClubsPage = () => {
       return true;
     });
     const hierarchy = filters.apply(flagged);
-    return hierarchy.filter((c) => !s || (c.club_name?.toLowerCase().includes(s) || c.slug?.toLowerCase().includes(s) || c.country?.toLowerCase().includes(s) || (c.aliases || []).some((a) => a.toLowerCase().includes(s))));
+    return hierarchy.filter((c) =>
+      matchesQuery([c.club_name, c.short_name, c.slug, c.country, c.city, c.league, ...(c.aliases || [])], q),
+    );
   };
 
   const visible = tab === "active" ? filterRows(active) : tab === "archived" ? filterRows(archived) : [];
