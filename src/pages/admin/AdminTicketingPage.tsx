@@ -110,7 +110,7 @@ export const AdminTicketingPage = () => {
       if (filter === "missing_official" && r.official_ticketing_url) return false;
       if (filter === "unverified" && r.verification_status === "verified") return false;
       if (filter === "stale" && !isStale(r.tickets_last_checked_at)) return false;
-      if (search.trim() && !matchesQuery(search, [r.club_name, r.short_name, r.league, r.country, r.city])) return false;
+      if (search.trim() && !matchesQuery([r.club_name, r.short_name, r.league, r.country, r.city], search)) return false;
       return true;
     });
   }, [rows, filter, search]);
