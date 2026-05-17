@@ -348,6 +348,13 @@ export const AdminTicketingPage = () => {
           </Card>
         )}
       </section>
+
+      <TicketingAiSuggestionDialog
+        open={!!aiClub}
+        onOpenChange={(v) => { if (!v) setAiClub(null); }}
+        club={aiClub}
+        onApplied={() => qc.invalidateQueries({ queryKey: ["admin-ticketing-v2"] })}
+      />
     </div>
   );
 };
