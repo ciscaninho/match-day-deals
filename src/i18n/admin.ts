@@ -587,6 +587,15 @@ const fr: Record<keyof typeof en, string> = {
   "admin.ticketing.ai.bulk_enrich": "Enrichir la sélection",
   "admin.ticketing.ai.empty": "Aucune suggestion produite — réessayez.",
   "admin.ticketing.ai.field_unchanged": "(inchangé)",
+  "admin.ticketing.ai.bulk_title": "Enrichissement IA en lot",
+  "admin.ticketing.ai.bulk_subtitle": "Examinez chaque suggestion et approuvez, éditez, rejetez ou passez.",
+  "admin.ticketing.ai.bulk_fetching": "Génération des suggestions…",
+  "admin.ticketing.ai.bulk_progress": "Suggestion {current} sur {total}",
+  "admin.ticketing.ai.bulk_done": "Toutes les suggestions ont été examinées.",
+  "admin.ticketing.ai.bulk_summary": "{approved} approuvées · {rejected} rejetées · {skipped} passées · {failed} échouées",
+  "admin.ticketing.ai.skip": "Passer",
+  "admin.ticketing.ai.close": "Fermer",
+  "admin.ticketing.ai.failed_for": "Échec pour {club}",
 };
 
 // Other locales fall back to English (existing project pattern).
