@@ -434,7 +434,7 @@ function CoverageTable({
 }
 
 function ClubTicketingCompactRow({
-  row, hasAffiliate, isSelected, onSelect, urlDuplicateCount, onSave, saving, t,
+  row, hasAffiliate, isSelected, onSelect, urlDuplicateCount, onSave, onAiEnrich, saving, t,
 }: {
   row: Row;
   hasAffiliate: boolean;
@@ -442,6 +442,7 @@ function ClubTicketingCompactRow({
   onSelect: (checked: boolean) => void;
   urlDuplicateCount: number;
   onSave: (patch: Partial<Row> & { tickets_last_checked_at?: string | null }) => void;
+  onAiEnrich: () => void;
   saving: boolean;
   t: (k: string) => string;
 }) {
