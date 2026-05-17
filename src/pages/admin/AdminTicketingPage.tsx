@@ -326,7 +326,7 @@ export const AdminTicketingPage = () => {
                 <span className="flex-1">Club</span>
                 <span className="hidden md:inline w-[180px]">Status</span>
                 <span className="hidden lg:inline w-[110px]">Last checked</span>
-                <span className="w-[80px] text-right">Actions</span>
+                <span className="w-[120px] text-right">Actions</span>
               </div>
               <ul>
                 {filtered.map((r) => (
