@@ -476,7 +476,7 @@ function ClubTicketingCompactRow({
       <div className="hidden lg:block w-[110px] text-[10px] text-muted-foreground">
         {lastChecked}
       </div>
-      <div className="w-[80px] flex items-center justify-end gap-1">
+      <div className="w-[120px] flex items-center justify-end gap-1">
         {row.official_ticketing_url && (
           <a
             href={row.official_ticketing_url}
@@ -488,6 +488,13 @@ function ClubTicketingCompactRow({
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         )}
+        <button
+          onClick={onAiEnrich}
+          title={t("admin.ticketing.ai.enrich")}
+          className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-violet-50 text-violet-700 hover:bg-violet-100"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+        </button>
         <QuickEditPopover row={row} duplicateCount={urlDuplicateCount} onSave={onSave} saving={saving} t={t} />
       </div>
     </li>
