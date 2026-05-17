@@ -213,6 +213,7 @@ export type Database = {
           club_name: string
           country: string | null
           created_at: string
+          geo_restrictions: string[]
           hero_image_url: string | null
           hospitality_available: boolean
           hospitality_url: string | null
@@ -238,10 +239,14 @@ export type Database = {
           seo_title: string | null
           short_name: string | null
           slug: string
+          source_confidence: string
           stadium_name: string | null
           stadium_slug: string | null
           ticket_release_process: string | null
+          tickets_checked_by: string | null
+          tickets_last_checked_at: string | null
           updated_at: string
+          verification_status: string
         }
         Insert: {
           aliases?: string[]
@@ -257,6 +262,7 @@ export type Database = {
           club_name: string
           country?: string | null
           created_at?: string
+          geo_restrictions?: string[]
           hero_image_url?: string | null
           hospitality_available?: boolean
           hospitality_url?: string | null
@@ -282,10 +288,14 @@ export type Database = {
           seo_title?: string | null
           short_name?: string | null
           slug: string
+          source_confidence?: string
           stadium_name?: string | null
           stadium_slug?: string | null
           ticket_release_process?: string | null
+          tickets_checked_by?: string | null
+          tickets_last_checked_at?: string | null
           updated_at?: string
+          verification_status?: string
         }
         Update: {
           aliases?: string[]
@@ -301,6 +311,7 @@ export type Database = {
           club_name?: string
           country?: string | null
           created_at?: string
+          geo_restrictions?: string[]
           hero_image_url?: string | null
           hospitality_available?: boolean
           hospitality_url?: string | null
@@ -326,10 +337,14 @@ export type Database = {
           seo_title?: string | null
           short_name?: string | null
           slug?: string
+          source_confidence?: string
           stadium_name?: string | null
           stadium_slug?: string | null
           ticket_release_process?: string | null
+          tickets_checked_by?: string | null
+          tickets_last_checked_at?: string | null
           updated_at?: string
+          verification_status?: string
         }
         Relationships: []
       }
@@ -1454,6 +1469,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ticket_sources: {
+        Row: {
+          affiliate_network: string
+          campaign_id: string | null
+          checked_by: string | null
+          club_slug: string
+          created_at: string
+          deeplink_template: string | null
+          id: string
+          kind: string
+          last_checked_at: string | null
+          monetization_enabled: boolean
+          notes: string | null
+          priority: number
+          provider_name: string
+          tracking_params: Json
+          updated_at: string
+          url: string
+          verification_status: string
+        }
+        Insert: {
+          affiliate_network?: string
+          campaign_id?: string | null
+          checked_by?: string | null
+          club_slug: string
+          created_at?: string
+          deeplink_template?: string | null
+          id?: string
+          kind?: string
+          last_checked_at?: string | null
+          monetization_enabled?: boolean
+          notes?: string | null
+          priority?: number
+          provider_name: string
+          tracking_params?: Json
+          updated_at?: string
+          url: string
+          verification_status?: string
+        }
+        Update: {
+          affiliate_network?: string
+          campaign_id?: string | null
+          checked_by?: string | null
+          club_slug?: string
+          created_at?: string
+          deeplink_template?: string | null
+          id?: string
+          kind?: string
+          last_checked_at?: string | null
+          monetization_enabled?: boolean
+          notes?: string | null
+          priority?: number
+          provider_name?: string
+          tracking_params?: Json
+          updated_at?: string
+          url?: string
+          verification_status?: string
+        }
+        Relationships: []
       }
       user_preferences: {
         Row: {

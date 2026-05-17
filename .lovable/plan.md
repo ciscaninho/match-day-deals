@@ -1,85 +1,97 @@
-## Football Data Integrity & Operations Pass
+# Ticketing Operations Center
 
-Confirmed via DB inspection: the four stadium duplicates you flagged ARE archived correctly (`archived_at` + `archived_into_slug` set), but they still surface in the UI. Root cause is policy/query filtering — the merge pipeline itself works. Inter Milan also exists as two unmerged club rows. So this pass has two halves: (1) plug the leaks for stadiums, (2) bring clubs to the same maturity level, then layer league ops on top.
+Transform `/admin/ticketing` from a flat club list into the operational cockpit for ticketing coverage, source verification, affiliate management, and monetization readiness.
 
----
-
-### Part 1 — Stadium merge leak fix (quick, high impact)
-
-**Root cause**: the `Public view active stadiums` RLS policy correctly filters `archived_at IS NULL` for the `public` role, but `public` in Postgres covers anon **and** authenticated. The `Admins can view archived stadiums` policy adds an OR for authenticated users, so every signed-in user (not just admins) sees archived rows. Plus most app queries don't add a defensive `.is('archived_at', null)`.
-
-Fix in three layers:
-1. Tighten RLS: scope the archived-view policy to admins only via `has_role(auth.uid(),'admin')` (it already does in `USING`, but combined with the public policy any authenticated user gets the union — the fix is to make the public policy `TO anon, authenticated` explicitly and ensure the admin policy doesn't widen it for non-admins; cleanest is one unified `SELECT` policy `archived_at IS NULL OR has_role(auth.uid(),'admin')`).
-2. Add `.is('archived_at', null)` defensively in every public-facing query (`useStadium`, `useStadiumSocialProof`, `StadiumsPage`, `OnboardingPage`, map layers, search index, club-related stadium lookups).
-3. Admin lists: keep showing archived rows but visually mark them with an "Archived → canonical" pill, and exclude them from duplicate-detection candidate pools.
-
-Also: when a stadium is merged, the `clubs[]` array on archived row is cleared by the SQL function — verify match/club relations actually point to the canonical slug going forward by re-running a cleanup pass against the four known examples.
+This is a large surface. I'll structure it in **3 deliverable waves** so we ship value incrementally and you can validate each layer before we extend it.
 
 ---
 
-### Part 2 — Club duplicate & merge system (mirror of stadium system)
+## Wave 1 — Foundation: data model + coverage dashboard
 
-Currently `club_ticketing_profiles` has no archive columns, no merge function, no duplicate detection beyond the `import-clubs-from-matches` scanner.
+Goal: see the entire ticketing landscape at a glance, with the data model ready for affiliate tracking.
 
-**Schema migration**:
-- Add `archived_at`, `archived_reason`, `archived_into_club_id`, `archived_into_slug`, `aliases text[]` to `club_ticketing_profiles`.
-- Create SECURITY DEFINER function `merge_club_records(p_canonical_slug, p_duplicate_slug, p_reason)` that:
-  - merges `aliases`, picks best non-null fields when canonical is missing data,
-  - reassigns `matches.home_team / away_team` references where they match the duplicate's name/short_name to the canonical name,
-  - reassigns any `profiles.favorite_club_slug` / saved references,
-  - archives the duplicate.
-- Tighten RLS the same way as stadiums (single SELECT policy with archived filter).
+### Schema additions (club_ticketing_profiles)
 
-**Admin UI** (`AdminClubsPage`):
-- Duplicate review queue: detect via normalized name + same country + same stadium_slug + logo URL match. Surface as a "Possible duplicates" tab with side-by-side compare and a Merge button.
-- Per-club drawer (new `ClubDrawer` mirroring `StadiumDrawer`) showing: stadium, country, league, linked matches count, aliases, conflict warnings, missing-data warnings, plus inline edit + Merge / Archive actions.
-- Auto-suggest Inter Milan ↔ FC Internazionale Milano on first load to validate.
+New columns on `club_ticketing_profiles`:
 
-**Audit trail**: log every merge into `admin_actions` with `kind='club_merge'` and `undo_payload` containing the archived row snapshot for rollback.
+- `verification_status` text default `'unverified'` — `unverified | verified | stale | broken`
+- `source_confidence` text default `'medium'` — `low | medium | high`
+- `geo_restrictions` text[] (ISO country codes)
+- `tickets_last_checked_at` timestamptz
+- `tickets_checked_by` uuid
 
----
+New table `ticket_sources` (one club → many sources):
 
-### Part 3 — League operations center
+- `id`, `club_slug` (fk via slug), `kind` (`official | hospitality | resale | affiliate`)
+- `provider_name`, `url`, `deeplink_template`
+- `affiliate_network` (`partnerize | awin | impact | cj | custom | none`)
+- `campaign_id`, `tracking_params` jsonb
+- `monetization_enabled` bool, `priority` int
+- `verification_status`, `last_checked_at`, `notes`
+- RLS: admin write, public read
 
-Extend `AdminLeaguesPage` with:
-- League detail drawer listing every club in the league (from `club_ticketing_profiles.league`) plus matches count.
-- "Clubs without a league" bucket.
-- "Move clubs between leagues" — multi-select clubs → choose target league → bulk update with audit log entry. Common cases preset: Serie A↔B, Championship↔Premier League promotion/relegation.
-- Inconsistency detector: clubs whose `league` field disagrees with the league of their recent matches; clubs sharing a stadium but in different leagues; clubs with country/league mismatch (e.g. Premier League club with country=Spain).
+Editorial publication rule (soft, in code — not a DB constraint):
+A club may be `published` only if it has at least one `official` source OR a `verified` trusted source. Otherwise the publish action shows a warning + requires an override reason (stored in `notes`).
 
----
+### Coverage dashboard at `/admin/ticketing`
 
-### Part 4 — Relationship visibility
+Top of page — KPI strip:
+- Clubs with ticketing / total
+- Missing ticketing
+- Official source coverage %
+- Affiliate-enabled coverage %
+- Verified coverage %
+- Hospitality coverage %
 
-**Inside `AdminClubsPage` cards & drawer**:
-- Stadium chip (linked), country, league, # of upcoming matches, duplicate-warning badge if name normalization collides with another active row, missing-data badges (no logo / no ticketing URL / no stadium).
-
-**Inside `AdminStadiumsPage` / `StadiumDrawer`**:
-- "Clubs playing here" list (from `clubs[]` + back-reference from `club_ticketing_profiles.stadium_slug`), historical aliases, archive/conflict status, leagues represented.
-
----
-
-### Part 5 — Verification
-
-- Re-query the four flagged stadiums and Inter Milan after the fixes; confirm only the canonical row is publicly visible.
-- Add a small `/admin/health` data-integrity panel: counts of archived-but-leaking rows (should be 0), orphaned matches, clubs without leagues, duplicate suspects.
+Two breakdown tables:
+- By league: name • clubs • coverage % • verified % (sortable, colored bars)
+- By country: same shape
 
 ---
 
-### Technical files touched
+## Wave 2 — Fast enrichment UX
 
-- DB migrations: stadiums RLS rewrite; club archive columns; `merge_club_records` function; club RLS rewrite.
-- New: `src/components/admin/ClubDrawer.tsx`, `src/pages/admin/AdminClubDuplicatesPage.tsx`, `src/pages/admin/AdminHealthPage.tsx`.
-- Edited: `AdminClubsPage.tsx`, `AdminLeaguesPage.tsx`, `AdminStadiumsPage.tsx`, `StadiumDrawer.tsx`, `useStadium.ts`, `useStadiumSocialProof.ts`, `StadiumsPage.tsx`, `OnboardingPage.tsx`, `AdminWorldMapPage.tsx`, `useClubTicketing.ts`.
+Goal: enrich 100+ clubs without form fatigue.
+
+- **Compact club row** (replaces current card grid): logo, name, league/country, status chips (Official / Resale / Affiliate / Verified / Hospitality / Missing), last-checked timestamp, "Open source" external icon, "Quick edit" pencil.
+- **Quick Edit popover** (right side, no full drawer): paste official URL, pick verification status, mark monetization on/off, save. Optimistic update.
+- **Bulk actions toolbar**: select rows → bulk mark verified, bulk set "stale", bulk export CSV for offline research, bulk re-check.
+- **Filters**: missing official URL • unverified • stale (>90 days) • no affiliate • league • country • coverage status. Uses the unified `normalize.ts` search.
+- **Inline validation**: URL format check, duplicate-URL warning across clubs, geo-restriction hints.
+- **Smart suggestions**: if a club has no official URL but the stadium does, suggest copying it. If multiple clubs in same league share an affiliate template, propose applying it.
 
 ---
 
-### Suggested execution order
+## Wave 3 — Sources panel + affiliate plumbing
 
-1. **Part 1** (stadium leak) — ship today, immediate visible win on the four duplicates.
-2. **Part 2** (club merge system) — biggest scope, ~1 batch.
-3. **Part 4** (relationship visibility) — piggybacks on Part 2's drawer work.
-4. **Part 3** (league ops) — cleanest once club data is canonical.
-5. **Part 5** (health panel) — wraps it up.
+Goal: manage the multi-source model + make every click monetization-ready.
 
-Want me to start with Part 1 alone (fast fix + you can verify immediately), or proceed straight through Parts 1+2 in this batch?
+- **Sources tab inside ClubDrawer** (new drawer, mirroring StadiumDrawer pattern): list `ticket_sources` rows, add/edit/remove, reorder by priority, per-source verification.
+- **Affiliate builder**: pick network → template field auto-filled (`{url}?utm_source=footticket&campaign={campaign_id}`), preview rendered URL.
+- **Verification workflow**: "Verify now" button → opens URL in new tab + marks `last_checked_at` + prompts status. Stale badge after 90 days.
+- **Audit trail**: every source edit logged to `admin_actions` (reuses existing infra).
+
+---
+
+## i18n
+
+All new strings added to `src/i18n/admin.ts` for all 9 locales (en, fr, es, de, it, pt, nl, ar, ru).
+
+---
+
+## Technical notes (for reference)
+
+- Frontend: extends `AdminTicketingPage.tsx`, adds `ClubTicketingDrawer.tsx`, `QuickEditPopover.tsx`, `TicketSourcesPanel.tsx`, `CoverageKPIs.tsx`, `useTicketingCoverage.ts` hook (aggregates client-side from existing query — no edge function needed Wave 1).
+- DB: 2 migrations — add columns to `club_ticketing_profiles`, create `ticket_sources` table with RLS.
+- Reuses: `FootballFilterBar`, `PublicationStatusControl`, `normalize.ts`, `admin-actions-execute` for audit.
+- Out of scope this phase: price comparison engine, alerts pipeline, public "how to buy" guides, conversion analytics dashboards — Wave 4+.
+
+---
+
+## Proposed execution order
+
+1. Wave 1 migration + dashboard (ship, you review)
+2. Wave 2 enrichment UX (ship, you enrich a batch, validate ergonomics)
+3. Wave 3 sources + affiliate (ship, monetization-ready)
+
+**One question before I start building:** do you want me to ship **all 3 waves in this turn** (large changeset, ~10 new files + migrations), or **just Wave 1** first so you can validate the data model and KPI dashboard before we build the enrichment UX on top?
