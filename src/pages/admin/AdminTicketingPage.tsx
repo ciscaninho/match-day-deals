@@ -338,6 +338,7 @@ export const AdminTicketingPage = () => {
                     onSelect={(c) => toggleOne(r.slug, c)}
                     urlDuplicateCount={r.official_ticketing_url ? (urlCount.get(r.official_ticketing_url.trim().toLowerCase()) ?? 0) : 0}
                     onSave={(patch) => updateClub.mutate({ slug: r.slug, patch })}
+                    onAiEnrich={() => setAiClub(r)}
                     saving={updateClub.isPending}
                     t={t}
                   />
