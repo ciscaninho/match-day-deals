@@ -288,6 +288,15 @@ const en = {
   "admin.ticketing.ai.bulk_enrich": "AI enrich selected",
   "admin.ticketing.ai.empty": "No suggestion produced — try again.",
   "admin.ticketing.ai.field_unchanged": "(unchanged)",
+  "admin.ticketing.ai.bulk_title": "Bulk AI enrichment review",
+  "admin.ticketing.ai.bulk_subtitle": "Review each suggestion and approve, edit, reject, or skip.",
+  "admin.ticketing.ai.bulk_fetching": "Generating suggestions…",
+  "admin.ticketing.ai.bulk_progress": "Suggestion {current} of {total}",
+  "admin.ticketing.ai.bulk_done": "All suggestions reviewed.",
+  "admin.ticketing.ai.bulk_summary": "{approved} approved · {rejected} rejected · {skipped} skipped · {failed} failed",
+  "admin.ticketing.ai.skip": "Skip",
+  "admin.ticketing.ai.close": "Close",
+  "admin.ticketing.ai.failed_for": "Failed for {club}",
 };
 
 const fr: Record<keyof typeof en, string> = {
