@@ -377,6 +377,13 @@ export const AdminTicketingPage = () => {
         club={aiClub}
         onApplied={() => qc.invalidateQueries({ queryKey: ["admin-ticketing-v2"] })}
       />
+
+      <TicketingBulkAiReviewDialog
+        open={!!bulkAiClubs}
+        onOpenChange={(v) => { if (!v) setBulkAiClubs(null); }}
+        clubs={bulkAiClubs ?? []}
+        onAnyApplied={() => qc.invalidateQueries({ queryKey: ["admin-ticketing-v2"] })}
+      />
     </div>
   );
 };
