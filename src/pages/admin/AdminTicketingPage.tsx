@@ -118,7 +118,7 @@ export const AdminTicketingPage = () => {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-xl font-extrabold text-[#2C3E50]">{t("admin.ticketing.title")}</h1>
+        <h1 className="text-xl font-extrabold text-foreground">{t("admin.ticketing.title")}</h1>
         <p className="text-xs text-muted-foreground">{t("admin.ticketing.subtitle")}</p>
       </header>
 
@@ -150,7 +150,7 @@ export const AdminTicketingPage = () => {
       {/* Filters + list */}
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <h2 className="text-sm font-extrabold text-[#2C3E50]">{t("admin.ticketing.list.title")} <span className="text-xs font-medium text-muted-foreground ml-1">{filtered.length}</span></h2>
+          <h2 className="text-sm font-extrabold text-foreground">{t("admin.ticketing.list.title")} <span className="text-xs font-medium text-muted-foreground ml-1">{filtered.length}</span></h2>
           <div className="flex items-center gap-2 flex-1 sm:flex-initial min-w-0 sm:min-w-[280px]">
             <div className="relative flex-1">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -171,8 +171,8 @@ export const AdminTicketingPage = () => {
               onClick={() => setFilter(k)}
               className={`text-[11px] px-2.5 py-1 rounded-full font-bold border transition ${
                 filter === k
-                  ? "bg-[#2C3E50] text-white border-[#2C3E50]"
-                  : "bg-white text-[#2C3E50] border-slate-200 hover:bg-slate-50"
+                  ? "bg-foreground text-white border-foreground"
+                  : "bg-white text-foreground border-slate-200 hover:bg-slate-50"
               }`}
             >
               {t(`admin.ticketing.filter.${k}` as never)}
@@ -207,7 +207,7 @@ const accentMap: Record<string, string> = {
   violet: "text-violet-700 bg-violet-50",
   amber: "text-amber-700 bg-amber-50",
   slate: "text-slate-700 bg-slate-50",
-  default: "text-[#2C3E50] bg-slate-50",
+  default: "text-foreground bg-slate-50",
 };
 
 function KpiCard({
@@ -222,7 +222,7 @@ function KpiCard({
           <span className="truncate">{label}</span>
         </div>
         <div className="mt-1.5 flex items-baseline gap-1.5">
-          <p className="text-xl font-extrabold text-[#2C3E50] leading-none">{value}</p>
+          <p className="text-xl font-extrabold text-foreground leading-none">{value}</p>
           {hint && <p className="text-[10px] text-muted-foreground font-bold">{hint}</p>}
         </div>
       </CardContent>
@@ -236,7 +236,7 @@ function CoverageTable({
   return (
     <Card>
       <CardContent className="p-4 space-y-3">
-        <h3 className="text-sm font-extrabold text-[#2C3E50]">{title}</h3>
+        <h3 className="text-sm font-extrabold text-foreground">{title}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
@@ -253,7 +253,7 @@ function CoverageTable({
                 const vp = pct(r.verified, r.clubs);
                 return (
                   <tr key={r.name} className="border-b border-slate-100 last:border-0">
-                    <td className="py-1.5 pr-2 font-bold text-[#2C3E50] truncate max-w-[160px]">{r.name}</td>
+                    <td className="py-1.5 pr-2 font-bold text-foreground truncate max-w-[160px]">{r.name}</td>
                     <td className="py-1.5 px-2 text-right tabular-nums">{r.clubs}</td>
                     <td className="py-1.5 px-2">
                       <div className="flex items-center gap-1.5">
@@ -290,7 +290,7 @@ function ClubTicketingRow({ row, hasAffiliate, t }: { row: Row; hasAffiliate: bo
       <CardContent className="p-3 space-y-2">
         <div className="flex items-start justify-between gap-2 min-w-0">
           <div className="min-w-0">
-            <p className="font-bold text-[#2C3E50] text-sm truncate">{row.club_name}</p>
+            <p className="font-bold text-foreground text-sm truncate">{row.club_name}</p>
             <p className="text-[10px] text-muted-foreground truncate">
               {[row.league, row.country].filter(Boolean).join(" · ")}
             </p>
