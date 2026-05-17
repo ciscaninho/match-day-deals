@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { matchesQuery } from "@/lib/normalize";
 import { toast } from "@/hooks/use-toast";
+import { TicketingAiSuggestionDialog } from "@/components/admin/TicketingAiSuggestionDialog";
 
 type Row = {
   slug: string;
@@ -59,6 +60,7 @@ export const AdminTicketingPage = () => {
   const [country, setCountry] = useState<string>("all");
   const [league, setLeague] = useState<string>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [aiClub, setAiClub] = useState<Row | null>(null);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["admin-ticketing-v2"],
@@ -324,7 +326,7 @@ export const AdminTicketingPage = () => {
                 <span className="flex-1">Club</span>
                 <span className="hidden md:inline w-[180px]">Status</span>
                 <span className="hidden lg:inline w-[110px]">Last checked</span>
-                <span className="w-[80px] text-right">Actions</span>
+                <span className="w-[120px] text-right">Actions</span>
               </div>
               <ul>
                 {filtered.map((r) => (
@@ -336,6 +338,7 @@ export const AdminTicketingPage = () => {
                     onSelect={(c) => toggleOne(r.slug, c)}
                     urlDuplicateCount={r.official_ticketing_url ? (urlCount.get(r.official_ticketing_url.trim().toLowerCase()) ?? 0) : 0}
                     onSave={(patch) => updateClub.mutate({ slug: r.slug, patch })}
+                    onAiEnrich={() => setAiClub(r)}
                     saving={updateClub.isPending}
                     t={t}
                   />
@@ -345,6 +348,13 @@ export const AdminTicketingPage = () => {
           </Card>
         )}
       </section>
+
+      <TicketingAiSuggestionDialog
+        open={!!aiClub}
+        onOpenChange={(v) => { if (!v) setAiClub(null); }}
+        club={aiClub}
+        onApplied={() => qc.invalidateQueries({ queryKey: ["admin-ticketing-v2"] })}
+      />
     </div>
   );
 };
@@ -431,7 +441,7 @@ function CoverageTable({
 }
 
 function ClubTicketingCompactRow({
-  row, hasAffiliate, isSelected, onSelect, urlDuplicateCount, onSave, saving, t,
+  row, hasAffiliate, isSelected, onSelect, urlDuplicateCount, onSave, onAiEnrich, saving, t,
 }: {
   row: Row;
   hasAffiliate: boolean;
@@ -439,6 +449,7 @@ function ClubTicketingCompactRow({
   onSelect: (checked: boolean) => void;
   urlDuplicateCount: number;
   onSave: (patch: Partial<Row> & { tickets_last_checked_at?: string | null }) => void;
+  onAiEnrich: () => void;
   saving: boolean;
   t: (k: string) => string;
 }) {
@@ -472,7 +483,7 @@ function ClubTicketingCompactRow({
       <div className="hidden lg:block w-[110px] text-[10px] text-muted-foreground">
         {lastChecked}
       </div>
-      <div className="w-[80px] flex items-center justify-end gap-1">
+      <div className="w-[120px] flex items-center justify-end gap-1">
         {row.official_ticketing_url && (
           <a
             href={row.official_ticketing_url}
@@ -484,6 +495,13 @@ function ClubTicketingCompactRow({
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         )}
+        <button
+          onClick={onAiEnrich}
+          title={t("admin.ticketing.ai.enrich")}
+          className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-violet-50 text-violet-700 hover:bg-violet-100"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+        </button>
         <QuickEditPopover row={row} duplicateCount={urlDuplicateCount} onSave={onSave} saving={saving} t={t} />
       </div>
     </li>
