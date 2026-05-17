@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { matchesQuery } from "@/lib/normalize";
 import { toast } from "@/hooks/use-toast";
+import { TicketingAiSuggestionDialog } from "@/components/admin/TicketingAiSuggestionDialog";
 
 type Row = {
   slug: string;
