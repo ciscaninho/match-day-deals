@@ -18,6 +18,7 @@ import {
 import { matchesQuery } from "@/lib/normalize";
 import { toast } from "@/hooks/use-toast";
 import { TicketingAiSuggestionDialog } from "@/components/admin/TicketingAiSuggestionDialog";
+import { TicketingBulkAiReviewDialog, type BulkClub } from "@/components/admin/TicketingBulkAiReviewDialog";
 
 type Row = {
   slug: string;
@@ -61,6 +62,7 @@ export const AdminTicketingPage = () => {
   const [league, setLeague] = useState<string>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [aiClub, setAiClub] = useState<Row | null>(null);
+  const [bulkAiClubs, setBulkAiClubs] = useState<BulkClub[] | null>(null);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["admin-ticketing-v2"],
@@ -297,6 +299,26 @@ export const AdminTicketingPage = () => {
               {selected.size} {t("admin.ticketing.bulk.selected")}
             </span>
             <div className="ml-auto flex flex-wrap gap-1.5">
+              <Button
+                size="sm"
+                className="h-7 text-xs bg-violet-600 hover:bg-violet-700 text-white"
+                onClick={() => {
+                  const picked = filtered
+                    .filter((r) => selected.has(r.slug))
+                    .slice(0, 24)
+                    .map<BulkClub>((r) => ({
+                      slug: r.slug,
+                      club_name: r.club_name,
+                      official_ticketing_url: r.official_ticketing_url,
+                      hospitality_url: r.hospitality_url,
+                      membership_required: r.membership_required,
+                      membership_required_for_big_games: r.membership_required_for_big_games,
+                    }));
+                  if (picked.length > 0) setBulkAiClubs(picked);
+                }}
+              >
+                <Sparkles className="w-3 h-3 mr-1" />{t("admin.ticketing.ai.bulk_enrich")}
+              </Button>
               <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => bulkUpdate.mutate({ verification_status: "verified", tickets_last_checked_at: new Date().toISOString() })}>
                 <BadgeCheck className="w-3 h-3 mr-1" />{t("admin.ticketing.bulk.mark_verified")}
               </Button>
@@ -354,6 +376,13 @@ export const AdminTicketingPage = () => {
         onOpenChange={(v) => { if (!v) setAiClub(null); }}
         club={aiClub}
         onApplied={() => qc.invalidateQueries({ queryKey: ["admin-ticketing-v2"] })}
+      />
+
+      <TicketingBulkAiReviewDialog
+        open={!!bulkAiClubs}
+        onOpenChange={(v) => { if (!v) setBulkAiClubs(null); }}
+        clubs={bulkAiClubs ?? []}
+        onAnyApplied={() => qc.invalidateQueries({ queryKey: ["admin-ticketing-v2"] })}
       />
     </div>
   );
