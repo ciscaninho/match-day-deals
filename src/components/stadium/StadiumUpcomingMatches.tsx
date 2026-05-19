@@ -13,10 +13,9 @@ export const StadiumUpcomingMatches = ({ stadiumName }: { stadiumName: string })
 
   const list = useMemo(() => {
     const target = norm(stadiumName);
-    const now = Date.now();
     return matches
       .filter((m) => m.stadium && norm(m.stadium).includes(target))
-      .filter((m) => new Date(m.date).getTime() > now)
+      .filter((m) => m.lifecycleStatus === "upcoming" || m.lifecycleStatus === "live")
       .slice(0, 6);
   }, [matches, stadiumName]);
 

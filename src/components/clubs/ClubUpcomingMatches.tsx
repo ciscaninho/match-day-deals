@@ -22,12 +22,12 @@ export const ClubUpcomingMatches = ({ clubName }: { clubName: string }) => {
   const filtered = useMemo(() => {
     if (!matches) return [];
     const target = norm(clubName);
-    const now = Date.now();
     return matches
       .filter((m) => {
+        if (m.lifecycleStatus !== "upcoming" && m.lifecycleStatus !== "live") return false;
         const inHome = norm(m.homeTeam).includes(target) || target.includes(norm(m.homeTeam));
         const inAway = norm(m.awayTeam).includes(target) || target.includes(norm(m.awayTeam));
-        return (inHome || inAway) && new Date(m.date).getTime() > now;
+        return inHome || inAway;
       })
       .slice(0, 6);
   }, [matches, clubName]);
