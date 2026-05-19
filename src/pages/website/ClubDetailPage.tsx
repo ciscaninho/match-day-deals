@@ -276,7 +276,7 @@ const ClubDetailPage = () => {
                 {club.resale_exchange_name && <p><strong>{club.resale_exchange_name}</strong></p>}
                 {club.resale_exchange_url && (
                   <a
-                    href={club.resale_exchange_url}
+                    href={transformAffiliateUrl(club.resale_exchange_url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-[#2ECC71] font-semibold hover:underline"
