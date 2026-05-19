@@ -1,6 +1,7 @@
 import { ExternalLink, Loader2 } from "lucide-react";
 import { useTicketmasterEvent } from "@/hooks/useTicketmasterEvent";
 import { transformAffiliateUrl } from "@/lib/affiliate";
+import { trackAffiliateClick } from "@/lib/affiliateTracking";
 
 interface Props {
   homeTeam?: string | null;
