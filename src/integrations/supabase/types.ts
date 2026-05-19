@@ -401,6 +401,7 @@ export type Database = {
       }
       matches: {
         Row: {
+          archived_at: string | null
           away_logo: string | null
           away_short: string
           away_team: string
@@ -417,6 +418,7 @@ export type Database = {
           home_team: string
           id: string
           last_synced_at: string | null
+          lifecycle_status: string
           official_link: string | null
           priority: boolean
           sportmonks_id: number | null
@@ -429,6 +431,7 @@ export type Database = {
           verified: boolean
         }
         Insert: {
+          archived_at?: string | null
           away_logo?: string | null
           away_short: string
           away_team: string
@@ -445,6 +448,7 @@ export type Database = {
           home_team: string
           id: string
           last_synced_at?: string | null
+          lifecycle_status?: string
           official_link?: string | null
           priority?: boolean
           sportmonks_id?: number | null
@@ -457,6 +461,7 @@ export type Database = {
           verified?: boolean
         }
         Update: {
+          archived_at?: string | null
           away_logo?: string | null
           away_short?: string
           away_team?: string
@@ -473,6 +478,7 @@ export type Database = {
           home_team?: string
           id?: string
           last_synced_at?: string | null
+          lifecycle_status?: string
           official_link?: string | null
           priority?: boolean
           sportmonks_id?: number | null
@@ -1614,6 +1620,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_lifecycle_status: {
+        Args: { p_archived_at: string; p_date: string }
+        Returns: string
       }
       merge_club_records: {
         Args: {
