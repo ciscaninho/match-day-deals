@@ -93,7 +93,9 @@ export const useMatch = (id: string | undefined) => {
         console.error("Erreur Supabase:", error);
         throw error;
       }
-      return data ? mapRow(data as MatchRow) : null;
+      if (!data) return null;
+      const m = mapRow(data as MatchRow);
+      return isTbdMatch(m) ? null : m;
     },
     enabled: !!id,
   });
