@@ -69,7 +69,7 @@ export const TicketProviders = ({ homeTeam, awayTeam, variant = "light", compact
       {providers.map((p) => (
         <a
           key={p.name}
-          href={p.url}
+          href={transformAffiliateUrl(p.url)}
           target="_blank"
           rel="noopener noreferrer nofollow"
           aria-label={`Search ${p.name} tickets for ${search.query}`}
