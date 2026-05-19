@@ -138,6 +138,7 @@ const App = () => (
                 <Route path="match-review" element={<AdminMatchReviewPage />} />
                 <Route path="leagues" element={<AdminLeaguesPage />} />
                 <Route path="ticketing" element={<AdminTicketingPage />} />
+                <Route path="ticketing/leagues" element={<AdminTicketingLeaguesPage />} />
                 <Route path="suggestions" element={<AdminSuggestionsPage />} />
                 <Route path="assistant" element={<AdminAssistantPage />} />
                 <Route path="map" element={<AdminWorldMapPage />} />
