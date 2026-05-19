@@ -219,9 +219,17 @@ export const AdminTicketingPage = () => {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-xl font-extrabold text-foreground">{t("admin.ticketing.title")}</h1>
-        <p className="text-xs text-muted-foreground">{t("admin.ticketing.subtitle")}</p>
+      <header className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-xl font-extrabold text-foreground">{t("admin.ticketing.title")}</h1>
+          <p className="text-xs text-muted-foreground">{t("admin.ticketing.subtitle")}</p>
+        </div>
+        <a
+          href="/admin/ticketing/leagues"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-50 text-amber-800 hover:bg-amber-100 text-xs font-bold border border-amber-200"
+        >
+          🏆 {t("admin.ticketing.leagues.open")}
+        </a>
       </header>
 
       {/* KPI strip */}
