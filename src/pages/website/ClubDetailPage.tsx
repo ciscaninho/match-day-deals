@@ -291,6 +291,17 @@ const ClubDetailPage = () => {
                     href={transformAffiliateUrl(club.resale_exchange_url)}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() =>
+                      trackAffiliateClick({
+                        event: "ticket_click",
+                        destination: club.resale_exchange_url,
+                        provider: club.resale_exchange_name ?? "resale",
+                        clubSlug: club.slug,
+                        clubName: club.club_name,
+                        stadiumName: club.stadium_name,
+                        league: club.league,
+                      })
+                    }
                     className="inline-flex items-center gap-1 text-[#2ECC71] font-semibold hover:underline"
                   >
                     {t("clubs.cta.exchange")} <ExternalLink className="w-3.5 h-3.5" />
