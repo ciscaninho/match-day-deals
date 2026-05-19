@@ -69,9 +69,12 @@ export const useMatches = () => {
         console.error("Erreur Supabase:", error);
         throw error;
       }
-      // Hide TBD/placeholder fixtures from public surfaces (admin pages use
-      // their own queries against the matches table directly).
-      return (data as MatchRow[]).map(mapRow).filter((m) => !isTbdMatch(m));
+      // Public surfaces only show upcoming/live fixtures. Completed and
+      // archived matches are excluded unless surfaced via a dedicated
+      // historical section. TBD/placeholder fixtures are also hidden.
+      return (data as MatchRow[])
+        .map(mapRow)
+        .filter((m) => !isTbdMatch(m) && isPublicDiscoverable(m.lifecycleStatus));
     },
     staleTime: 0,
     refetchOnMount: "always",
