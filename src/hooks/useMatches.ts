@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Match, TicketSource, TicketStatus } from "@/data/matches";
-import { deriveLifecycle, type MatchLifecycleStatus } from "@/lib/matchLifecycle";
+import { deriveLifecycle, isTbdMatch, type MatchLifecycleStatus } from "@/lib/matchLifecycle";
 
 type MatchRow = {
   id: string;
@@ -69,7 +69,9 @@ export const useMatches = () => {
         console.error("Erreur Supabase:", error);
         throw error;
       }
-      return (data as MatchRow[]).map(mapRow);
+      // Hide TBD/placeholder fixtures from public surfaces (admin pages use
+      // their own queries against the matches table directly).
+      return (data as MatchRow[]).map(mapRow).filter((m) => !isTbdMatch(m));
     },
     staleTime: 0,
     refetchOnMount: "always",
@@ -91,7 +93,9 @@ export const useMatch = (id: string | undefined) => {
         console.error("Erreur Supabase:", error);
         throw error;
       }
-      return data ? mapRow(data as MatchRow) : null;
+      if (!data) return null;
+      const m = mapRow(data as MatchRow);
+      return isTbdMatch(m) ? null : m;
     },
     enabled: !!id,
   });
