@@ -18,6 +18,7 @@ import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useClubTicketing } from "@/hooks/useClubTicketing";
 import { useStadium } from "@/hooks/useStadium";
 import { DifficultyBadge } from "@/components/clubs/DifficultyBadge";
+import { transformAffiliateUrl } from "@/lib/affiliate";
 import { ClubUpcomingMatches } from "@/components/clubs/ClubUpcomingMatches";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useSEO } from "@/lib/seo";
@@ -193,7 +194,7 @@ const ClubDetailPage = () => {
             )}
             {club.hospitality_available && club.hospitality_url && (
               <a
-                href={club.hospitality_url}
+                href={transformAffiliateUrl(club.hospitality_url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/15 transition-colors"
@@ -275,7 +276,7 @@ const ClubDetailPage = () => {
                 {club.resale_exchange_name && <p><strong>{club.resale_exchange_name}</strong></p>}
                 {club.resale_exchange_url && (
                   <a
-                    href={club.resale_exchange_url}
+                    href={transformAffiliateUrl(club.resale_exchange_url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-[#2ECC71] font-semibold hover:underline"
