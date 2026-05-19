@@ -301,7 +301,7 @@ export const TicketIntelligence = ({ match, offers, tmEvent, cheapest, avg, last
         {sorted.map((p) => (
           <a
             key={p.key}
-            href={p.url}
+            href={transformAffiliateUrl(p.url)}
             target="_blank"
             rel="noopener noreferrer nofollow"
             className="group relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-4 hover:border-[#2ECC71]/40 hover:from-white/[0.08] transition-all duration-300 animate-fade-in"
