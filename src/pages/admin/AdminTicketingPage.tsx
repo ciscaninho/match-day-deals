@@ -19,6 +19,8 @@ import { matchesQuery } from "@/lib/normalize";
 import { toast } from "@/hooks/use-toast";
 import { TicketingAiSuggestionDialog } from "@/components/admin/TicketingAiSuggestionDialog";
 import { TicketingBulkAiReviewDialog, type BulkClub } from "@/components/admin/TicketingBulkAiReviewDialog";
+import { AffiliateDebugPanel } from "@/components/admin/AffiliateDebugPanel";
+import { inspectAffiliateUrl } from "@/lib/affiliate";
 
 type Row = {
   slug: string;
