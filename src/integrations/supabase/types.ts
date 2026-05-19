@@ -129,6 +129,75 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_clicks: {
+        Row: {
+          approval_rate: number | null
+          club_name: string | null
+          club_slug: string | null
+          conversion_imported: boolean
+          created_at: string
+          destination: string | null
+          epc: number | null
+          event_type: string
+          id: string
+          is_tracked: boolean
+          league: string | null
+          match_id: string | null
+          merchant: string | null
+          network: string | null
+          page_path: string | null
+          provider: string | null
+          revenue_estimate: number | null
+          stadium_name: string | null
+          transformed: string | null
+          user_id: string | null
+        }
+        Insert: {
+          approval_rate?: number | null
+          club_name?: string | null
+          club_slug?: string | null
+          conversion_imported?: boolean
+          created_at?: string
+          destination?: string | null
+          epc?: number | null
+          event_type?: string
+          id?: string
+          is_tracked?: boolean
+          league?: string | null
+          match_id?: string | null
+          merchant?: string | null
+          network?: string | null
+          page_path?: string | null
+          provider?: string | null
+          revenue_estimate?: number | null
+          stadium_name?: string | null
+          transformed?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          approval_rate?: number | null
+          club_name?: string | null
+          club_slug?: string | null
+          conversion_imported?: boolean
+          created_at?: string
+          destination?: string | null
+          epc?: number | null
+          event_type?: string
+          id?: string
+          is_tracked?: boolean
+          league?: string | null
+          match_id?: string | null
+          merchant?: string | null
+          network?: string | null
+          page_path?: string | null
+          provider?: string | null
+          revenue_estimate?: number | null
+          stadium_name?: string | null
+          transformed?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       assistant_settings: {
         Row: {
           display_name: string

@@ -1,6 +1,7 @@
 import { ExternalLink, Loader2 } from "lucide-react";
 import { useTicketmasterEvent } from "@/hooks/useTicketmasterEvent";
 import { transformAffiliateUrl } from "@/lib/affiliate";
+import { trackAffiliateClick } from "@/lib/affiliateTracking";
 
 interface Props {
   homeTeam?: string | null;
@@ -72,6 +73,13 @@ export const TicketProviders = ({ homeTeam, awayTeam, variant = "light", compact
           href={transformAffiliateUrl(p.url)}
           target="_blank"
           rel="noopener noreferrer nofollow"
+          onClick={() =>
+            trackAffiliateClick({
+              event: "ticket_click",
+              destination: p.url,
+              provider: p.name,
+            })
+          }
           aria-label={`Search ${p.name} tickets for ${search.query}`}
           className={[
             "group flex items-center justify-between gap-3 rounded-xl px-4 py-3 font-bold text-sm transition border",

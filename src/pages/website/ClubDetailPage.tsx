@@ -19,6 +19,7 @@ import { useClubTicketing } from "@/hooks/useClubTicketing";
 import { useStadium } from "@/hooks/useStadium";
 import { DifficultyBadge } from "@/components/clubs/DifficultyBadge";
 import { transformAffiliateUrl } from "@/lib/affiliate";
+import { trackAffiliateClick } from "@/lib/affiliateTracking";
 import { ClubUpcomingMatches } from "@/components/clubs/ClubUpcomingMatches";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useSEO } from "@/lib/seo";
@@ -197,6 +198,17 @@ const ClubDetailPage = () => {
                 href={transformAffiliateUrl(club.hospitality_url)}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() =>
+                  trackAffiliateClick({
+                    event: "hospitality_click",
+                    destination: club.hospitality_url,
+                    provider: "hospitality",
+                    clubSlug: club.slug,
+                    clubName: club.club_name,
+                    stadiumName: club.stadium_name,
+                    league: club.league,
+                  })
+                }
                 className="inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/15 transition-colors"
               >
                 <Crown className="w-4 h-4" />
@@ -279,6 +291,17 @@ const ClubDetailPage = () => {
                     href={transformAffiliateUrl(club.resale_exchange_url)}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() =>
+                      trackAffiliateClick({
+                        event: "ticket_click",
+                        destination: club.resale_exchange_url,
+                        provider: club.resale_exchange_name ?? "resale",
+                        clubSlug: club.slug,
+                        clubName: club.club_name,
+                        stadiumName: club.stadium_name,
+                        league: club.league,
+                      })
+                    }
                     className="inline-flex items-center gap-1 text-[#2ECC71] font-semibold hover:underline"
                   >
                     {t("clubs.cta.exchange")} <ExternalLink className="w-3.5 h-3.5" />

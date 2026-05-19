@@ -20,6 +20,7 @@ import { toast } from "@/hooks/use-toast";
 import { TicketingAiSuggestionDialog } from "@/components/admin/TicketingAiSuggestionDialog";
 import { TicketingBulkAiReviewDialog, type BulkClub } from "@/components/admin/TicketingBulkAiReviewDialog";
 import { AffiliateDebugPanel } from "@/components/admin/AffiliateDebugPanel";
+import { AffiliateAnalyticsPanel } from "@/components/admin/AffiliateAnalyticsPanel";
 
 type Row = {
   slug: string;
@@ -241,6 +242,11 @@ export const AdminTicketingPage = () => {
           </a>
         </div>
       </header>
+
+      <AffiliateAnalyticsPanel
+        clubs={rows.map((r) => ({ slug: r.slug, league: r.league }))}
+        affiliateClubs={affiliateClubs}
+      />
 
       {debugOpen && (
         <AffiliateDebugPanel
