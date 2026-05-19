@@ -65,6 +65,7 @@ export const AdminTicketingPage = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [aiClub, setAiClub] = useState<Row | null>(null);
   const [bulkAiClubs, setBulkAiClubs] = useState<BulkClub[] | null>(null);
+  const [debugOpen, setDebugOpen] = useState(false);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["admin-ticketing-v2"],
