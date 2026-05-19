@@ -48,18 +48,23 @@ const copy = (s: string) => {
 const DebugRow = ({ label, url }: RowInput) => {
   const info = useMemo(() => inspectAffiliateUrl(url ?? ""), [url]);
   if (!url) return null;
+  const tracked = info.isTracked;
   return (
-    <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+    <div
+      className={`rounded-lg border p-3 space-y-2 ${
+        tracked ? "border-emerald-200 bg-emerald-50/40" : "border-border bg-card"
+      }`}
+    >
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="text-xs font-bold text-foreground">{label}</div>
         <div className="flex gap-1.5">
-          <StatusPill ok={info.isTracked} label={info.isTracked ? "tracked" : "pass-through"} />
-          {info.network && (
+          <StatusPill ok={tracked} label={tracked ? "tracked" : "pass-through"} />
+          {tracked && info.network && (
             <span className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-700">
               {info.network}
             </span>
           )}
-          {info.merchant && (
+          {tracked && info.merchant && (
             <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-700">
               {info.merchant}
             </span>
@@ -69,24 +74,36 @@ const DebugRow = ({ label, url }: RowInput) => {
 
       <div className="grid grid-cols-1 gap-1.5 text-[11px]">
         <Field title="Destination" value={info.destination} />
-        <Field title="Transformed" value={info.transformed} highlight={info.isTracked} />
-        {info.campaign && <Field title="Campaign" value={info.campaign} />}
+        {tracked && <Field title="Transformed" value={info.transformed} highlight />}
+        {tracked && info.campaign && <Field title="Campaign" value={info.campaign} />}
       </div>
 
       <div className="flex gap-1.5 flex-wrap">
-        <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => copy(info.transformed)}>
-          <Copy className="w-3 h-3 mr-1" /> Copy affiliate
-        </Button>
-        <Button size="sm" variant="outline" className="h-7 text-[11px]" asChild>
-          <a href={info.destination} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="w-3 h-3 mr-1" /> Open destination
-          </a>
-        </Button>
-        <Button size="sm" className="h-7 text-[11px]" asChild>
-          <a href={info.transformed} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="w-3 h-3 mr-1" /> Open tracked
-          </a>
-        </Button>
+        {tracked && (
+          <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => copy(info.transformed)}>
+            <Copy className="w-3 h-3 mr-1" /> Copy affiliate
+          </Button>
+        )}
+        {tracked ? (
+          <>
+            <Button size="sm" variant="outline" className="h-7 text-[11px]" asChild>
+              <a href={info.destination} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="w-3 h-3 mr-1" /> Open destination
+              </a>
+            </Button>
+            <Button size="sm" className="h-7 text-[11px]" asChild>
+              <a href={info.transformed} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="w-3 h-3 mr-1" /> Open tracked
+              </a>
+            </Button>
+          </>
+        ) : (
+          <Button size="sm" variant="outline" className="h-7 text-[11px]" asChild>
+            <a href={info.destination} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-3 h-3 mr-1" /> Open destination
+            </a>
+          </Button>
+        )}
       </div>
     </div>
   );
