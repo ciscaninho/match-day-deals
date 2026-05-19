@@ -198,6 +198,17 @@ const ClubDetailPage = () => {
                 href={transformAffiliateUrl(club.hospitality_url)}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() =>
+                  trackAffiliateClick({
+                    event: "hospitality_click",
+                    destination: club.hospitality_url,
+                    provider: "hospitality",
+                    clubSlug: club.slug,
+                    clubName: club.club_name,
+                    stadiumName: club.stadium_name,
+                    league: club.league,
+                  })
+                }
                 className="inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/15 transition-colors"
               >
                 <Crown className="w-4 h-4" />
