@@ -7,6 +7,8 @@ export interface TicketSource {
   recommended?: boolean;
 }
 
+import type { MatchLifecycleStatus } from "@/lib/matchLifecycle";
+
 export interface Match {
   id: string;
   homeTeam: string;
@@ -26,6 +28,8 @@ export interface Match {
   ticketSources: TicketSource[];
   featured: boolean;
   priority?: boolean;
+  archivedAt?: string | null;
+  lifecycleStatus?: MatchLifecycleStatus;
 }
 
 // Mock data removed — all match data is now fetched from Supabase via `useMatches`.
