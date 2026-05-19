@@ -32,6 +32,7 @@ import AdminMatchesPage from "./pages/admin/AdminMatchesPage";
 import AdminMatchReviewPage from "./pages/admin/AdminMatchReviewPage";
 import AdminLeaguesPage from "./pages/admin/AdminLeaguesPage";
 import AdminTicketingPage from "./pages/admin/AdminTicketingPage";
+import AdminTicketingLeaguesPage from "./pages/admin/AdminTicketingLeaguesPage";
 import AdminAssistantPage from "./pages/admin/AdminAssistantPage";
 import AdminSuggestionsPage from "./pages/admin/AdminSuggestionsPage";
 import AdminLegacyPage from "./pages/admin/AdminLegacyPage";
