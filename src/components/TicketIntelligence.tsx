@@ -305,6 +305,16 @@ export const TicketIntelligence = ({ match, offers, tmEvent, cheapest, avg, last
             href={transformAffiliateUrl(p.url)}
             target="_blank"
             rel="noopener noreferrer nofollow"
+            onClick={() =>
+              trackAffiliateClick({
+                event: "ticket_click",
+                destination: p.url,
+                provider: p.name,
+                matchId: match.id,
+                stadiumName: match.stadium,
+                league: match.competition,
+              })
+            }
             className="group relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-4 hover:border-[#2ECC71]/40 hover:from-white/[0.08] transition-all duration-300 animate-fade-in"
           >
             <div className="flex items-start justify-between gap-3">
