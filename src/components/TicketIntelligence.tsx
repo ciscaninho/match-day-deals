@@ -7,6 +7,7 @@ import {
 import type { Match } from "@/data/matches";
 import type { TicketOffer } from "@/hooks/useTicketOffers";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { transformAffiliateUrl } from "@/lib/affiliate";
 
 // ---------- types ----------
 type TmEvent = { url?: string; minPrice?: number | null; currency?: string | null } | null | undefined;
