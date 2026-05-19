@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Match, TicketSource, TicketStatus } from "@/data/matches";
+import { deriveLifecycle, type MatchLifecycleStatus } from "@/lib/matchLifecycle";
 
 type MatchRow = {
   id: string;
@@ -21,30 +22,40 @@ type MatchRow = {
   ticket_sources: unknown;
   featured: boolean;
   priority: boolean;
+  archived_at?: string | null;
+  lifecycle_status?: string | null;
 };
 
-const mapRow = (row: MatchRow): Match => ({
-  id: row.id,
-  homeTeam: row.home_team,
-  awayTeam: row.away_team,
-  homeShort: row.home_short,
-  awayShort: row.away_short,
-  homeLogo: row.home_logo,
-  awayLogo: row.away_logo,
-  competition: row.competition,
-  country: row.country ?? "",
-  date: row.date,
-  stadium: row.stadium ?? "",
-  city: row.city ?? "",
-  startingPrice: row.starting_price,
-  ticketStatus: (row.ticket_status as TicketStatus) ?? "not_released",
-  ticketReleaseDate: row.ticket_release_date ?? row.date,
-  ticketSources: Array.isArray(row.ticket_sources)
-    ? (row.ticket_sources as TicketSource[])
-    : [],
-  featured: row.featured,
-  priority: row.priority,
-});
+const mapRow = (row: MatchRow): Match => {
+  const archivedAt = row.archived_at ?? null;
+  // Prefer DB column when present, but always re-derive client-side so the UI
+  // stays correct between trigger updates (e.g. a match crossing into "completed").
+  const lifecycle: MatchLifecycleStatus = deriveLifecycle(row.date, archivedAt);
+  return {
+    id: row.id,
+    homeTeam: row.home_team,
+    awayTeam: row.away_team,
+    homeShort: row.home_short,
+    awayShort: row.away_short,
+    homeLogo: row.home_logo,
+    awayLogo: row.away_logo,
+    competition: row.competition,
+    country: row.country ?? "",
+    date: row.date,
+    stadium: row.stadium ?? "",
+    city: row.city ?? "",
+    startingPrice: row.starting_price,
+    ticketStatus: (row.ticket_status as TicketStatus) ?? "not_released",
+    ticketReleaseDate: row.ticket_release_date ?? row.date,
+    ticketSources: Array.isArray(row.ticket_sources)
+      ? (row.ticket_sources as TicketSource[])
+      : [],
+    featured: row.featured,
+    priority: row.priority,
+    archivedAt,
+    lifecycleStatus: lifecycle,
+  };
+};
 
 export const useMatches = () => {
   return useQuery({
@@ -54,7 +65,6 @@ export const useMatches = () => {
         .from("matches")
         .select("*")
         .order("date", { ascending: true });
-      console.log("Matchs récupérés:", data);
       if (error) {
         console.error("Erreur Supabase:", error);
         throw error;
@@ -77,7 +87,6 @@ export const useMatch = (id: string | undefined) => {
         .select("*")
         .eq("id", id)
         .maybeSingle();
-      console.log("Matchs récupérés:", data);
       if (error) {
         console.error("Erreur Supabase:", error);
         throw error;

@@ -50,7 +50,7 @@ const WebsiteMatchesPage = () => {
 
   const filtered = useMemo(() => {
     const base = matches
-      .filter((m) => new Date(m.date).getTime() >= Date.now() - 24 * 3600 * 1000)
+      .filter((m) => m.lifecycleStatus !== "archived")
       .filter((m) => !league || m.competition === league)
       .filter((m) => !catIds || catIds.has(m.id));
     const searched = q.trim() ? filterMatchesByQuery(base, q) : base;

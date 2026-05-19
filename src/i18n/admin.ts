@@ -297,6 +297,15 @@ const en = {
   "admin.ticketing.ai.skip": "Skip",
   "admin.ticketing.ai.close": "Close",
   "admin.ticketing.ai.failed_for": "Failed for {club}",
+  "admin.matches.lifecycle.all": "All",
+  "admin.matches.lifecycle.upcoming": "Upcoming",
+  "admin.matches.lifecycle.live": "Live",
+  "admin.matches.lifecycle.completed": "Recently completed",
+  "admin.matches.lifecycle.archived": "Archived",
+  "admin.matches.archive": "Archive",
+  "admin.matches.restore": "Restore",
+  "admin.matches.archived": "Match archived",
+  "admin.matches.restored": "Match restored",
 };
 
 const fr: Record<keyof typeof en, string> = {
@@ -596,6 +605,15 @@ const fr: Record<keyof typeof en, string> = {
   "admin.ticketing.ai.skip": "Passer",
   "admin.ticketing.ai.close": "Fermer",
   "admin.ticketing.ai.failed_for": "Échec pour {club}",
+  "admin.matches.lifecycle.all": "Tous",
+  "admin.matches.lifecycle.upcoming": "À venir",
+  "admin.matches.lifecycle.live": "En direct",
+  "admin.matches.lifecycle.completed": "Récemment terminés",
+  "admin.matches.lifecycle.archived": "Archivés",
+  "admin.matches.archive": "Archiver",
+  "admin.matches.restore": "Restaurer",
+  "admin.matches.archived": "Match archivé",
+  "admin.matches.restored": "Match restauré",
 };
 
 // Other locales fall back to English (existing project pattern).

@@ -18,9 +18,10 @@ const HomePage = () => {
   const { isPremium } = useUser();
   const { t } = useLanguage();
   const { data: matches = [], isLoading, isError } = useMatches();
-  const featured = matches.filter((m) => m.featured);
-  const priority = matches.filter((m) => m.priority);
-  const upcomingReleases = matches
+  const discoverable = matches.filter((m) => m.lifecycleStatus === "upcoming" || m.lifecycleStatus === "live");
+  const featured = discoverable.filter((m) => m.featured);
+  const priority = discoverable.filter((m) => m.priority);
+  const upcomingReleases = discoverable
     .filter((m) => m.ticketStatus === "not_released")
     .sort((a, b) => new Date(a.ticketReleaseDate).getTime() - new Date(b.ticketReleaseDate).getTime())
     .slice(0, 3);
