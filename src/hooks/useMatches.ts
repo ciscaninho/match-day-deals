@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Match, TicketSource, TicketStatus } from "@/data/matches";
-import { deriveLifecycle, type MatchLifecycleStatus } from "@/lib/matchLifecycle";
+import { deriveLifecycle, isTbdMatch, type MatchLifecycleStatus } from "@/lib/matchLifecycle";
 
 type MatchRow = {
   id: string;
