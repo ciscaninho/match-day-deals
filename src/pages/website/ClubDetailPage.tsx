@@ -18,6 +18,7 @@ import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useClubTicketing } from "@/hooks/useClubTicketing";
 import { useStadium } from "@/hooks/useStadium";
 import { DifficultyBadge } from "@/components/clubs/DifficultyBadge";
+import { transformAffiliateUrl } from "@/lib/affiliate";
 import { ClubUpcomingMatches } from "@/components/clubs/ClubUpcomingMatches";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useSEO } from "@/lib/seo";
