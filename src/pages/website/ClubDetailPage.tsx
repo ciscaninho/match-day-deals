@@ -194,7 +194,7 @@ const ClubDetailPage = () => {
             )}
             {club.hospitality_available && club.hospitality_url && (
               <a
-                href={club.hospitality_url}
+                href={transformAffiliateUrl(club.hospitality_url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/15 transition-colors"
