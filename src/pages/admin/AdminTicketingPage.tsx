@@ -243,6 +243,11 @@ export const AdminTicketingPage = () => {
         </div>
       </header>
 
+      <AffiliateAnalyticsPanel
+        clubs={rows.map((r) => ({ slug: r.slug, league: r.league }))}
+        affiliateClubs={affiliateClubs}
+      />
+
       {debugOpen && (
         <AffiliateDebugPanel
           samples={filtered.slice(0, 3).flatMap((r) => [
