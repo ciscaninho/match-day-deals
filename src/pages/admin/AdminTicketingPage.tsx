@@ -227,13 +227,31 @@ export const AdminTicketingPage = () => {
           <h1 className="text-xl font-extrabold text-foreground">{t("admin.ticketing.title")}</h1>
           <p className="text-xs text-muted-foreground">{t("admin.ticketing.subtitle")}</p>
         </div>
-        <a
-          href="/admin/ticketing/leagues"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-50 text-amber-800 hover:bg-amber-100 text-xs font-bold border border-amber-200"
-        >
-          🏆 {t("admin.ticketing.leagues.open")}
-        </a>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setDebugOpen((v) => !v)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-violet-50 text-violet-800 hover:bg-violet-100 text-xs font-bold border border-violet-200"
+          >
+            🐞 {debugOpen ? "Hide" : "Affiliate debug"}
+          </button>
+          <a
+            href="/admin/ticketing/leagues"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-50 text-amber-800 hover:bg-amber-100 text-xs font-bold border border-amber-200"
+          >
+            🏆 {t("admin.ticketing.leagues.open")}
+          </a>
+        </div>
       </header>
+
+      {debugOpen && (
+        <AffiliateDebugPanel
+          samples={filtered.slice(0, 3).flatMap((r) => [
+            r.official_ticketing_url && { label: `${r.club_name} — official`, url: r.official_ticketing_url },
+            r.hospitality_url && { label: `${r.club_name} — hospitality`, url: r.hospitality_url },
+            r.resale_exchange_url && { label: `${r.club_name} — resale`, url: r.resale_exchange_url },
+          ].filter(Boolean) as { label: string; url: string }[])}
+        />
+      )}
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5">
