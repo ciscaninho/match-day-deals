@@ -69,7 +69,9 @@ export const useMatches = () => {
         console.error("Erreur Supabase:", error);
         throw error;
       }
-      return (data as MatchRow[]).map(mapRow);
+      // Hide TBD/placeholder fixtures from public surfaces (admin pages use
+      // their own queries against the matches table directly).
+      return (data as MatchRow[]).map(mapRow).filter((m) => !isTbdMatch(m));
     },
     staleTime: 0,
     refetchOnMount: "always",
