@@ -1,86 +1,85 @@
-## Phase B — Destinations Foot
+# World Cup inside Stadiums admin
 
-Visual direction locked: **Stadium Emerald** palette, **DM Serif Display + Fira Sans**, **Cinematic hero + Bento** layout. Builds on existing media, matches, ticketing, journeys.
+Goal: manage WC2026 host stadiums from the existing `/admin/stadiums` workflow — no parallel admin. Enrich once, surface as premium content on the public World Cup page.
 
-This phase is too large for a single ship. Splitting into 3 sequential PRs. Each is independently shippable.
+## 1. Schema additions (single migration)
 
----
+Extend `stadiums` with optional fields used for WC + enrichment (all nullable, safe defaults):
 
-### PR 1 — Rename + Cinematic shell (foundation)
+- `is_world_cup_host boolean default false`
+- `world_cup_edition text` (e.g. `'wc2026'`)
+- `world_cup_role text` (host_city / final / opening / group / knockout)
+- `host_city_context text`
+- `architecture_notes text`
+- `seat_recommendations text`
+- `fan_zones text`
+- `transport_notes text`
+- `hospitality_notes text`
+- `ticket_guidance text`
+- `matchday_advice text`
+- `travel_notes text`
+- `historical_facts text`
+- `enrichment_status text default 'draft'` (draft/in_review/approved)
+- `enrichment_updated_at timestamptz`
 
-**Route + naming**
-- Add `/destinations` route → `DestinationsPage` (new). Keep `/stadiums` as alias redirect for backlinks.
-- Add `/destinations/:slug` → `DestinationDetailPage` (wraps existing `StadiumDetailPage` logic but with new editorial composition).
-- Rename nav label "Stadiums" → "Destinations" in all 9 locales (`website.nav.stadiums` reused, new copy).
-- New i18n namespace `src/i18n/destinations.ts` with all section copy.
+New table `stadium_enrichment_proposals` (Copilot proposals → review → approve):
+- `stadium_id uuid`, `field text`, `proposed_value text`, `rationale text`, `source text`, `status text default 'pending'` (pending/approved/rejected), `created_by uuid`, `reviewed_by uuid`, `reviewed_at timestamptz`, timestamps
+- RLS: admins manage all; nothing public.
 
-**Cinematic hero (index page)**
-- Full-bleed rotating carousel of 5–7 approved `stadium_media` heroes (status='approved', is_hero=true) joined to `stadiums` (published only).
-- Crossfade every 6s, pause on hover, respects `prefers-reduced-motion`.
-- Overlay: serif headline ("Choose your next football destination"), city · country · stadium chip, CTA `Explore destinations`.
-- Uses DM Serif Display for headline, Fira Sans for meta. Emerald accent on CTA.
+Public read of new `stadiums` columns is fine under the existing public SELECT policy (active rows only).
 
-**Bento grid below hero**
-- 4–6 featured destinations as mixed-size tiles (1 large + several small). Pulls from `useStadiumSocialProof().popular` (already filters to stadiums with upcoming matches).
+## 2. `/admin/stadiums` — World Cup tab
 
----
+`AdminStadiumsPage.tsx`: add a top-level toggle `Active | Archived | World Cup`. In WC mode:
+- Query `stadiums where is_world_cup_host = true`
+- Replace grid with a denser table view showing: Host stadium · Country · Host city · Publication status · **Media coverage** (hero ✓ + gallery count from `stadium_media` approved) · **Match coverage** (count of upcoming WC matches via `matches.competition` like 'World Cup%') · **Ticket coverage** (any active `ticket_offers` / club profile) · **Readiness %** (weighted: hero 25 + ≥3 gallery 15 + ≥3 enrichment fields approved 25 + matches 20 + tickets 15)
+- Each row opens an enhanced `StadiumDrawer` with a new **World Cup** tab.
 
-### PR 2 — Editorial sections on destination detail
+Also add a small "Mark as WC host" action in the regular `StadiumDrawer` header so any stadium can be promoted into the WC section.
 
-Compose on `DestinationDetailPage`, ordered:
+## 3. Enhanced StadiumDrawer — World Cup tab
 
-1. **Immersive hero** (existing `StadiumHero` restyled with serif).
-2. **"Where should I sit?"** — new component `SeatingExperienceChooser.tsx`. 4 cards: The End / Side Stand / Family / Hospitality. Each card pulls real data when available (`ultras_section`, `best_sections`, `family_section`, `vip_available`) and falls back to editorial copy. Links to ticket section.
-3. **Local Football Secrets** — new component `LocalSecrets.tsx`. Renders only fields with content: supporter HQ, anthem, fanshop, food, drinks, arrival tips, pre-match timing, photo spot, walking routes. Requires new optional columns on `stadiums`:
-   - `supporter_hq text`, `club_anthem text`, `fanshop_info text`, `food_nearby text`, `drinks_nearby text`, `arrival_tips text`, `pre_match_timing text`, `photo_spot text`, `walking_routes text`.
-4. **Matchday & Travel** — keep existing `MatchdayJourney` + `TravelEssentials`, wrap in renamed section header.
-5. **Community Experience Scores** — new `ExperienceScoreCard.tsx` + new table `destination_experience_scores` (atmosphere/architecture/accessibility/rarity/overall + optional memory text). Lightweight, not "reviews". Aggregated averages shown publicly; submission requires auth.
-6. **Discovery footer** — See matches / See ticket prices / Plan trip / Save wishlist (existing favorite hook) / Open ticket options. No dead ends.
+Tabs (new): `Overview · Media · World Cup`.
 
----
+**Media** reuses existing `StadiumMediaTab` (upload, hero assignment, gallery, moderation — all backed by `stadium_media`). No new media plumbing.
 
-### PR 3 — World Cup 2026 staging + block
+**World Cup** tab:
+- Role/edition selectors
+- Editable enrichment fields list (the 11 new columns), each showing current approved value + pending Copilot proposals
+- **Copilot panel**: button "Propose enrichment" → calls new edge function `wc-copilot-enrich` (Lovable AI Gateway, `google/gemini-2.5-pro`) which returns structured proposals for missing/weak fields and inserts them into `stadium_enrichment_proposals`
+- Each proposal row: Approve (writes value to `stadiums`, marks proposal approved) / Reject / Edit-then-approve
+- "Auto-enrich on save" toggle that re-runs Copilot when a host is first added
 
-**Schema**
-- New table `wc2026_destinations_staging` mirroring host city/stadium fields + `status` (pending/approved/rejected), `matched_stadium_id`, `merge_action` (create/merge/skip).
-- Admin-only RLS.
+## 4. Edge function `wc-copilot-enrich`
 
-**Admin workflow** (`/admin/destinations/wc2026`)
-- List staged rows with match candidates (fuzzy match against `stadiums.stadium_name + city`).
-- Per row: Approve → upsert into `stadiums` (merge if matched, create if not) + tag with `wc2026 = true` flag on stadiums (new boolean column).
-- Reject / Skip.
-- No auto-publish.
+- Input: `{ stadium_id, fields?: string[] }`
+- Loads stadium row, asks Lovable AI for JSON-shaped proposals (one per missing field) grounded with `stadium_name + city + country + capacity + opened_year`
+- Inserts proposals; returns the list
+- Admin-only (verify JWT + `has_role admin`)
 
-**Public block on `/destinations`**
-- `WorldCupHostsBlock.tsx` — only renders when verified WC2026 destinations exist.
-- Each card: city, country, host stadium hero, upcoming matches count, starting price, ticket provider badge, affiliate CTA.
-- Reuses `useMatches` + `useTicketOffers` + `useClubTicketing` — no parallel logic.
-- Drops "Coming soon" once `starting_price` exists.
+## 5. Public World Cup page
 
----
+Existing `WorldCupHostsBlock` (from prior PR) switches data source to:
+```
+stadiums where is_world_cup_host = true and publication_status = 'published' and enrichment_status = 'approved'
+```
+Cards use approved hero media from `stadium_media` and surface approved enrichment fields (host city context, fan zones, transport, ticket guidance). Raw/unapproved data never renders publicly.
 
-### Technical details
+## 6. Out of scope
 
-- All copy via `useLanguage().t()` with translations for en/fr/es/de/it/pt/nl/ar/ru.
-- DM Serif Display + Fira Sans loaded via Google Fonts in `index.html`. New CSS classes `font-display` / `font-body` in `tailwind.config.ts`, applied scoped to `/destinations` routes only (does not affect rest of app).
-- New semantic tokens added in `index.css` if needed (palette is already current brand, so likely zero changes).
-- Existing TBD/lifecycle filters in `useMatches` continue to apply.
-- Mobile: bento collapses to single column, hero carousel preserves 16:9, sections stack with generous vertical rhythm.
-- Affiliate tracking (Phase A.2) already integrated — reused as-is on ticket CTAs.
+- No new parallel `wc2026_destinations_staging` UI — the previously proposed staging table stays internal/dormant; WC is now driven entirely by promoting existing stadiums.
+- No revenue/analytics changes.
+- No new localization keys beyond labels for the WC tab + readiness badges (added to all 9 locales).
 
-### Files touched (estimate)
+## Files touched
 
-PR 1: ~6 new files (page, hero, carousel, bento, i18n, route) + nav rename.
-PR 2: ~5 new files + 1 migration (stadium columns + experience_scores table) + detail page rewrite.
-PR 3: ~4 new files + 1 migration (wc2026_staging + stadiums.wc2026) + admin page.
+- migration (new columns + `stadium_enrichment_proposals`)
+- `src/pages/admin/AdminStadiumsPage.tsx` (WC tab + table view)
+- `src/components/admin/StadiumDrawer.tsx` (tabs + WC tab body)
+- `src/components/admin/WorldCupEnrichmentPanel.tsx` (new)
+- `src/hooks/useWorldCupReadiness.ts` (new)
+- `supabase/functions/wc-copilot-enrich/index.ts` (new)
+- `src/components/destinations/WorldCupHostsBlock.tsx` (data source switch)
+- `src/i18n/admin.ts` (+ WC labels in 9 locales)
 
-### Out of scope (deferred)
-
-- Trip-planner multi-stadium itinerary builder.
-- Stadium passport gamification expansion.
-- Map view of destinations (existing world map page is admin-only).
-- SEO schema/sitemap updates (Phase A.SEO).
-
----
-
-Approve and I'll ship PR 1 immediately, then continue with PR 2 and PR 3 in sequence.
+Ship in this order: migration → admin UI → copilot function → public page rewire.
