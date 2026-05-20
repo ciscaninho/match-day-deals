@@ -297,6 +297,11 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
                   {slug && <StadiumMediaTab stadiumSlug={slug} />}
                 </TabsContent>
 
+                <TabsContent value="worldcup" className="mt-0">
+                  {slug && <WorldCupEnrichmentPanel stadiumSlug={slug} />}
+                </TabsContent>
+
+
                 <TabsContent value="clubs" className="space-y-4 mt-0">
                   <div className="text-[11px] font-medium text-slate-600 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
                     {t("admin.drawer.clubs_autosave_hint")}
