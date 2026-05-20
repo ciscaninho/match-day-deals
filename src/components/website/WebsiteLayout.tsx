@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { HeaderAuthButton } from "@/components/auth/HeaderAuthButton";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { getDestinationsCopy } from "@/i18n/destinationsPage";
 
 interface Props {
   children: ReactNode;
@@ -23,12 +24,13 @@ const XIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 export const WebsiteLayout = ({ children }: Props) => {
   const [open, setOpen] = useState(false);
-  const { t, tf, dir } = useLanguage();
+  const { t, tf, dir, locale } = useLanguage();
+  const destLabel = getDestinationsCopy(locale).nav_label;
 
   const navItems = [
     { label: t("website.nav.matches"), to: "/matches" },
     { label: t("website.nav.leagues"), to: "/leagues" },
-    { label: t("website.nav.how"), to: "/how-it-works" },
+    { label: destLabel, to: "/destinations" },
     { label: t("website.nav.pricing"), to: "/pricing" },
   ];
 
@@ -143,6 +145,7 @@ export const WebsiteLayout = ({ children }: Props) => {
             <ul className="space-y-2.5 text-sm">
               <li><Link to="/matches" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.all_matches", "All matches")}</Link></li>
               <li><Link to="/leagues" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.leagues", "Leagues")}</Link></li>
+              <li><Link to="/destinations" className="hover:text-[#2ECC71] transition-colors">{destLabel}</Link></li>
               <li><Link to="/pricing" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.pricing", "Pricing")}</Link></li>
             </ul>
           </div>

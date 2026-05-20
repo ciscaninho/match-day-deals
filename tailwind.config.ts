@@ -15,6 +15,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Outfit', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        display: ['"DM Serif Display"', 'Georgia', 'serif'],
+        body: ['"Fira Sans"', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -90,11 +92,21 @@ export default {
           "0%, 100%": { opacity: "0.4" },
           "50%": { opacity: "1" },
         },
+        "kenburns": {
+          "0%": { transform: "scale(1.05) translate3d(0,0,0)" },
+          "100%": { transform: "scale(1.18) translate3d(-1%, -1%, 0)" },
+        },
+        "fade-in-up": {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "kenburns": "kenburns 14s ease-in-out infinite alternate",
+        "fade-in-up": "fade-in-up 0.8s ease-out both",
       },
     },
   },
