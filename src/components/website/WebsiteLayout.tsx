@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { HeaderAuthButton } from "@/components/auth/HeaderAuthButton";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { getDestinationsCopy } from "@/i18n/destinationsPage";
 
 interface Props {
   children: ReactNode;
@@ -24,9 +25,7 @@ const XIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 export const WebsiteLayout = ({ children }: Props) => {
   const [open, setOpen] = useState(false);
   const { t, tf, dir, locale } = useLanguage();
-  // Lazy import to avoid circular deps in tests
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const destLabel = require("@/i18n/destinationsPage").getDestinationsCopy(locale).nav_label;
+  const destLabel = getDestinationsCopy(locale).nav_label;
 
   const navItems = [
     { label: t("website.nav.matches"), to: "/matches" },
