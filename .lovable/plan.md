@@ -1,97 +1,86 @@
-# Ticketing Operations Center
+## Phase B — Destinations Foot
 
-Transform `/admin/ticketing` from a flat club list into the operational cockpit for ticketing coverage, source verification, affiliate management, and monetization readiness.
+Visual direction locked: **Stadium Emerald** palette, **DM Serif Display + Fira Sans**, **Cinematic hero + Bento** layout. Builds on existing media, matches, ticketing, journeys.
 
-This is a large surface. I'll structure it in **3 deliverable waves** so we ship value incrementally and you can validate each layer before we extend it.
-
----
-
-## Wave 1 — Foundation: data model + coverage dashboard
-
-Goal: see the entire ticketing landscape at a glance, with the data model ready for affiliate tracking.
-
-### Schema additions (club_ticketing_profiles)
-
-New columns on `club_ticketing_profiles`:
-
-- `verification_status` text default `'unverified'` — `unverified | verified | stale | broken`
-- `source_confidence` text default `'medium'` — `low | medium | high`
-- `geo_restrictions` text[] (ISO country codes)
-- `tickets_last_checked_at` timestamptz
-- `tickets_checked_by` uuid
-
-New table `ticket_sources` (one club → many sources):
-
-- `id`, `club_slug` (fk via slug), `kind` (`official | hospitality | resale | affiliate`)
-- `provider_name`, `url`, `deeplink_template`
-- `affiliate_network` (`partnerize | awin | impact | cj | custom | none`)
-- `campaign_id`, `tracking_params` jsonb
-- `monetization_enabled` bool, `priority` int
-- `verification_status`, `last_checked_at`, `notes`
-- RLS: admin write, public read
-
-Editorial publication rule (soft, in code — not a DB constraint):
-A club may be `published` only if it has at least one `official` source OR a `verified` trusted source. Otherwise the publish action shows a warning + requires an override reason (stored in `notes`).
-
-### Coverage dashboard at `/admin/ticketing`
-
-Top of page — KPI strip:
-- Clubs with ticketing / total
-- Missing ticketing
-- Official source coverage %
-- Affiliate-enabled coverage %
-- Verified coverage %
-- Hospitality coverage %
-
-Two breakdown tables:
-- By league: name • clubs • coverage % • verified % (sortable, colored bars)
-- By country: same shape
+This phase is too large for a single ship. Splitting into 3 sequential PRs. Each is independently shippable.
 
 ---
 
-## Wave 2 — Fast enrichment UX
+### PR 1 — Rename + Cinematic shell (foundation)
 
-Goal: enrich 100+ clubs without form fatigue.
+**Route + naming**
+- Add `/destinations` route → `DestinationsPage` (new). Keep `/stadiums` as alias redirect for backlinks.
+- Add `/destinations/:slug` → `DestinationDetailPage` (wraps existing `StadiumDetailPage` logic but with new editorial composition).
+- Rename nav label "Stadiums" → "Destinations" in all 9 locales (`website.nav.stadiums` reused, new copy).
+- New i18n namespace `src/i18n/destinations.ts` with all section copy.
 
-- **Compact club row** (replaces current card grid): logo, name, league/country, status chips (Official / Resale / Affiliate / Verified / Hospitality / Missing), last-checked timestamp, "Open source" external icon, "Quick edit" pencil.
-- **Quick Edit popover** (right side, no full drawer): paste official URL, pick verification status, mark monetization on/off, save. Optimistic update.
-- **Bulk actions toolbar**: select rows → bulk mark verified, bulk set "stale", bulk export CSV for offline research, bulk re-check.
-- **Filters**: missing official URL • unverified • stale (>90 days) • no affiliate • league • country • coverage status. Uses the unified `normalize.ts` search.
-- **Inline validation**: URL format check, duplicate-URL warning across clubs, geo-restriction hints.
-- **Smart suggestions**: if a club has no official URL but the stadium does, suggest copying it. If multiple clubs in same league share an affiliate template, propose applying it.
+**Cinematic hero (index page)**
+- Full-bleed rotating carousel of 5–7 approved `stadium_media` heroes (status='approved', is_hero=true) joined to `stadiums` (published only).
+- Crossfade every 6s, pause on hover, respects `prefers-reduced-motion`.
+- Overlay: serif headline ("Choose your next football destination"), city · country · stadium chip, CTA `Explore destinations`.
+- Uses DM Serif Display for headline, Fira Sans for meta. Emerald accent on CTA.
 
----
-
-## Wave 3 — Sources panel + affiliate plumbing
-
-Goal: manage the multi-source model + make every click monetization-ready.
-
-- **Sources tab inside ClubDrawer** (new drawer, mirroring StadiumDrawer pattern): list `ticket_sources` rows, add/edit/remove, reorder by priority, per-source verification.
-- **Affiliate builder**: pick network → template field auto-filled (`{url}?utm_source=footticket&campaign={campaign_id}`), preview rendered URL.
-- **Verification workflow**: "Verify now" button → opens URL in new tab + marks `last_checked_at` + prompts status. Stale badge after 90 days.
-- **Audit trail**: every source edit logged to `admin_actions` (reuses existing infra).
+**Bento grid below hero**
+- 4–6 featured destinations as mixed-size tiles (1 large + several small). Pulls from `useStadiumSocialProof().popular` (already filters to stadiums with upcoming matches).
 
 ---
 
-## i18n
+### PR 2 — Editorial sections on destination detail
 
-All new strings added to `src/i18n/admin.ts` for all 9 locales (en, fr, es, de, it, pt, nl, ar, ru).
+Compose on `DestinationDetailPage`, ordered:
+
+1. **Immersive hero** (existing `StadiumHero` restyled with serif).
+2. **"Where should I sit?"** — new component `SeatingExperienceChooser.tsx`. 4 cards: The End / Side Stand / Family / Hospitality. Each card pulls real data when available (`ultras_section`, `best_sections`, `family_section`, `vip_available`) and falls back to editorial copy. Links to ticket section.
+3. **Local Football Secrets** — new component `LocalSecrets.tsx`. Renders only fields with content: supporter HQ, anthem, fanshop, food, drinks, arrival tips, pre-match timing, photo spot, walking routes. Requires new optional columns on `stadiums`:
+   - `supporter_hq text`, `club_anthem text`, `fanshop_info text`, `food_nearby text`, `drinks_nearby text`, `arrival_tips text`, `pre_match_timing text`, `photo_spot text`, `walking_routes text`.
+4. **Matchday & Travel** — keep existing `MatchdayJourney` + `TravelEssentials`, wrap in renamed section header.
+5. **Community Experience Scores** — new `ExperienceScoreCard.tsx` + new table `destination_experience_scores` (atmosphere/architecture/accessibility/rarity/overall + optional memory text). Lightweight, not "reviews". Aggregated averages shown publicly; submission requires auth.
+6. **Discovery footer** — See matches / See ticket prices / Plan trip / Save wishlist (existing favorite hook) / Open ticket options. No dead ends.
 
 ---
 
-## Technical notes (for reference)
+### PR 3 — World Cup 2026 staging + block
 
-- Frontend: extends `AdminTicketingPage.tsx`, adds `ClubTicketingDrawer.tsx`, `QuickEditPopover.tsx`, `TicketSourcesPanel.tsx`, `CoverageKPIs.tsx`, `useTicketingCoverage.ts` hook (aggregates client-side from existing query — no edge function needed Wave 1).
-- DB: 2 migrations — add columns to `club_ticketing_profiles`, create `ticket_sources` table with RLS.
-- Reuses: `FootballFilterBar`, `PublicationStatusControl`, `normalize.ts`, `admin-actions-execute` for audit.
-- Out of scope this phase: price comparison engine, alerts pipeline, public "how to buy" guides, conversion analytics dashboards — Wave 4+.
+**Schema**
+- New table `wc2026_destinations_staging` mirroring host city/stadium fields + `status` (pending/approved/rejected), `matched_stadium_id`, `merge_action` (create/merge/skip).
+- Admin-only RLS.
+
+**Admin workflow** (`/admin/destinations/wc2026`)
+- List staged rows with match candidates (fuzzy match against `stadiums.stadium_name + city`).
+- Per row: Approve → upsert into `stadiums` (merge if matched, create if not) + tag with `wc2026 = true` flag on stadiums (new boolean column).
+- Reject / Skip.
+- No auto-publish.
+
+**Public block on `/destinations`**
+- `WorldCupHostsBlock.tsx` — only renders when verified WC2026 destinations exist.
+- Each card: city, country, host stadium hero, upcoming matches count, starting price, ticket provider badge, affiliate CTA.
+- Reuses `useMatches` + `useTicketOffers` + `useClubTicketing` — no parallel logic.
+- Drops "Coming soon" once `starting_price` exists.
 
 ---
 
-## Proposed execution order
+### Technical details
 
-1. Wave 1 migration + dashboard (ship, you review)
-2. Wave 2 enrichment UX (ship, you enrich a batch, validate ergonomics)
-3. Wave 3 sources + affiliate (ship, monetization-ready)
+- All copy via `useLanguage().t()` with translations for en/fr/es/de/it/pt/nl/ar/ru.
+- DM Serif Display + Fira Sans loaded via Google Fonts in `index.html`. New CSS classes `font-display` / `font-body` in `tailwind.config.ts`, applied scoped to `/destinations` routes only (does not affect rest of app).
+- New semantic tokens added in `index.css` if needed (palette is already current brand, so likely zero changes).
+- Existing TBD/lifecycle filters in `useMatches` continue to apply.
+- Mobile: bento collapses to single column, hero carousel preserves 16:9, sections stack with generous vertical rhythm.
+- Affiliate tracking (Phase A.2) already integrated — reused as-is on ticket CTAs.
 
-**One question before I start building:** do you want me to ship **all 3 waves in this turn** (large changeset, ~10 new files + migrations), or **just Wave 1** first so you can validate the data model and KPI dashboard before we build the enrichment UX on top?
+### Files touched (estimate)
+
+PR 1: ~6 new files (page, hero, carousel, bento, i18n, route) + nav rename.
+PR 2: ~5 new files + 1 migration (stadium columns + experience_scores table) + detail page rewrite.
+PR 3: ~4 new files + 1 migration (wc2026_staging + stadiums.wc2026) + admin page.
+
+### Out of scope (deferred)
+
+- Trip-planner multi-stadium itinerary builder.
+- Stadium passport gamification expansion.
+- Map view of destinations (existing world map page is admin-only).
+- SEO schema/sitemap updates (Phase A.SEO).
+
+---
+
+Approve and I'll ship PR 1 immediately, then continue with PR 2 and PR 3 in sequence.
