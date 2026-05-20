@@ -15,6 +15,17 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Outfit', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        display: ['"DM Serif Display"', 'Georgia', 'serif'],
+        body: ['"Fira Sans"', 'Inter', 'system-ui', 'sans-serif'],
+      },
+      keyframes: {
+        "kenburns": {
+          "0%": { transform: "scale(1.05) translate3d(0,0,0)" },
+          "100%": { transform: "scale(1.18) translate3d(-1%, -1%, 0)" },
+        },
+      },
+      animation: {
+        "kenburns": "kenburns 12s ease-in-out infinite alternate",
       },
       colors: {
         border: "hsl(var(--border))",
