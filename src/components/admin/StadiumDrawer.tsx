@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { StadiumMediaTab } from "./StadiumMediaTab";
+import { WorldCupEnrichmentPanel } from "./WorldCupEnrichmentPanel";
 import { matchesQuery } from "@/lib/normalize";
 
 export type StadiumDrawerRow = {
@@ -34,6 +35,7 @@ export type StadiumDrawerRow = {
   clubs?: string[] | null;
   archived_at?: string | null;
   archived_into_slug?: string | null;
+  is_world_cup_host?: boolean | null;
 };
 
 type Props = {
