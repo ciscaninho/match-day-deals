@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { StadiumMediaTab } from "./StadiumMediaTab";
+import { WorldCupEnrichmentPanel } from "./WorldCupEnrichmentPanel";
 import { matchesQuery } from "@/lib/normalize";
 
 export type StadiumDrawerRow = {
@@ -34,6 +35,7 @@ export type StadiumDrawerRow = {
   clubs?: string[] | null;
   archived_at?: string | null;
   archived_into_slug?: string | null;
+  is_world_cup_host?: boolean | null;
 };
 
 type Props = {
@@ -225,10 +227,13 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
 
             <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col">
               <div className="px-5 pt-3 bg-white sticky top-[73px] z-10 border-b border-slate-100">
-                <TabsList className="bg-slate-100">
+                <TabsList className="bg-slate-100 flex-wrap h-auto">
                   <TabsTrigger value="overview">{t("admin.drawer.tab.overview")}</TabsTrigger>
                   <TabsTrigger value="edit">{t("admin.drawer.tab.edit")}</TabsTrigger>
                   <TabsTrigger value="media">{t("admin.drawer.tab.media") || "Media"}</TabsTrigger>
+                  <TabsTrigger value="worldcup">
+                    🏆 World Cup{form.is_world_cup_host ? <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px]">on</Badge> : null}
+                  </TabsTrigger>
                   <TabsTrigger value="clubs">{t("admin.drawer.tab.clubs")} {relations?.clubs.length ? <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px]">{relations.clubs.length}</Badge> : null}</TabsTrigger>
                   <TabsTrigger value="matches">{t("admin.drawer.tab.matches")} {relations?.matches.length ? <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px]">{relations.matches.length}</Badge> : null}</TabsTrigger>
                   <TabsTrigger value="actions">{t("admin.drawer.tab.actions") || "Actions"}</TabsTrigger>
@@ -291,6 +296,11 @@ export function StadiumDrawer({ stadium, onClose, onSaved }: Props) {
                 <TabsContent value="media" className="mt-0">
                   {slug && <StadiumMediaTab stadiumSlug={slug} />}
                 </TabsContent>
+
+                <TabsContent value="worldcup" className="mt-0">
+                  {slug && <WorldCupEnrichmentPanel stadiumSlug={slug} />}
+                </TabsContent>
+
 
                 <TabsContent value="clubs" className="space-y-4 mt-0">
                   <div className="text-[11px] font-medium text-slate-600 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
