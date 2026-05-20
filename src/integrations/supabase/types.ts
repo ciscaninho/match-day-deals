@@ -621,6 +621,51 @@ export type Database = {
         }
         Relationships: []
       }
+      stadium_enrichment_proposals: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          field: string
+          id: string
+          proposed_value: string
+          rationale: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string | null
+          stadium_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          field: string
+          id?: string
+          proposed_value: string
+          rationale?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string | null
+          stadium_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          field?: string
+          id?: string
+          proposed_value?: string
+          rationale?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string | null
+          stadium_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stadium_experience_tips: {
         Row: {
           category: string
@@ -1149,6 +1194,7 @@ export type Database = {
         Row: {
           accessibility_score: number | null
           aliases: string[]
+          architecture_notes: string | null
           archived_at: string | null
           archived_into_slug: string | null
           archived_into_stadium_id: string | null
@@ -1164,31 +1210,46 @@ export type Database = {
           country: string
           created_at: string
           description: string | null
+          enrichment_status: string
+          enrichment_updated_at: string | null
           family_friendly_score: number | null
           family_section: string | null
+          fan_zones: string | null
           gallery_images: string[]
           hero_image_url: string | null
+          historical_facts: string | null
+          hospitality_notes: string | null
+          host_city_context: string | null
           id: string
           image_url: string | null
+          is_world_cup_host: boolean
           latitude: number | null
           league: string
           league_slug: string | null
           longitude: number | null
+          matchday_advice: string | null
           official_ticket_provider: string | null
           opened_year: number | null
           popularity_score: number | null
           publication_status: string
+          seat_recommendations: string | null
           slug: string
           stadium_name: string
           thumbnail_image_url: string | null
+          ticket_guidance: string | null
+          transport_notes: string | null
+          travel_notes: string | null
           ultras_section: string | null
           updated_at: string
           value_score: number | null
           vip_available: boolean
+          world_cup_edition: string | null
+          world_cup_role: string | null
         }
         Insert: {
           accessibility_score?: number | null
           aliases?: string[]
+          architecture_notes?: string | null
           archived_at?: string | null
           archived_into_slug?: string | null
           archived_into_stadium_id?: string | null
@@ -1204,31 +1265,46 @@ export type Database = {
           country: string
           created_at?: string
           description?: string | null
+          enrichment_status?: string
+          enrichment_updated_at?: string | null
           family_friendly_score?: number | null
           family_section?: string | null
+          fan_zones?: string | null
           gallery_images?: string[]
           hero_image_url?: string | null
+          historical_facts?: string | null
+          hospitality_notes?: string | null
+          host_city_context?: string | null
           id?: string
           image_url?: string | null
+          is_world_cup_host?: boolean
           latitude?: number | null
           league: string
           league_slug?: string | null
           longitude?: number | null
+          matchday_advice?: string | null
           official_ticket_provider?: string | null
           opened_year?: number | null
           popularity_score?: number | null
           publication_status?: string
+          seat_recommendations?: string | null
           slug: string
           stadium_name: string
           thumbnail_image_url?: string | null
+          ticket_guidance?: string | null
+          transport_notes?: string | null
+          travel_notes?: string | null
           ultras_section?: string | null
           updated_at?: string
           value_score?: number | null
           vip_available?: boolean
+          world_cup_edition?: string | null
+          world_cup_role?: string | null
         }
         Update: {
           accessibility_score?: number | null
           aliases?: string[]
+          architecture_notes?: string | null
           archived_at?: string | null
           archived_into_slug?: string | null
           archived_into_stadium_id?: string | null
@@ -1244,27 +1320,41 @@ export type Database = {
           country?: string
           created_at?: string
           description?: string | null
+          enrichment_status?: string
+          enrichment_updated_at?: string | null
           family_friendly_score?: number | null
           family_section?: string | null
+          fan_zones?: string | null
           gallery_images?: string[]
           hero_image_url?: string | null
+          historical_facts?: string | null
+          hospitality_notes?: string | null
+          host_city_context?: string | null
           id?: string
           image_url?: string | null
+          is_world_cup_host?: boolean
           latitude?: number | null
           league?: string
           league_slug?: string | null
           longitude?: number | null
+          matchday_advice?: string | null
           official_ticket_provider?: string | null
           opened_year?: number | null
           popularity_score?: number | null
           publication_status?: string
+          seat_recommendations?: string | null
           slug?: string
           stadium_name?: string
           thumbnail_image_url?: string | null
+          ticket_guidance?: string | null
+          transport_notes?: string | null
+          travel_notes?: string | null
           ultras_section?: string | null
           updated_at?: string
           value_score?: number | null
           vip_available?: boolean
+          world_cup_edition?: string | null
+          world_cup_role?: string | null
         }
         Relationships: [
           {
