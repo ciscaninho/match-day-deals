@@ -59,7 +59,7 @@ export function WorldCupEnrichmentPanel({ stadiumSlug }: { stadiumSlug: string }
       const { data, error } = await supabase
         .from("stadiums").select(cols).eq("slug", stadiumSlug).maybeSingle();
       if (error) throw error;
-      return data as StadiumWC | null;
+      return (data as unknown) as StadiumWC | null;
     },
   });
 
