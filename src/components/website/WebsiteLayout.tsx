@@ -23,12 +23,15 @@ const XIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 export const WebsiteLayout = ({ children }: Props) => {
   const [open, setOpen] = useState(false);
-  const { t, tf, dir } = useLanguage();
+  const { t, tf, dir, locale } = useLanguage();
+  // Lazy import to avoid circular deps in tests
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const destLabel = require("@/i18n/destinationsPage").getDestinationsCopy(locale).nav_label;
 
   const navItems = [
     { label: t("website.nav.matches"), to: "/matches" },
     { label: t("website.nav.leagues"), to: "/leagues" },
-    { label: t("website.nav.how"), to: "/how-it-works" },
+    { label: destLabel, to: "/destinations" },
     { label: t("website.nav.pricing"), to: "/pricing" },
   ];
 
