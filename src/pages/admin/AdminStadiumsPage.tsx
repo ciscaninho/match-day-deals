@@ -43,7 +43,8 @@ export const AdminStadiumsPage = () => {
 
   const active = useMemo(() => data.filter((s) => !s.archived_at), [data]);
   const archived = useMemo(() => data.filter((s) => !!s.archived_at), [data]);
-  const baseList = showArchived ? archived : active;
+  const worldCup = useMemo(() => data.filter((s) => !s.archived_at && (s as any).is_world_cup_host), [data]);
+  const baseList = view === "archived" ? archived : view === "worldcup" ? worldCup : active;
 
   // Apply hierarchical filters first
   const hierarchyFiltered = useMemo(() => filters.apply(baseList), [filters, baseList]);
@@ -62,24 +63,30 @@ export const AdminStadiumsPage = () => {
     return true;
   }), [hierarchyFiltered, q, filters.state.flags]);
 
+  const viewButton = (key: typeof view, label: string, count: number) => (
+    <button
+      onClick={() => setView(key)}
+      className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${view === key ? "bg-slate-700 text-white border-slate-700" : "bg-white text-[#2C3E50] border-slate-200 hover:border-emerald-500"}`}
+    >
+      {label} <span className="opacity-60">· {count}</span>
+    </button>
+  );
+
   return (
     <div className="space-y-5">
       <header className="flex flex-col gap-3">
         <div className="flex items-end justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-xl font-extrabold text-[#2C3E50]">{t("admin.nav.stadiums")}</h1>
-            <p className="text-xs text-muted-foreground">{active.length} active · {archived.length} archived · {filtered.length} {t("admin.shown")}</p>
+            <p className="text-xs text-muted-foreground">{active.length} active · {archived.length} archived · {worldCup.length} World Cup · {filtered.length} {t("admin.shown")}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button onClick={() => setCreateOpen(true)} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
               <Plus className="w-4 h-4 mr-1" /> {t("admin.create.stadium.cta") || "Create stadium"}
             </Button>
-            <button
-              onClick={() => setShowArchived((v) => !v)}
-              className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${showArchived ? "bg-slate-700 text-white border-slate-700" : "bg-white text-[#2C3E50] border-slate-200 hover:border-emerald-500"}`}
-            >
-              {showArchived ? "Archived" : "Active"} <span className="opacity-60">· {showArchived ? archived.length : active.length}</span>
-            </button>
+            {viewButton("active", "Active", active.length)}
+            {viewButton("archived", "Archived", archived.length)}
+            {viewButton("worldcup", "🏆 World Cup", worldCup.length)}
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.search.placeholder")} className="pl-9" />
