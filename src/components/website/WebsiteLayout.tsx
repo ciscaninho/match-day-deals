@@ -145,6 +145,7 @@ export const WebsiteLayout = ({ children }: Props) => {
             <ul className="space-y-2.5 text-sm">
               <li><Link to="/matches" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.all_matches", "All matches")}</Link></li>
               <li><Link to="/leagues" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.leagues", "Leagues")}</Link></li>
+              <li><Link to="/destinations" className="hover:text-[#2ECC71] transition-colors">{destLabel}</Link></li>
               <li><Link to="/pricing" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.pricing", "Pricing")}</Link></li>
             </ul>
           </div>
