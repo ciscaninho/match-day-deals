@@ -1,8 +1,10 @@
 import { Link, NavLink } from "react-router-dom";
-import { Ticket, ArrowRight, Menu, X, Mail, Instagram } from "lucide-react";
+import { Ticket, Menu, X, Mail, Instagram, ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { HeaderAuthButton } from "@/components/auth/HeaderAuthButton";
+import { getFooterCopy } from "@/i18n/footer";
+import { getGuide } from "@/i18n/guidesContent";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { getWorldCup2026Copy } from "@/i18n/worldCup2026";
 
