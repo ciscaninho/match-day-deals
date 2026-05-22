@@ -118,9 +118,15 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ inserted, attempted: toInsert.length }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ error: message }), {
+  } catch (err: any) {
+    console.error("wc-import-apply error:", err);
+    const message =
+      err instanceof Error
+        ? err.message
+        : err && typeof err === "object"
+          ? err.message || err.details || err.hint || JSON.stringify(err)
+          : String(err);
+    return new Response(JSON.stringify({ error: message, raw: err }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
