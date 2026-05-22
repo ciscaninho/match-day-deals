@@ -94,11 +94,21 @@ Deno.serve(async (req) => {
 
     let inserted = 0;
     if (toInsert.length) {
-      const { error: upErr, count } = await admin
+      // Pre-filter slugs that already exist (partial unique index on slug
+      // prevents reliable upsert/onConflict via PostgREST).
+      const slugs = toInsert.map((r) => r.slug);
+      const { data: existing, error: existErr } = await admin
         .from("matches")
-        .upsert(toInsert, { onConflict: "slug", ignoreDuplicates: true, count: "exact" });
-      if (upErr) throw upErr;
-      inserted = count ?? toInsert.length;
+        .select("slug")
+        .in("slug", slugs);
+      if (existErr) throw existErr;
+      const existingSet = new Set((existing || []).map((r: any) => r.slug));
+      const fresh = toInsert.filter((r) => !existingSet.has(r.slug));
+      if (fresh.length) {
+        const { error: upErr } = await admin.from("matches").insert(fresh);
+        if (upErr) throw upErr;
+      }
+      inserted = fresh.length;
     }
 
     await admin
