@@ -18,6 +18,7 @@ import ClubDetailPage from "./pages/website/ClubDetailPage";
 import SuggestStadiumPage from "./pages/website/SuggestStadiumPage";
 import StadiumDetailPage from "./pages/website/StadiumDetailPage";
 import DestinationsPage from "./pages/website/DestinationsPage";
+import WorldCup2026Page from "./pages/website/WorldCup2026Page";
 import AccountProfilePage from "./pages/website/AccountProfilePage";
 import FavoritesPage from "./pages/website/FavoritesPage";
 import AccountAlertsPage from "./pages/website/AccountAlertsPage";
@@ -95,6 +96,7 @@ const App = () => (
               <Route path="/leagues/:slug" element={<WebsiteLeaguePage />} />
               <Route path="/clubs" element={<ClubsPage />} />
               <Route path="/clubs/:slug" element={<ClubDetailPage />} />
+              <Route path="/world-cup-2026" element={<WorldCup2026Page />} />
               <Route path="/destinations" element={<DestinationsPage />} />
               <Route path="/destinations/:slug" element={<StadiumDetailPage />} />
               <Route path="/stadiums" element={<StadiumsPage />} />
