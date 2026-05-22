@@ -26,14 +26,57 @@ const XIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 export const WebsiteLayout = ({ children }: Props) => {
   const [open, setOpen] = useState(false);
+  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const { t, tf, dir, locale } = useLanguage();
   const wcLabel = getWorldCup2026Copy(locale).nav_label;
+  const footer = getFooterCopy(locale);
+  const safeGuideSlug = getGuide(locale, "safe-tickets").slug;
+  const leaguesGuideSlug = getGuide(locale, "league-coverage").slug;
+  const stadiumsGuideSlug = getGuide(locale, "stadium-experience").slug;
 
   const navItems = [
     { label: t("website.nav.matches"), to: "/matches" },
     { label: t("website.nav.leagues"), to: "/leagues" },
     { label: wcLabel, to: "/world-cup-2026" },
     { label: t("website.nav.pricing"), to: "/pricing" },
+  ];
+
+  const footerColumns = [
+    {
+      id: "browse",
+      title: footer.col_browse,
+      links: [
+        { label: footer.matches, to: "/matches" },
+        { label: footer.world_cup, to: "/world-cup-2026" },
+        { label: footer.pricing, to: "/pricing" },
+      ],
+    },
+    {
+      id: "editorial",
+      title: footer.col_editorial,
+      links: [
+        { label: footer.all_guides, to: "/guides" },
+        { label: footer.guide_safe, to: `/guides/${safeGuideSlug}` },
+        { label: footer.guide_leagues, to: `/guides/${leaguesGuideSlug}` },
+        { label: footer.guide_stadiums, to: `/guides/${stadiumsGuideSlug}` },
+        { label: footer.destinations, to: "/destinations" },
+        { label: footer.contact_link, to: "/contact" },
+        { label: footer.about, to: "/about" },
+      ],
+    },
+    {
+      id: "legal",
+      title: footer.col_legal,
+      links: [
+        { label: footer.terms, to: "/terms" },
+        { label: footer.privacy, to: "/privacy" },
+        { label: footer.cookies, to: "/cookies" },
+        { label: footer.affiliate, to: "/affiliate-disclosure" },
+        { label: footer.editorial_policy, to: "/editorial-policy" },
+        { label: footer.buyer_protection, to: "/ticket-policy" },
+        { label: footer.refund, to: "/refund-policy" },
+      ],
+    },
   ];
 
   const socialLinks = [
