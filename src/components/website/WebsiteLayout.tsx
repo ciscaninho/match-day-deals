@@ -155,66 +155,92 @@ export const WebsiteLayout = ({ children }: Props) => {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto px-5 py-14 grid gap-10 md:grid-cols-12">
-          <div className="md:col-span-4">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-[#2ECC71] flex items-center justify-center shadow-lg shadow-[#2ECC71]/30">
-                <Ticket className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-extrabold text-white tracking-tight text-lg">Foot Ticket Finder</span>
-            </Link>
-            <p className="text-sm text-white/60 max-w-sm leading-relaxed">{t("website.footer.tagline")}</p>
+        <div className="max-w-6xl mx-auto px-5 py-14">
+          {/* Brand block */}
+          <div className="grid gap-10 md:grid-cols-12">
+            <div className="md:col-span-4">
+              <Link to="/" className="flex items-center gap-2 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-[#2ECC71] flex items-center justify-center shadow-lg shadow-[#2ECC71]/30">
+                  <Ticket className="w-5 h-5 text-white" />
+                </div>
+                <span className="font-extrabold text-white tracking-tight text-lg">Foot Ticket Finder</span>
+              </Link>
+              <p className="text-sm text-white/60 max-w-sm leading-relaxed">{footer.tagline}</p>
 
-            <div className="mt-6">
-              <h4 className="text-[11px] font-bold uppercase tracking-widest text-white/90 mb-3">{t("website.footer.contact")}</h4>
-              <a href="mailto:support@footticketfinder.com" className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-[#2ECC71] transition-colors">
-                <Mail className="w-4 h-4" />
-                support@footticketfinder.com
-              </a>
+              <div className="mt-6">
+                <h4 className="text-[11px] font-bold uppercase tracking-widest text-white/90 mb-3">{footer.contact}</h4>
+                <a href="mailto:support@footticketfinder.com" className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-[#2ECC71] transition-colors">
+                  <Mail className="w-4 h-4" />
+                  support@footticketfinder.com
+                </a>
+              </div>
+
+              <div className="mt-6">
+                <h4 className="text-[11px] font-bold uppercase tracking-widest text-white/90 mb-3">{footer.follow}</h4>
+                <div className="flex items-center gap-2">
+                  {socialLinks.map(({ label, href, icon: Icon }) => (
+                    <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#2ECC71] hover:text-white transition-colors flex items-center justify-center">
+                      <Icon className="w-4 h-4" />
+                    </a>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            <div className="mt-6">
-              <h4 className="text-[11px] font-bold uppercase tracking-widest text-white/90 mb-3">{t("website.footer.follow")}</h4>
-              <div className="flex items-center gap-2">
-                {socialLinks.map(({ label, href, icon: Icon }) => (
-                  <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#2ECC71] hover:text-white transition-colors flex items-center justify-center">
-                    <Icon className="w-4 h-4" />
-                  </a>
-                ))}
-              </div>
+            {/* Desktop: 3 balanced columns */}
+            <div className="md:col-span-8 hidden md:grid md:grid-cols-3 md:gap-10">
+              {footerColumns.map((col) => (
+                <div key={col.id}>
+                  <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{col.title}</h4>
+                  <ul className="space-y-2.5 text-sm">
+                    {col.links.map((l) => (
+                      <li key={l.to + l.label}>
+                        <Link to={l.to} className="text-white/75 hover:text-[#2ECC71] transition-colors">
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
-          </div>
 
-          <div className="md:col-span-2">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{tf("website.footer.explore", "Explore")}</h4>
-            <ul className="space-y-2.5 text-sm">
-              <li><Link to="/world-cup-2026" className="hover:text-[#2ECC71] transition-colors">{wcLabel}</Link></li>
-              <li><Link to="/stadiums" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.stadiums", "Stadiums")}</Link></li>
-              <li><Link to="/clubs" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.clubs", "Clubs")}</Link></li>
-              <li><Link to="/matches" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.all_matches", "Matches")}</Link></li>
-            </ul>
-          </div>
-
-          <div className="md:col-span-3">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{tf("website.footer.resources", "Resources")}</h4>
-            <ul className="space-y-2.5 text-sm">
-              <li><Link to="/about" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.about", "About")}</Link></li>
-            </ul>
-          </div>
-
-          <div className="md:col-span-3">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest text-white mb-4">{tf("website.footer.support", "Support")}</h4>
-            <ul className="space-y-2.5 text-sm">
-              <li><Link to="/contact" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.contact_link", "Contact")}</Link></li>
-              <li><Link to="/ticket-policy" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.buyer_protection", "Buyer Protection")}</Link></li>
-              <li><Link to="/privacy" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.privacy", "Privacy")}</Link></li>
-              <li><Link to="/terms" className="hover:text-[#2ECC71] transition-colors">{tf("website.footer.terms", "Terms")}</Link></li>
-            </ul>
+            {/* Mobile: accordion */}
+            <div className="md:hidden divide-y divide-white/10 border-t border-white/10">
+              {footerColumns.map((col) => {
+                const isOpen = openAccordion === col.id;
+                return (
+                  <div key={col.id}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenAccordion(isOpen ? null : col.id)}
+                      className="w-full flex items-center justify-between py-4 text-left"
+                      aria-expanded={isOpen}
+                    >
+                      <span className="text-[12px] font-bold uppercase tracking-widest text-white">{col.title}</span>
+                      <ChevronDown className={`w-4 h-4 text-white/60 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    {isOpen && (
+                      <ul className="pb-4 space-y-2.5 text-sm">
+                        {col.links.map((l) => (
+                          <li key={l.to + l.label}>
+                            <Link to={l.to} className="text-white/75 hover:text-[#2ECC71] transition-colors">
+                              {l.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
+
         <div className="border-t border-white/10">
-          <div className="max-w-6xl mx-auto px-5 py-5 text-xs text-white/50 text-center">
-            {t("website.footer.copyright", { year: new Date().getFullYear() })}
+          <div className="max-w-6xl mx-auto px-5 py-5 text-xs text-white/50 text-center leading-relaxed">
+            {footer.legal_line.replace("{year}", String(new Date().getFullYear()))}
           </div>
         </div>
       </footer>
