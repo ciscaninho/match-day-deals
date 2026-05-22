@@ -51,6 +51,30 @@ export function WorldCupEnrichmentPanel({ stadiumSlug }: { stadiumSlug: string }
   const qc = useQueryClient();
   const [proposing, setProposing] = useState(false);
   const [savingField, setSavingField] = useState<Field | null>(null);
+  const [importBatch, setImportBatch] = useState<any>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [proposingMatch, setProposingMatch] = useState(false);
+
+  const proposeMissingMatch = async () => {
+    if (!stadium?.id) return;
+    setProposingMatch(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("wc-copilot-propose-match", {
+        body: { stadium_id: stadium.id },
+      });
+      if (error || data?.error) throw new Error(error?.message || data?.error);
+      if (!data.batch_id) {
+        toast.info(t("admin.wcimport.no_missing") || "No missing fixtures for this stadium");
+        return;
+      }
+      setImportBatch(data);
+      setImportOpen(true);
+    } catch (e: any) {
+      toast.error(e?.message || "Propose failed");
+    } finally {
+      setProposingMatch(false);
+    }
+  };
 
   const { data: stadium, refetch } = useQuery({
     queryKey: ["admin-stadium-wc", stadiumSlug],
