@@ -1,85 +1,92 @@
-# World Cup inside Stadiums admin
+# World Cup 2026 — controlled match import workflow
 
-Goal: manage WC2026 host stadiums from the existing `/admin/stadiums` workflow — no parallel admin. Enrich once, surface as premium content on the public World Cup page.
+Goal: matches are never created manually or from ticket URLs. The system imports the official WC2026 schedule, auto-links each fixture to an existing host stadium, and only then runs ticket enrichment. Admin reviews, never authors.
 
-## 1. Schema additions (single migration)
+## Source priority
 
-Extend `stadiums` with optional fields used for WC + enrichment (all nullable, safe defaults):
+1. **Official FIFA schedule** (canonical seed file shipped with the app — JSON of the 104 WC2026 fixtures: date, venue, city, country, matchday, phase, group).
+2. **Existing connected datasets** (Football-Data.org once they publish the WC competition; reuse `sync-football-data` patterns).
+3. **Manual CSV import** as fallback (admin uploads, same shape as the seed JSON).
 
-- `is_world_cup_host boolean default false`
-- `world_cup_edition text` (e.g. `'wc2026'`)
-- `world_cup_role text` (host_city / final / opening / group / knockout)
-- `host_city_context text`
-- `architecture_notes text`
-- `seat_recommendations text`
-- `fan_zones text`
-- `transport_notes text`
-- `hospitality_notes text`
-- `ticket_guidance text`
-- `matchday_advice text`
-- `travel_notes text`
-- `historical_facts text`
-- `enrichment_status text default 'draft'` (draft/in_review/approved)
-- `enrichment_updated_at timestamptz`
+Ticket providers are never a match source.
 
-New table `stadium_enrichment_proposals` (Copilot proposals → review → approve):
-- `stadium_id uuid`, `field text`, `proposed_value text`, `rationale text`, `source text`, `status text default 'pending'` (pending/approved/rejected), `created_by uuid`, `reviewed_by uuid`, `reviewed_at timestamptz`, timestamps
-- RLS: admins manage all; nothing public.
+## Schema
 
-Public read of new `stadiums` columns is fine under the existing public SELECT policy (active rows only).
+Extend `matches` (single migration, all nullable so existing rows are unaffected):
 
-## 2. `/admin/stadiums` — World Cup tab
+- `phase text` — group / r32 / r16 / qf / sf / 3p / final
+- `matchday integer`
+- `group_code text` — A..L
+- `kickoff_local time`
+- `slug text unique` — `wc2026-{matchday}-{home_short}-{away_short}`
+- `publication_status text default 'draft'`
+- `stadium_id uuid` — fk-style link to `stadiums.id` (no hard FK, resolved by importer)
+- `import_source text` — `fifa_seed` / `football_data` / `csv` / `copilot`
+- `import_batch_id uuid`
 
-`AdminStadiumsPage.tsx`: add a top-level toggle `Active | Archived | World Cup`. In WC mode:
-- Query `stadiums where is_world_cup_host = true`
-- Replace grid with a denser table view showing: Host stadium · Country · Host city · Publication status · **Media coverage** (hero ✓ + gallery count from `stadium_media` approved) · **Match coverage** (count of upcoming WC matches via `matches.competition` like 'World Cup%') · **Ticket coverage** (any active `ticket_offers` / club profile) · **Readiness %** (weighted: hero 25 + ≥3 gallery 15 + ≥3 enrichment fields approved 25 + matches 20 + tickets 15)
-- Each row opens an enhanced `StadiumDrawer` with a new **World Cup** tab.
+New table `wc_match_import_batches`:
+- `id`, `source text`, `status text` (pending/applied/rejected), `summary jsonb` (counts), `proposed jsonb` (array of candidate rows), `created_by`, `created_at`, `applied_at`
 
-Also add a small "Mark as WC host" action in the regular `StadiumDrawer` header so any stadium can be promoted into the WC section.
+Admin-only RLS on `wc_match_import_batches`. `matches` keeps existing public read.
 
-## 3. Enhanced StadiumDrawer — World Cup tab
+## Stadium auto-linking
 
-Tabs (new): `Overview · Media · World Cup`.
+Resolver (shared TS util `src/lib/wcStadiumResolver.ts`, mirrored in the edge function):
+1. Exact slug / stadium_name match on `stadiums where is_world_cup_host = true`.
+2. Alias match (`aliases` array, accent-folded via existing `foldText`).
+3. City + country match (single host in that city wins).
+4. Coordinates within 5km (when seed has lat/lng).
 
-**Media** reuses existing `StadiumMediaTab` (upload, hero assignment, gallery, moderation — all backed by `stadium_media`). No new media plumbing.
+If no host stadium matches → row goes into the batch as `needs_stadium` and is **not** imported. Admin must promote a stadium to WC host first.
 
-**World Cup** tab:
-- Role/edition selectors
-- Editable enrichment fields list (the 11 new columns), each showing current approved value + pending Copilot proposals
-- **Copilot panel**: button "Propose enrichment" → calls new edge function `wc-copilot-enrich` (Lovable AI Gateway, `google/gemini-2.5-pro`) which returns structured proposals for missing/weak fields and inserts them into `stadium_enrichment_proposals`
-- Each proposal row: Approve (writes value to `stadiums`, marks proposal approved) / Reject / Edit-then-approve
-- "Auto-enrich on save" toggle that re-runs Copilot when a host is first added
+No duplicate matches: dedupe by `(date, home_team, away_team)` and by generated `slug`.
 
-## 4. Edge function `wc-copilot-enrich`
+## Edge functions
 
-- Input: `{ stadium_id, fields?: string[] }`
-- Loads stadium row, asks Lovable AI for JSON-shaped proposals (one per missing field) grounded with `stadium_name + city + country + capacity + opened_year`
-- Inserts proposals; returns the list
-- Admin-only (verify JWT + `has_role admin`)
+- `wc-import-schedule` (admin-only)
+  - Input: `{ source: 'fifa_seed' | 'csv', payload? }`
+  - Loads candidate rows, runs resolver, dedupes against `matches`, writes a `wc_match_import_batches` row with `status='pending'` and the proposed inserts. Returns the batch id + counts.
+- `wc-import-apply` (admin-only)
+  - Input: `{ batch_id, accepted_ids?: string[] }` (default: all matched rows)
+  - Inserts the accepted rows into `matches` with `competition='FIFA World Cup 2026'`, `publication_status='draft'`, `lifecycle_status='upcoming'`, `import_source`, `import_batch_id`, `stadium_id` resolved.
+- `wc-copilot-propose-match` (admin-only, new)
+  - Input: `{ stadium_id }`
+  - Looks at host stadium + FIFA seed; if a scheduled fixture exists for that venue with no matching `matches` row, returns a single proposal row to be reviewed and inserted via `wc-import-apply`.
 
-## 5. Public World Cup page
+Existing `wc-copilot-enrich` stays untouched.
 
-Existing `WorldCupHostsBlock` (from prior PR) switches data source to:
-```
-stadiums where is_world_cup_host = true and publication_status = 'published' and enrichment_status = 'approved'
-```
-Cards use approved hero media from `stadium_media` and surface approved enrichment fields (host city context, fan zones, transport, ticket guidance). Raw/unapproved data never renders publicly.
+## Seed data
 
-## 6. Out of scope
+`src/data/wc2026Schedule.ts` — typed array of the 104 fixtures (date UTC, venue canonical name, city, country, matchday, phase, group). Used both by the edge function (re-exported) and by the admin UI preview before applying.
 
-- No new parallel `wc2026_destinations_staging` UI — the previously proposed staging table stays internal/dormant; WC is now driven entirely by promoting existing stadiums.
-- No revenue/analytics changes.
-- No new localization keys beyond labels for the WC tab + readiness badges (added to all 9 locales).
+## Admin UI
 
-## Files touched
+New section inside `/admin/stadiums` World Cup view:
 
-- migration (new columns + `stadium_enrichment_proposals`)
-- `src/pages/admin/AdminStadiumsPage.tsx` (WC tab + table view)
-- `src/components/admin/StadiumDrawer.tsx` (tabs + WC tab body)
-- `src/components/admin/WorldCupEnrichmentPanel.tsx` (new)
-- `src/hooks/useWorldCupReadiness.ts` (new)
-- `supabase/functions/wc-copilot-enrich/index.ts` (new)
-- `src/components/destinations/WorldCupHostsBlock.tsx` (data source switch)
-- `src/i18n/admin.ts` (+ WC labels in 9 locales)
+- **"Import schedule" toolbar action** opens `WorldCupImportDialog.tsx`:
+  - Source picker: FIFA seed (default) / CSV upload
+  - Runs `wc-import-schedule`, shows a table grouped by status:
+    - `ready` (resolved stadium + new) — checked by default
+    - `duplicate` (already in `matches`) — skipped
+    - `needs_stadium` (no host match) — disabled, with hint "Promote stadium first"
+  - "Apply selected" → `wc-import-apply`, refreshes match list.
+- **Per-stadium WC tab**: new "Matches" sub-section listing linked `matches`, with a "Propose missing match" button → `wc-copilot-propose-match` → opens same dialog with that single row preselected.
 
-Ship in this order: migration → admin UI → copilot function → public page rewire.
+## Ticket enrichment (after matches exist)
+
+Out of scope for this PR's logic — but the apply step intentionally leaves `ticket_sources=[]` and `ticket_status='not_released'`. A follow-up runs the existing `ticketing-enrich-suggest` pipeline keyed on `(stadium_id, date)`, attaching official / hospitality / trusted resale / affiliate links. Ticket sources never create or modify matches.
+
+## Files
+
+- migration (matches new cols + `wc_match_import_batches`)
+- `src/data/wc2026Schedule.ts` (new — seed)
+- `src/lib/wcStadiumResolver.ts` (new — shared resolver)
+- `supabase/functions/wc-import-schedule/index.ts` (new)
+- `supabase/functions/wc-import-apply/index.ts` (new)
+- `supabase/functions/wc-copilot-propose-match/index.ts` (new)
+- `src/components/admin/WorldCupImportDialog.tsx` (new)
+- `src/pages/admin/AdminStadiumsPage.tsx` (toolbar action in WC view)
+- `src/components/admin/StadiumDrawer.tsx` (Matches sub-section in WC tab)
+- `src/i18n/admin.ts` (+ import dialog labels in 9 locales)
+
+Ship order: migration → seed file + resolver → import + apply edge functions → admin dialog → copilot propose.
