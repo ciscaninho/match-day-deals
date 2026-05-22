@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Sparkles, Check, X, Loader2, Trophy, Save } from "lucide-react";
+import { Sparkles, Check, X, Loader2, Trophy, Save, CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
+import { WorldCupImportDialog } from "./WorldCupImportDialog";
 
 const ENRICHMENT_FIELDS = [
   "host_city_context",
@@ -50,6 +51,30 @@ export function WorldCupEnrichmentPanel({ stadiumSlug }: { stadiumSlug: string }
   const qc = useQueryClient();
   const [proposing, setProposing] = useState(false);
   const [savingField, setSavingField] = useState<Field | null>(null);
+  const [importBatch, setImportBatch] = useState<any>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [proposingMatch, setProposingMatch] = useState(false);
+
+  const proposeMissingMatch = async () => {
+    if (!stadium?.id) return;
+    setProposingMatch(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("wc-copilot-propose-match", {
+        body: { stadium_id: stadium.id },
+      });
+      if (error || data?.error) throw new Error(error?.message || data?.error);
+      if (!data.batch_id) {
+        toast.info(t("admin.wcimport.no_missing") || "No missing fixtures for this stadium");
+        return;
+      }
+      setImportBatch(data);
+      setImportOpen(true);
+    } catch (e: any) {
+      toast.error(e?.message || "Propose failed");
+    } finally {
+      setProposingMatch(false);
+    }
+  };
 
   const { data: stadium, refetch } = useQuery({
     queryKey: ["admin-stadium-wc", stadiumSlug],
@@ -192,17 +217,35 @@ export function WorldCupEnrichmentPanel({ stadiumSlug }: { stadiumSlug: string }
             </div>
           </div>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant={stadium.enrichment_status === "approved" ? "default" : "secondary"} className="text-[10px]">
             {stadium.enrichment_status}
           </Badge>
           {stadium.enrichment_status !== "approved" && (
             <Button size="sm" variant="outline" className="h-7 text-xs" onClick={markApproved}>
-              <Check className="w-3 h-3 mr-1" /> Mark approved for publication
+              <Check className="w-3 h-3 mr-1" /> {t("admin.wcimport.mark_approved") || "Mark approved for publication"}
+            </Button>
+          )}
+          {stadium.is_world_cup_host && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+              disabled={proposingMatch}
+              onClick={proposeMissingMatch}
+            >
+              {proposingMatch ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <CalendarPlus className="w-3 h-3 mr-1" />}
+              {t("admin.wcimport.propose_match") || "Propose missing World Cup match"}
             </Button>
           )}
         </div>
       </section>
+
+      <WorldCupImportDialog
+        open={importOpen}
+        onClose={() => { setImportOpen(false); setImportBatch(null); }}
+        initialBatch={importBatch}
+      />
 
       {/* Copilot */}
       <section className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
