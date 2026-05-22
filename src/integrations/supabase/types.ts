@@ -482,16 +482,25 @@ export type Database = {
           data_source: string | null
           date: string
           featured: boolean
+          group_code: string | null
           home_logo: string | null
           home_short: string
           home_team: string
           id: string
+          import_batch_id: string | null
+          import_source: string | null
+          kickoff_local: string | null
           last_synced_at: string | null
           lifecycle_status: string
+          matchday: number | null
           official_link: string | null
+          phase: string | null
           priority: boolean
+          publication_status: string
+          slug: string | null
           sportmonks_id: number | null
           stadium: string
+          stadium_id: string | null
           starting_price: number | null
           ticket_release_date: string | null
           ticket_sources: Json
@@ -512,16 +521,25 @@ export type Database = {
           data_source?: string | null
           date: string
           featured?: boolean
+          group_code?: string | null
           home_logo?: string | null
           home_short: string
           home_team: string
           id: string
+          import_batch_id?: string | null
+          import_source?: string | null
+          kickoff_local?: string | null
           last_synced_at?: string | null
           lifecycle_status?: string
+          matchday?: number | null
           official_link?: string | null
+          phase?: string | null
           priority?: boolean
+          publication_status?: string
+          slug?: string | null
           sportmonks_id?: number | null
           stadium?: string
+          stadium_id?: string | null
           starting_price?: number | null
           ticket_release_date?: string | null
           ticket_sources?: Json
@@ -542,16 +560,25 @@ export type Database = {
           data_source?: string | null
           date?: string
           featured?: boolean
+          group_code?: string | null
           home_logo?: string | null
           home_short?: string
           home_team?: string
           id?: string
+          import_batch_id?: string | null
+          import_source?: string | null
+          kickoff_local?: string | null
           last_synced_at?: string | null
           lifecycle_status?: string
+          matchday?: number | null
           official_link?: string | null
+          phase?: string | null
           priority?: boolean
+          publication_status?: string
+          slug?: string | null
           sportmonks_id?: number | null
           stadium?: string
+          stadium_id?: string | null
           starting_price?: number | null
           ticket_release_date?: string | null
           ticket_sources?: Json
@@ -1761,6 +1788,48 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      wc_match_import_batches: {
+        Row: {
+          applied_at: string | null
+          applied_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          proposed: Json
+          source: string
+          status: string
+          summary: Json
+          updated_at: string
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          proposed?: Json
+          source: string
+          status?: string
+          summary?: Json
+          updated_at?: string
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          proposed?: Json
+          source?: string
+          status?: string
+          summary?: Json
+          updated_at?: string
         }
         Relationships: []
       }
