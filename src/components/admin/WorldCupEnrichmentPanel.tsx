@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Sparkles, Check, X, Loader2, Trophy, Save } from "lucide-react";
+import { Sparkles, Check, X, Loader2, Trophy, Save, CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
+import { WorldCupImportDialog } from "./WorldCupImportDialog";
 
 const ENRICHMENT_FIELDS = [
   "host_city_context",
