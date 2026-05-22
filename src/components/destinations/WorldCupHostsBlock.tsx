@@ -18,7 +18,6 @@ export function WorldCupHostsBlock() {
         .is("archived_at", null)
         .eq("is_world_cup_host", true)
         .eq("publication_status", "published")
-        .eq("enrichment_status", "approved")
         .order("stadium_name")
         .limit(24);
       return data || [];
