@@ -217,17 +217,35 @@ export function WorldCupEnrichmentPanel({ stadiumSlug }: { stadiumSlug: string }
             </div>
           </div>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant={stadium.enrichment_status === "approved" ? "default" : "secondary"} className="text-[10px]">
             {stadium.enrichment_status}
           </Badge>
           {stadium.enrichment_status !== "approved" && (
             <Button size="sm" variant="outline" className="h-7 text-xs" onClick={markApproved}>
-              <Check className="w-3 h-3 mr-1" /> Mark approved for publication
+              <Check className="w-3 h-3 mr-1" /> {t("admin.wcimport.mark_approved") || "Mark approved for publication"}
+            </Button>
+          )}
+          {stadium.is_world_cup_host && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+              disabled={proposingMatch}
+              onClick={proposeMissingMatch}
+            >
+              {proposingMatch ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <CalendarPlus className="w-3 h-3 mr-1" />}
+              {t("admin.wcimport.propose_match") || "Propose missing World Cup match"}
             </Button>
           )}
         </div>
       </section>
+
+      <WorldCupImportDialog
+        open={importOpen}
+        onClose={() => { setImportOpen(false); setImportBatch(null); }}
+        initialBatch={importBatch}
+      />
 
       {/* Copilot */}
       <section className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
