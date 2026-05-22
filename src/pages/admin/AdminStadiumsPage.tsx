@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2, Plus } from "lucide-react";
+import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2, Plus, CalendarPlus } from "lucide-react";
 import { StadiumDrawer, type StadiumDrawerRow } from "@/components/admin/StadiumDrawer";
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 import { PublicationStatusControl } from "@/components/admin/PublicationStatusControl";
 import { StadiumCreateDialog } from "@/components/admin/StadiumCreateDialog";
+import { WorldCupImportDialog } from "@/components/admin/WorldCupImportDialog";
 import { matchesQuery } from "@/lib/normalize";
 
 type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null; archived_at?: string | null; archived_into_slug?: string | null; publication_status?: string | null; aliases?: string[] | null };
@@ -27,6 +28,7 @@ export const AdminStadiumsPage = () => {
   const [view, setView] = useState<"active" | "archived" | "worldcup">("active");
   const [selected, setSelected] = useState<StadiumRow | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const filters = useFootballFilters();
 
   const { data = [], isLoading } = useQuery({
@@ -84,6 +86,11 @@ export const AdminStadiumsPage = () => {
             <Button onClick={() => setCreateOpen(true)} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
               <Plus className="w-4 h-4 mr-1" /> {t("admin.create.stadium.cta") || "Create stadium"}
             </Button>
+            {view === "worldcup" && (
+              <Button onClick={() => setImportOpen(true)} size="sm" variant="outline" className="border-emerald-300 text-emerald-700 hover:bg-emerald-50">
+                <CalendarPlus className="w-4 h-4 mr-1" /> {t("admin.wcimport.cta") || "Import WC schedule"}
+              </Button>
+            )}
             {viewButton("active", "Active", active.length)}
             {viewButton("archived", "Archived", archived.length)}
             {viewButton("worldcup", "🏆 World Cup", worldCup.length)}
@@ -180,6 +187,7 @@ export const AdminStadiumsPage = () => {
         onClose={() => setCreateOpen(false)}
         onCreated={() => qc.invalidateQueries({ queryKey: ["admin-stadiums-v2"] })}
       />
+      <WorldCupImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );
 };
