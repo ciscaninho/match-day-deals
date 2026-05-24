@@ -301,14 +301,24 @@ const AdminMatchReviewPage = () => {
                 <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3" />{m.stadium || "—"}</span>
               </div>
               <div className="flex flex-wrap gap-1">
+                {isTournamentStructure(m) && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                    🏆 Tournament Structure
+                  </span>
+                )}
                 {FLAG_DEFS.filter((f) => flags[f.key]).map((f) => (
                   <span key={f.key} className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${f.cls}`}>
                     {f.label}
                   </span>
                 ))}
-                {Object.values(flags).every((v) => !v) && (
+                {Object.values(flags).every((v) => !v) && !isTournamentStructure(m) && (
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 inline-flex items-center gap-1">
                     <ShieldCheck className="w-3 h-3" /> Clean
+                  </span>
+                )}
+                {isTournamentStructure(m) && Object.values(flags).every((v) => !v) && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700">
+                    Projected fixture
                   </span>
                 )}
               </div>
