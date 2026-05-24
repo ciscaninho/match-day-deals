@@ -26,6 +26,11 @@ type MatchRow = {
   home_logo: string | null;
   away_logo: string | null;
   data_source: string | null;
+  fixture_confidence?: string | null;
+  home_team_status?: string | null;
+  away_team_status?: string | null;
+  phase?: string | null;
+  group_code?: string | null;
 };
 
 type ClubLite = { slug: string; club_name: string; country: string | null; league: string | null; stadium_name: string | null };
@@ -33,6 +38,14 @@ type StadiumLite = { slug: string; stadium_name: string; city: string | null; co
 type LeagueLite = { league_name: string; country: string };
 
 const norm = (s: string | null | undefined) => foldText(s);
+
+// Tournament structure = projected slot, not a real club fixture. We bypass
+// club/league/verification heuristics for these rows so the WC schedule looks
+// intentional rather than broken.
+export const isTournamentStructure = (m: MatchRow) =>
+  m.fixture_confidence === "projected" ||
+  !!m.phase ||
+  /world cup|coupe du monde|f[ií]fa\s+wc|euro\b|copa am[eé]rica|nations league/i.test(m.competition || "");
 
 type Flags = {
   unknown_country: boolean;
@@ -51,6 +64,7 @@ const computeFlags = (
   knownLeaguesByCountry: Map<string, Set<string>>,
   duplicateIds: Set<string>,
 ): Flags => {
+  const tournament = isTournamentStructure(m);
   const homeC = clubsByName.get(norm(m.home_team));
   const awayC = clubsByName.get(norm(m.away_team));
   const stadium = stadiumsByName.get(norm(m.stadium));
@@ -59,12 +73,12 @@ const computeFlags = (
     !!country && (knownLeaguesByCountry.get(country)?.has(norm(m.competition)) ?? false);
   return {
     unknown_country: !country,
-    unknown_league: !m.competition || !leagueKnown,
-    ambiguous_league: isSharedLeagueName(m.competition) && !country,
+    unknown_league: tournament ? false : (!m.competition || !leagueKnown),
+    ambiguous_league: tournament ? false : (isSharedLeagueName(m.competition) && !country),
     missing_stadium: !stadium,
-    unresolved_clubs: !homeC || !awayC,
-    duplicate_fixture: duplicateIds.has(m.id),
-    not_verified: !m.verified,
+    unresolved_clubs: tournament ? false : (!homeC || !awayC),
+    duplicate_fixture: tournament ? false : duplicateIds.has(m.id),
+    not_verified: tournament ? false : !m.verified,
   };
 };
 
