@@ -109,7 +109,9 @@ export const useMatch = (id: string | undefined) => {
         throw error;
       }
       if (!data) return null;
-      const m = mapRow(data as MatchRow);
+      const row = data as MatchRow;
+      if (!isPublishReadyMatchRow(row)) return null;
+      const m = mapRow(row);
       return isTbdMatch(m) ? null : m;
     },
     enabled: !!id,
