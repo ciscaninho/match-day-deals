@@ -1848,6 +1848,72 @@ export type Database = {
         }
         Relationships: []
       }
+      wc_ticket_coverage: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          event_date: string | null
+          id: string
+          kind: string
+          label: string | null
+          notes: string | null
+          priority: number
+          provider: string
+          provider_logo: string | null
+          stadium_name: string
+          stadium_slug: string
+          starting_price: number | null
+          status: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          event_date?: string | null
+          id?: string
+          kind?: string
+          label?: string | null
+          notes?: string | null
+          priority?: number
+          provider: string
+          provider_logo?: string | null
+          stadium_name: string
+          stadium_slug: string
+          starting_price?: number | null
+          status?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          event_date?: string | null
+          id?: string
+          kind?: string
+          label?: string | null
+          notes?: string | null
+          priority?: number
+          provider?: string
+          provider_logo?: string | null
+          stadium_name?: string
+          stadium_slug?: string
+          starting_price?: number | null
+          status?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

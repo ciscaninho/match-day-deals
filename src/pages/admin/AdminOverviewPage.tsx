@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, MapPin, CalendarDays, Trophy, Sparkles, ArrowRight } from "lucide-react";
+import { WorldCupTicketCoveragePanel } from "@/components/admin/WorldCupTicketCoveragePanel";
 
 export const AdminOverviewPage = () => {
   const { t } = useLanguage();
@@ -109,6 +110,8 @@ export const AdminOverviewPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      <WorldCupTicketCoveragePanel />
 
       <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none shadow-xl">
         <CardContent className="p-6 flex items-center gap-4">
