@@ -22,6 +22,35 @@ export const AdminOverviewPage = () => {
     },
   });
 
+  const { data: wc } = useQuery({
+    queryKey: ["admin-wc-counters"],
+    queryFn: async () => {
+      const wcFilter = "competition.ilike.%world cup%,competition.ilike.%fifa%,competition.ilike.%coupe du monde%,competition.ilike.%mundial%";
+      const [imported, confirmed, publicMatches, ticketReady, hosts] = await Promise.all([
+        supabase.from("matches").select("id", { count: "exact", head: true }).or(wcFilter).is("archived_at", null),
+        supabase.from("matches").select("id", { count: "exact", head: true }).or(wcFilter).is("archived_at", null)
+          .not("home_team_status", "in", "(tbd,projected)")
+          .not("away_team_status", "in", "(tbd,projected)"),
+        supabase.from("matches").select("id", { count: "exact", head: true }).or(wcFilter).is("archived_at", null)
+          .eq("fixture_confidence", "confirmed")
+          .not("home_team_status", "in", "(tbd,projected)")
+          .not("away_team_status", "in", "(tbd,projected)"),
+        supabase.from("matches").select("id", { count: "exact", head: true }).or(wcFilter).is("archived_at", null)
+          .in("ticket_status", ["on_sale", "presale"]),
+        supabase.from("stadiums").select("id", { count: "exact", head: true })
+          .is("archived_at", null).eq("is_world_cup_host", true),
+      ]);
+      return {
+        imported: imported.count || 0,
+        confirmed: confirmed.count || 0,
+        publicMatches: publicMatches.count || 0,
+        ticketReady: ticketReady.count || 0,
+        hosts: hosts.count || 0,
+      };
+    },
+  });
+
+
   const cards = [
     { to: "/admin/clubs", icon: Users, label: t("admin.section.kpi.clubs"), value: kpis?.clubs },
     { to: "/admin/stadiums", icon: MapPin, label: t("admin.section.kpi.stadiums"), value: kpis?.stadiums },
