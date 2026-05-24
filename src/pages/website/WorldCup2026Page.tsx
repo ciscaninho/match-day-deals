@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, MapPin, Trophy, Ticket, Compass, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { formatTeamLabel } from "@/lib/tournamentLabels";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useSEO } from "@/lib/seo";
