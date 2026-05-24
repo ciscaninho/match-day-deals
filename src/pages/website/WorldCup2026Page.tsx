@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, MapPin, Trophy, Ticket, Compass, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { formatTeamLabel } from "@/lib/tournamentLabels";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useSEO } from "@/lib/seo";
@@ -44,7 +45,7 @@ function useWorldCupMatches() {
     queryFn: async () => {
       const { data } = await supabase
         .from("matches")
-        .select("id,home_team,away_team,competition,date,stadium,city,country,ticket_status,starting_price")
+        .select("id,home_team,away_team,competition,date,stadium,city,country,ticket_status,starting_price,fixture_confidence,home_team_status,away_team_status,home_team_projected,away_team_projected")
         .or("competition.ilike.%world cup%,competition.ilike.%fifa%,competition.ilike.%coupe du monde%,competition.ilike.%mundial%")
         .gte("date", new Date().toISOString())
         .is("archived_at", null)
@@ -225,7 +226,7 @@ const WorldCup2026Page = () => {
                     className="rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 p-4 transition-all"
                   >
                     <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-2">{m.competition}</div>
-                    <div className="font-display text-lg text-white">{m.home_team} <span className="text-white/50">vs</span> {m.away_team}</div>
+                    <div className="font-display text-lg text-white">{formatTeamLabel({ raw: m.home_team, projected: m.home_team_projected, status: m.home_team_status })} <span className="text-white/50">vs</span> {formatTeamLabel({ raw: m.away_team, projected: m.away_team_projected, status: m.away_team_status })}</div>
                     <div className="mt-2 text-xs text-white/60 flex items-center gap-1">
                       <MapPin className="w-3 h-3" /> {m.stadium}, {m.city}
                     </div>
