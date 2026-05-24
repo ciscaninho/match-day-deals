@@ -24,7 +24,18 @@ type MatchRow = {
   priority: boolean;
   archived_at?: string | null;
   lifecycle_status?: string | null;
+  fixture_confidence?: string | null;
+  home_team_status?: string | null;
+  away_team_status?: string | null;
 };
+
+const isProjectedOrTbdStatus = (s?: string | null) =>
+  s === "tbd" || s === "projected";
+
+export const isPublishReadyMatchRow = (row: MatchRow): boolean =>
+  !isProjectedOrTbdStatus(row.home_team_status) &&
+  !isProjectedOrTbdStatus(row.away_team_status) &&
+  row.fixture_confidence !== "projected";
 
 const mapRow = (row: MatchRow): Match => {
   const archivedAt = row.archived_at ?? null;
@@ -73,6 +84,7 @@ export const useMatches = () => {
       // archived matches are excluded unless surfaced via a dedicated
       // historical section. TBD/placeholder fixtures are also hidden.
       return (data as MatchRow[])
+        .filter(isPublishReadyMatchRow)
         .map(mapRow)
         .filter((m) => !isTbdMatch(m) && isPublicDiscoverable(m.lifecycleStatus));
     },
@@ -97,7 +109,9 @@ export const useMatch = (id: string | undefined) => {
         throw error;
       }
       if (!data) return null;
-      const m = mapRow(data as MatchRow);
+      const row = data as MatchRow;
+      if (!isPublishReadyMatchRow(row)) return null;
+      const m = mapRow(row);
       return isTbdMatch(m) ? null : m;
     },
     enabled: !!id,

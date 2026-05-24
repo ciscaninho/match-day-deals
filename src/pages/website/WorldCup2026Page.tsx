@@ -49,6 +49,9 @@ function useWorldCupMatches() {
         .or("competition.ilike.%world cup%,competition.ilike.%fifa%,competition.ilike.%coupe du monde%,competition.ilike.%mundial%")
         .gte("date", new Date().toISOString())
         .is("archived_at", null)
+        .eq("fixture_confidence", "confirmed")
+        .not("home_team_status", "in", "(tbd,projected)")
+        .not("away_team_status", "in", "(tbd,projected)")
         .order("date")
         .limit(8);
       return data ?? [];
