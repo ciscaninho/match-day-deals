@@ -9,6 +9,8 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { useSEO } from "@/lib/seo";
 import { getWorldCup2026Copy } from "@/i18n/worldCup2026";
 import { BrandedStadiumImage } from "@/components/stadium/BrandedStadiumImage";
+import { WorldCupTicketsSection } from "@/components/website/WorldCupTicketsSection";
+
 
 type Host = {
   slug: string;
@@ -164,6 +166,9 @@ const WorldCup2026Page = () => {
             )}
           </div>
         </section>
+
+        {/* WORLD CUP TICKETS (independent of fixtures) */}
+        <WorldCupTicketsSection />
 
         {/* HOST STADIUMS GRID */}
         <section id="wc-hosts" className="bg-gradient-to-b from-[#0F1A2E] to-[#0a1220] py-16 sm:py-24">
