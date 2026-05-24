@@ -84,6 +84,7 @@ export const useMatches = () => {
       // archived matches are excluded unless surfaced via a dedicated
       // historical section. TBD/placeholder fixtures are also hidden.
       return (data as MatchRow[])
+        .filter(isPublishReadyMatchRow)
         .map(mapRow)
         .filter((m) => !isTbdMatch(m) && isPublicDiscoverable(m.lifecycleStatus));
     },
