@@ -24,7 +24,18 @@ type MatchRow = {
   priority: boolean;
   archived_at?: string | null;
   lifecycle_status?: string | null;
+  fixture_confidence?: string | null;
+  home_team_status?: string | null;
+  away_team_status?: string | null;
 };
+
+const isProjectedOrTbdStatus = (s?: string | null) =>
+  s === "tbd" || s === "projected";
+
+export const isPublishReadyMatchRow = (row: MatchRow): boolean =>
+  !isProjectedOrTbdStatus(row.home_team_status) &&
+  !isProjectedOrTbdStatus(row.away_team_status) &&
+  row.fixture_confidence !== "projected";
 
 const mapRow = (row: MatchRow): Match => {
   const archivedAt = row.archived_at ?? null;
