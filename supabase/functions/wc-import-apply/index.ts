@@ -80,6 +80,15 @@ Deno.serve(async (req) => {
         away_team: p.row.awayTeam,
         home_short: p.row.homeShort,
         away_short: p.row.awayShort,
+        home_team_status: p.row.homeTeamStatus ?? "tbd",
+        away_team_status: p.row.awayTeamStatus ?? "tbd",
+        home_team_projected:
+          (p.row.homeTeamStatus === "projected" || p.row.homeTeamStatus === "confirmed")
+            ? p.row.homeShort : null,
+        away_team_projected:
+          (p.row.awayTeamStatus === "projected" || p.row.awayTeamStatus === "confirmed")
+            ? p.row.awayShort : null,
+        fixture_confidence: p.row.fixtureConfidence ?? "projected",
         phase: p.row.phase,
         matchday: p.row.matchday,
         group_code: p.row.groupCode ?? null,
@@ -87,7 +96,7 @@ Deno.serve(async (req) => {
         ticket_sources: [],
         publication_status: "draft",
         lifecycle_status: "upcoming",
-        verified: true,
+        verified: false,
         import_source: p.row.import_source || "fifa_seed",
         import_batch_id: batch.id,
       }));
