@@ -26,6 +26,11 @@ type MatchRow = {
   home_logo: string | null;
   away_logo: string | null;
   data_source: string | null;
+  fixture_confidence?: string | null;
+  home_team_status?: string | null;
+  away_team_status?: string | null;
+  phase?: string | null;
+  group_code?: string | null;
 };
 
 type ClubLite = { slug: string; club_name: string; country: string | null; league: string | null; stadium_name: string | null };
@@ -33,6 +38,14 @@ type StadiumLite = { slug: string; stadium_name: string; city: string | null; co
 type LeagueLite = { league_name: string; country: string };
 
 const norm = (s: string | null | undefined) => foldText(s);
+
+// Tournament structure = projected slot, not a real club fixture. We bypass
+// club/league/verification heuristics for these rows so the WC schedule looks
+// intentional rather than broken.
+export const isTournamentStructure = (m: MatchRow) =>
+  m.fixture_confidence === "projected" ||
+  !!m.phase ||
+  /world cup|coupe du monde|f[ií]fa\s+wc|euro\b|copa am[eé]rica|nations league/i.test(m.competition || "");
 
 type Flags = {
   unknown_country: boolean;
@@ -51,6 +64,7 @@ const computeFlags = (
   knownLeaguesByCountry: Map<string, Set<string>>,
   duplicateIds: Set<string>,
 ): Flags => {
+  const tournament = isTournamentStructure(m);
   const homeC = clubsByName.get(norm(m.home_team));
   const awayC = clubsByName.get(norm(m.away_team));
   const stadium = stadiumsByName.get(norm(m.stadium));
@@ -59,12 +73,12 @@ const computeFlags = (
     !!country && (knownLeaguesByCountry.get(country)?.has(norm(m.competition)) ?? false);
   return {
     unknown_country: !country,
-    unknown_league: !m.competition || !leagueKnown,
-    ambiguous_league: isSharedLeagueName(m.competition) && !country,
+    unknown_league: tournament ? false : (!m.competition || !leagueKnown),
+    ambiguous_league: tournament ? false : (isSharedLeagueName(m.competition) && !country),
     missing_stadium: !stadium,
-    unresolved_clubs: !homeC || !awayC,
-    duplicate_fixture: duplicateIds.has(m.id),
-    not_verified: !m.verified,
+    unresolved_clubs: tournament ? false : (!homeC || !awayC),
+    duplicate_fixture: tournament ? false : duplicateIds.has(m.id),
+    not_verified: tournament ? false : !m.verified,
   };
 };
 
@@ -108,7 +122,7 @@ const AdminMatchReviewPage = () => {
       const since = new Date(Date.now() - 14 * 24 * 3600 * 1000).toISOString();
       const { data } = await supabase
         .from("matches")
-        .select("id,home_team,away_team,competition,date,stadium,city,country,ticket_status,verified,home_logo,away_logo,data_source")
+        .select("id,home_team,away_team,competition,date,stadium,city,country,ticket_status,verified,home_logo,away_logo,data_source,fixture_confidence,home_team_status,away_team_status,phase,group_code")
         .gte("date", since)
         .order("date", { ascending: true })
         .limit(800);
@@ -287,14 +301,24 @@ const AdminMatchReviewPage = () => {
                 <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3" />{m.stadium || "—"}</span>
               </div>
               <div className="flex flex-wrap gap-1">
+                {isTournamentStructure(m) && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                    🏆 Tournament Structure
+                  </span>
+                )}
                 {FLAG_DEFS.filter((f) => flags[f.key]).map((f) => (
                   <span key={f.key} className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${f.cls}`}>
                     {f.label}
                   </span>
                 ))}
-                {Object.values(flags).every((v) => !v) && (
+                {Object.values(flags).every((v) => !v) && !isTournamentStructure(m) && (
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 inline-flex items-center gap-1">
                     <ShieldCheck className="w-3 h-3" /> Clean
+                  </span>
+                )}
+                {isTournamentStructure(m) && Object.values(flags).every((v) => !v) && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700">
+                    Projected fixture
                   </span>
                 )}
               </div>
