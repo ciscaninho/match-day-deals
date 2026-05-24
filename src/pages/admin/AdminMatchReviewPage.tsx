@@ -122,7 +122,7 @@ const AdminMatchReviewPage = () => {
       const since = new Date(Date.now() - 14 * 24 * 3600 * 1000).toISOString();
       const { data } = await supabase
         .from("matches")
-        .select("id,home_team,away_team,competition,date,stadium,city,country,ticket_status,verified,home_logo,away_logo,data_source")
+        .select("id,home_team,away_team,competition,date,stadium,city,country,ticket_status,verified,home_logo,away_logo,data_source,fixture_confidence,home_team_status,away_team_status,phase,group_code")
         .gte("date", since)
         .order("date", { ascending: true })
         .limit(800);
