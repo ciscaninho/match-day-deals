@@ -83,6 +83,34 @@ export const AdminOverviewPage = () => {
       </div>
 
       <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none shadow-xl">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
+              <Trophy className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <h2 className="font-extrabold text-base">FIFA World Cup 2026</h2>
+              <p className="text-xs text-white/70 mt-0.5">Projected fixtures stay admin-only until teams are confirmed.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {[
+              { label: "Imported", value: wc?.imported },
+              { label: "Teams confirmed", value: wc?.confirmed },
+              { label: "Public matches", value: wc?.publicMatches },
+              { label: "Ticket ready", value: wc?.ticketReady },
+              { label: "Host stadiums", value: wc?.hosts },
+            ].map((c) => (
+              <div key={c.label} className="rounded-xl bg-white/5 border border-white/10 p-3">
+                <p className="text-2xl font-extrabold leading-none">{c.value ?? "—"}</p>
+                <p className="text-[10px] font-semibold text-white/65 mt-1.5 uppercase tracking-wider">{c.label}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none shadow-xl">
         <CardContent className="p-6 flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
             <Sparkles className="w-6 h-6 text-emerald-400" />
