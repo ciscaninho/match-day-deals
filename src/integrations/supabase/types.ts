@@ -474,6 +474,8 @@ export type Database = {
           away_logo: string | null
           away_short: string
           away_team: string
+          away_team_projected: string | null
+          away_team_status: string
           category: string | null
           city: string
           competition: string
@@ -482,10 +484,13 @@ export type Database = {
           data_source: string | null
           date: string
           featured: boolean
+          fixture_confidence: string
           group_code: string | null
           home_logo: string | null
           home_short: string
           home_team: string
+          home_team_projected: string | null
+          home_team_status: string
           id: string
           import_batch_id: string | null
           import_source: string | null
@@ -513,6 +518,8 @@ export type Database = {
           away_logo?: string | null
           away_short: string
           away_team: string
+          away_team_projected?: string | null
+          away_team_status?: string
           category?: string | null
           city?: string
           competition: string
@@ -521,10 +528,13 @@ export type Database = {
           data_source?: string | null
           date: string
           featured?: boolean
+          fixture_confidence?: string
           group_code?: string | null
           home_logo?: string | null
           home_short: string
           home_team: string
+          home_team_projected?: string | null
+          home_team_status?: string
           id: string
           import_batch_id?: string | null
           import_source?: string | null
@@ -552,6 +562,8 @@ export type Database = {
           away_logo?: string | null
           away_short?: string
           away_team?: string
+          away_team_projected?: string | null
+          away_team_status?: string
           category?: string | null
           city?: string
           competition?: string
@@ -560,10 +572,13 @@ export type Database = {
           data_source?: string | null
           date?: string
           featured?: boolean
+          fixture_confidence?: string
           group_code?: string | null
           home_logo?: string | null
           home_short?: string
           home_team?: string
+          home_team_projected?: string | null
+          home_team_status?: string
           id?: string
           import_batch_id?: string | null
           import_source?: string | null
