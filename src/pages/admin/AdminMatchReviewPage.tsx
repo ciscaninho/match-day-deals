@@ -39,13 +39,13 @@ type LeagueLite = { league_name: string; country: string };
 
 const norm = (s: string | null | undefined) => foldText(s);
 
-// Tournament structure = projected slot, not a real club fixture. We bypass
-// club/league/verification heuristics for these rows so the WC schedule looks
-// intentional rather than broken.
+import { isInternationalCompetition, formatTeamLabel } from "@/lib/tournamentLabels";
+
+// Tournament structure = projected slot in an international tournament. Both
+// conditions must hold so we never flag a domestic club fixture as projected.
 export const isTournamentStructure = (m: MatchRow) =>
-  m.fixture_confidence === "projected" ||
-  !!m.phase ||
-  /world cup|coupe du monde|f[ií]fa\s+wc|euro\b|copa am[eé]rica|nations league/i.test(m.competition || "");
+  isInternationalCompetition(m.competition) &&
+  (m.fixture_confidence === "projected" || !!m.phase);
 
 type Flags = {
   unknown_country: boolean;
@@ -292,10 +292,23 @@ const AdminMatchReviewPage = () => {
                 <ScorePill score={score} />
               </div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="font-bold text-sm text-[#2C3E50] truncate flex-1">{m.home_team}</span>
+                <span className="font-bold text-sm text-[#2C3E50] truncate flex-1">
+                  {isTournamentStructure(m)
+                    ? formatTeamLabel({ raw: m.home_team, status: m.home_team_status })
+                    : m.home_team}
+                </span>
                 <span className="text-slate-400 text-xs">vs</span>
-                <span className="font-bold text-sm text-[#2C3E50] truncate flex-1 text-right">{m.away_team}</span>
+                <span className="font-bold text-sm text-[#2C3E50] truncate flex-1 text-right">
+                  {isTournamentStructure(m)
+                    ? formatTeamLabel({ raw: m.away_team, status: m.away_team_status })
+                    : m.away_team}
+                </span>
               </div>
+              {isTournamentStructure(m) && (m.home_team !== formatTeamLabel({ raw: m.home_team, status: m.home_team_status }) || m.away_team !== formatTeamLabel({ raw: m.away_team, status: m.away_team_status })) && (
+                <div className="text-[10px] text-slate-400 mb-1 font-mono">
+                  raw: {m.home_team} vs {m.away_team}
+                </div>
+              )}
               <div className="text-[11px] text-slate-500 flex items-center gap-3 mb-2">
                 <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(m.date).toLocaleDateString()}</span>
                 <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3" />{m.stadium || "—"}</span>
