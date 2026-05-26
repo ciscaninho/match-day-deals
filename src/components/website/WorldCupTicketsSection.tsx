@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Ticket, MapPin, ArrowRight, ShieldCheck, CalendarDays, Flame, Trophy, Globe2, Star, Target } from "lucide-react";
+import { Ticket, ArrowRight, ShieldCheck } from "lucide-react";
 import { groupCoverageByEvent, useWorldCupTicketCoverage, type GroupedWCEvent } from "@/hooks/useWorldCupTicketCoverage";
 import { transformAffiliateUrl } from "@/lib/affiliate";
 import { trackAffiliateClick } from "@/lib/affiliateTracking";
