@@ -230,38 +230,34 @@ function assignImages(
 
 // --- UI ----------------------------------------------------------------------
 
-function Chip({ children, tone = "default", icon: Icon }: { children: React.ReactNode; tone?: "default" | "emerald" | "amber" | "violet" | "sky" | "rose"; icon?: React.ComponentType<{ className?: string }> }) {
+function Chip({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "emerald" | "amber" | "violet" | "sky" }) {
   const tones: Record<string, string> = {
-    default: "bg-white/10 text-white/85 border-white/10 backdrop-blur",
-    emerald: "bg-emerald-500/95 text-white border-transparent",
-    amber: "bg-amber-400/95 text-slate-900 border-transparent",
-    violet: "bg-violet-500/95 text-white border-transparent",
-    sky: "bg-sky-500/95 text-white border-transparent",
-    rose: "bg-rose-500/95 text-white border-transparent",
+    default: "bg-white/15 text-white/90 backdrop-blur-md",
+    emerald: "bg-emerald-500/90 text-white",
+    amber: "bg-amber-400/95 text-slate-900",
+    violet: "bg-violet-500/90 text-white",
+    sky: "bg-sky-500/90 text-white",
   };
   return (
-    <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.12em] px-1.5 py-0.5 rounded-md border ${tones[tone]}`}>
-      {Icon && <Icon className="w-2.5 h-2.5" />}
+    <span className={`inline-flex items-center text-[9px] font-semibold uppercase tracking-[0.14em] px-2 py-0.5 rounded-full ${tones[tone]}`}>
       {children}
     </span>
   );
 }
 
-function signalsFor(ev: GroupedWCEvent): Array<{ key: string; label: string; tone: "amber" | "rose" | "violet" | "emerald" | "sky"; icon: React.ComponentType<{ className?: string }> }> {
-  const out: Array<{ key: string; label: string; tone: "amber" | "rose" | "violet" | "emerald" | "sky"; icon: React.ComponentType<{ className?: string }> }> = [];
-  if (ev.event_status === "opening_match") out.push({ key: "opening", label: "Opening match", tone: "amber", icon: Star });
-  if (ev.event_status === "final") out.push({ key: "final", label: "Final", tone: "violet", icon: Trophy });
-  if (ev.event_status === "semi_final") out.push({ key: "semi", label: "Semi-final", tone: "violet", icon: Trophy });
-  const host = (ev.country ?? "").toLowerCase();
-  if (host === "united states" || host === "usa" || host === "mexico" || host === "canada") {
-    out.push({ key: "host", label: "Host nation", tone: "sky", icon: Globe2 });
-  }
-  if (ev.is_limited) out.push({ key: "limited", label: "Limited", tone: "rose", icon: Target });
-  // High demand: knockout phase + price under €200
-  if (ev.event_status && ["quarter_final", "semi_final", "final", "round_of_16"].includes(ev.event_status)) {
-    out.push({ key: "demand", label: "High demand", tone: "rose", icon: Flame });
-  }
-  return out.slice(0, 2);
+// Pick the single most important phase badge for this event.
+function phaseBadge(ev: GroupedWCEvent): { label: string; tone: "amber" | "violet" | "emerald" } | null {
+  const s = ev.event_status ?? "";
+  if (s === "opening_match") return { label: "Opening Match", tone: "amber" };
+  if (s === "final") return { label: "Final", tone: "violet" };
+  if (s === "semi_final") return { label: "Semi-final", tone: "violet" };
+  if (s === "quarter_final") return { label: "Quarter-final", tone: "violet" };
+  if (s === "round_of_16") return { label: "Round of 16", tone: "violet" };
+  if (s === "third_place") return { label: "3rd-place", tone: "violet" };
+  const parsed = parseGenericMatchName(ev.event_name);
+  if (parsed?.group) return { label: `Group ${parsed.group}`, tone: "emerald" };
+  if (s === "group_stage") return { label: "Group Stage", tone: "emerald" };
+  return null;
 }
 
 function EventCard({ ev, image }: { ev: GroupedWCEvent; image: { url: string; origin: ImageOrigin } }) {
@@ -271,8 +267,7 @@ function EventCard({ ev, image }: { ev: GroupedWCEvent; image: { url: string; or
   const headline = buildHeadline(ev);
   const dateStr = formatEventDate(ev.event_date, ev.event_time, locale);
   const hasOfficial = ev.providers.some((x) => x.kind === "official");
-  const hasResale = ev.providers.some((x) => x.kind === "resale" || x.kind === "affiliate");
-  const signals = signalsFor(ev);
+  const phase = phaseBadge(ev);
 
   const onClick = () =>
     trackAffiliateClick({
@@ -291,93 +286,74 @@ function EventCard({ ev, image }: { ev: GroupedWCEvent; image: { url: string; or
       rel="sponsored noopener"
       onClick={onClick}
       data-image-origin={image.origin}
-      className="group relative rounded-xl overflow-hidden border border-white/10 hover:border-emerald-400/60 hover:shadow-[0_10px_40px_-12px_rgba(16,185,129,0.4)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col bg-slate-900"
+      className="group relative rounded-xl overflow-hidden border border-white/10 hover:border-white/20 hover:-translate-y-0.5 transition-all duration-300 flex flex-col bg-slate-900"
     >
-      {/* Background image — full card with strong gradient so the MATCH is the hero */}
-      <div className="absolute inset-0">
+      {/* Hero image — fully visible with soft bottom gradient only */}
+      <div className="relative aspect-[4/5] overflow-hidden">
         <img
           src={image.url}
           alt={headline.primary}
           loading="lazy"
-          className="w-full h-full object-cover opacity-70 group-hover:opacity-80 group-hover:scale-105 transition-all duration-[700ms]"
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-[700ms] ease-out"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/85 to-slate-950" />
-      </div>
+        {/* Soft bottom gradient only */}
+        <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
 
-      {/* Content */}
-      <div className="relative flex flex-col gap-3 p-4 min-h-[280px]">
-        {/* Top row: phase + signals */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-wrap gap-1">
-            {headline.secondary && <Chip tone="emerald">{headline.secondary}</Chip>}
-            {hasOfficial ? <Chip tone="sky">Official</Chip> : hasResale ? <Chip>Resale</Chip> : null}
-          </div>
-          <div className="flex flex-wrap gap-1 justify-end">
-            {signals.map((s) => (
-              <Chip key={s.key} tone={s.tone} icon={s.icon}>{s.label}</Chip>
-            ))}
-          </div>
+        {/* TOP-LEFT badges (max 2) */}
+        <div className="absolute top-3 left-3 right-3 flex items-center gap-1.5 flex-wrap">
+          {phase && <Chip tone={phase.tone}>{phase.label}</Chip>}
+          {hasOfficial ? <Chip tone="sky">Official</Chip> : <Chip>Resale</Chip>}
         </div>
 
-        {/* Matchup centerpiece */}
-        <div className="flex-1 flex flex-col items-center justify-center text-center py-2">
+        {/* CENTER matchup */}
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-4 flex flex-col items-center text-center">
           {headline.matchup ? (
-            <div className="flex flex-col items-center gap-1">
-              <div className="flex items-center gap-2">
-                {headline.matchup.homeFlag && <span className="text-base leading-none">{headline.matchup.homeFlag}</span>}
-                <span className="font-display text-lg sm:text-xl text-white leading-tight">{headline.matchup.home}</span>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="flex items-center gap-1.5">
+                {headline.matchup.homeFlag && <span className="text-sm leading-none opacity-90">{headline.matchup.homeFlag}</span>}
+                <span className="font-display text-base sm:text-lg text-white leading-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] line-clamp-1">{headline.matchup.home}</span>
               </div>
-              <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">vs</span>
-              <div className="flex items-center gap-2">
-                {headline.matchup.awayFlag && <span className="text-base leading-none">{headline.matchup.awayFlag}</span>}
-                <span className="font-display text-lg sm:text-xl text-white leading-tight">{headline.matchup.away}</span>
+              <span className="text-[9px] uppercase tracking-[0.3em] text-white/50">vs</span>
+              <div className="flex items-center gap-1.5">
+                {headline.matchup.awayFlag && <span className="text-sm leading-none opacity-90">{headline.matchup.awayFlag}</span>}
+                <span className="font-display text-base sm:text-lg text-white leading-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] line-clamp-1">{headline.matchup.away}</span>
               </div>
             </div>
           ) : (
-            <h3 className="font-display text-xl sm:text-2xl text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+            <h3 className="font-display text-base sm:text-lg text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] line-clamp-2">
               {headline.primary}
             </h3>
           )}
         </div>
 
-        {/* Meta */}
-        <div className="flex flex-col gap-1 text-[11px] text-white/75">
-          <p className="flex items-center gap-1.5">
-            <CalendarDays className="w-3 h-3 text-white/50 shrink-0" />
-            <span className="truncate">{dateStr}</span>
-          </p>
-          <p className="flex items-center gap-1.5">
-            <MapPin className="w-3 h-3 text-white/50 shrink-0" />
-            <span className="truncate">{ev.city ? `${ev.city} · ` : ""}{ev.stadium_name}</span>
-          </p>
+        {/* BOTTOM meta — stadium + city + date */}
+        <div className="absolute inset-x-0 bottom-0 p-3 flex flex-col gap-0.5 text-[11px] text-white/85">
+          <p className="truncate">🏟 {ev.stadium_name}</p>
+          {ev.city && <p className="text-white/65 truncate">📍 {ev.city}</p>}
+          <p className="text-white/55 truncate">{dateStr}</p>
         </div>
+      </div>
 
-        {/* Price + CTA */}
-        <div className="flex items-end justify-between gap-2 pt-3 border-t border-white/10">
-          <div className="min-w-0">
-            {ev.best_price != null ? (() => {
-              const conf = ev.price_confidence ?? "medium";
-              const priceStr = ev.best_price.toLocaleString(locale, { style: "currency", currency: ev.currency, maximumFractionDigits: 0 });
-              const eyebrow = conf === "estimated" ? "Approx." : "From";
-              const tip = conf === "high" ? "Verified provider price" : conf === "medium" ? "Detected from provider data" : "Estimated from listing text";
-              return (
-                <>
-                  <p className="text-[9px] uppercase tracking-[0.18em] text-white/45">{eyebrow}</p>
-                  <p title={tip} className="font-display text-2xl text-emerald-300 leading-none">{priceStr}</p>
-                </>
-              );
-            })() : (
+      {/* Price + single CTA */}
+      <div className="flex items-end justify-between gap-2 px-4 py-3 bg-slate-900">
+        <div className="min-w-0">
+          {ev.best_price != null ? (() => {
+            const conf = ev.price_confidence ?? "medium";
+            const priceStr = ev.best_price.toLocaleString(locale, { style: "currency", currency: ev.currency, maximumFractionDigits: 0 });
+            const eyebrow = conf === "estimated" ? "Approx." : "From";
+            return (
               <>
-                <p className="text-[9px] uppercase tracking-[0.18em] text-white/45">Status</p>
-                <p className="text-sm font-semibold text-emerald-300 leading-none mt-0.5">Tickets available</p>
+                <p className="text-[9px] uppercase tracking-[0.18em] text-white/45">{eyebrow}</p>
+                <p className="font-display text-xl text-emerald-300 leading-none mt-0.5">{priceStr}</p>
               </>
-            )}
-          </div>
-          <div className="flex items-center gap-1 text-[12px] font-semibold text-white shrink-0">
-            <span className="group-hover:hidden">View prices</span>
-            <span className="hidden group-hover:inline text-emerald-300">Find seats</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
-          </div>
+            );
+          })() : (
+            <p className="text-sm font-medium text-emerald-300/90 leading-none">Tickets available</p>
+          )}
+        </div>
+        <div className="flex items-center gap-1 text-[12px] font-semibold text-white/90 shrink-0">
+          View tickets
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
         </div>
       </div>
     </a>
