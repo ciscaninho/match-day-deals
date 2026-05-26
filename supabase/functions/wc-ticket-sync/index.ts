@@ -263,7 +263,21 @@ Deno.serve(async (req) => {
     }
 
     const insertEventRow = async (parent: CoverageRow, eventUrl: string, info: SlugInfo, enr: EventEnrichment, dbg: any) => {
-      const eventSlug = info.uuid ? `ticombo-${info.uuid}` : `ticombo-${eventUrl.split("/").pop()}`;
+      // Minimal validation: only require URL + a title. Title falls back to slug or "World Cup Tickets".
+      if (!eventUrl) {
+        dbg.rejected++;
+        dbg.rejection_reasons.push("missing_url");
+        return false;
+      }
+      const eventName = (info.event_name && info.event_name.trim().length > 0)
+        ? info.event_name
+        : "World Cup Tickets";
+
+      const slugTail = eventUrl.split("/").pop()?.split("?")[0] ?? "";
+      const eventSlug = info.uuid
+        ? `ticombo-${info.uuid}`
+        : `ticombo-${slugTail || Math.abs([...eventUrl].reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0)).toString(36)}`;
+
       if (enrichedSlugs.has(eventSlug)) { dbg.skipped++; return false; }
       enrichedSlugs.add(eventSlug);
 
@@ -290,10 +304,10 @@ Deno.serve(async (req) => {
         priority: parent.priority ?? 100,
         url_type: "event",
         event_slug: eventSlug,
-        event_name: info.event_name,
+        event_name: eventName,
         event_date: info.event_date,
         event_time: info.event_time,
-        event_status: info.event_status,
+        event_status: info.event_status ?? "draft",
         home_label: info.home_label,
         away_label: info.away_label,
         image_url: enr.image_url,
@@ -308,10 +322,15 @@ Deno.serve(async (req) => {
       const { error } = await supabase
         .from("wc_ticket_coverage")
         .upsert(row as never, { onConflict: "event_slug,provider", ignoreDuplicates: false });
-      if (error) { dbg.skipped++; dbg.failed_urls.push(`${eventUrl} :: ${error.message}`); return false; }
-      created++; dbg.created++; eventsExtracted++; dbg.extracted++;
+      if (error) {
+        dbg.rejected++;
+        dbg.rejection_reasons.push(`db:${error.message}`);
+        dbg.failed_urls.push(`${eventUrl} :: ${error.message}`);
+        return false;
+      }
+      created++; dbg.created++; dbg.accepted++; eventsExtracted++; dbg.extracted++;
       if (dbg.preview.length < 8) {
-        dbg.preview.push({ url: eventUrl, name: info.event_name, date: info.event_date, status: info.event_status, price: enr.starting_price });
+        dbg.preview.push({ url: eventUrl, name: eventName, date: info.event_date, status: info.event_status ?? "draft", price: enr.starting_price });
       }
       return true;
     };
