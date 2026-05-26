@@ -185,17 +185,21 @@ export function WorldCupTicketCoveragePanel() {
     }
   };
 
-  const sync = async () => {
-    setSyncing(true);
+  const sync = async (onlyFailed = false) => {
+    const setter = onlyFailed ? setResyncing : setSyncing;
+    setter(true);
     try {
-      const { data, error } = await supabase.functions.invoke("wc-ticket-sync", { body: { provider: "Ticombo", limit: 50 } });
+      const { data, error } = await supabase.functions.invoke("wc-ticket-sync", {
+        body: { provider: "Ticombo", limit: 50, onlyFailed },
+      });
       if (error || data?.error) throw new Error(error?.message || data?.error);
-      toast.success(`Synced ${data?.enriched ?? 0} event(s) · linked ${data?.linked ?? 0}`);
+      setLastSync(data);
+      toast.success(`Synced · enriched ${data?.enriched ?? 0} · expanded ${data?.expanded ?? 0} · created ${data?.created ?? 0} · linked ${data?.linked ?? 0}`);
       refresh();
     } catch (e: any) {
       toast.error(e?.message ?? "Sync failed");
     } finally {
-      setSyncing(false);
+      setter(false);
     }
   };
 
