@@ -82,6 +82,31 @@ type ScrapeResult = {
   event_status: string | null;
 };
 
+type CoverageRow = {
+  id: string;
+  active?: boolean | null;
+  stadium_slug: string;
+  stadium_name: string;
+  city: string | null;
+  country: string | null;
+  kind: string;
+  provider: string;
+  url: string | null;
+  ticket_url: string | null;
+  currency: string | null;
+  status: string;
+  priority: number | null;
+  event_slug: string | null;
+  event_name: string | null;
+  event_date: string | null;
+  home_label: string | null;
+  away_label: string | null;
+  image_url: string | null;
+  event_status: string | null;
+  match_id: string | null;
+  last_sync_status: string | null;
+};
+
 function parseScrape(html: string): ScrapeResult {
   const title = extractMeta(html, "og:title") ?? html.match(/<title>([^<]+)<\/title>/i)?.[1] ?? null;
   const image = extractMeta(html, "og:image");
@@ -151,11 +176,19 @@ Deno.serve(async (req) => {
     const limit = Math.min(Number(body.limit ?? 25), 100);
     const onlyFailed = body.onlyFailed === true;
 
-    let q = supabase.from("wc_ticket_coverage").select("*").eq("status", "active");
-    if (provider) q = q.eq("provider", provider);
-    if (onlyFailed) q = q.or("event_slug.is.null,last_sync_status.neq.ok");
-    const { data: rows, error } = await q.limit(limit);
+    let sourceQ = supabase.from("wc_ticket_coverage").select("*");
+    if (provider) sourceQ = sourceQ.ilike("provider", provider);
+    const { data: sourceRows, error } = await sourceQ.limit(limit * 4);
     if (error) throw error;
+
+    const allRows = ((sourceRows ?? []) as CoverageRow[]);
+    const rowsSkippedInactive = allRows.filter((row) => row.active === false).length;
+    const rowsSkippedMissingUrl = allRows.filter((row) => !(row.ticket_url ?? row.url)).length;
+    const rows = allRows
+      .filter((row) => row.active !== false)
+      .filter((row) => !!(row.ticket_url ?? row.url))
+      .filter((row) => !onlyFailed || !row.event_slug || row.last_sync_status !== "ok")
+      .slice(0, limit);
 
     const { data: wcMatches } = await supabase
       .from("matches")
@@ -174,17 +207,21 @@ Deno.serve(async (req) => {
 
     const debug: any[] = [];
     let scanned = 0, enriched = 0, linked = 0, failed = 0, expanded = 0, created = 0, skipped = 0;
+    const rowsLoaded = rows.length;
+    let rowsProcessed = 0;
 
     const seenUrls = new Set<string>();
 
-    for (const r of rows as any[]) {
+    for (const r of rows) {
       scanned++;
-      const isLanding = isGenericLanding(r.url);
-      const dbg: any = { id: r.id, parsed_url: r.url, landing: isLanding, detected: 0, created: 0, skipped: 0, reason: null };
+      rowsProcessed++;
+      const sourceUrl = r.ticket_url ?? r.url;
+      const isLanding = isGenericLanding(sourceUrl);
+      const dbg: any = { id: r.id, parsed_url: sourceUrl, landing: isLanding, detected: 0, created: 0, skipped: 0, reason: null };
 
       // ---- Landing page expansion ----
       if (isLanding) {
-        const html = await fetchHtml(r.url);
+        const html = await fetchHtml(sourceUrl);
         if (!html) {
           failed++;
           await supabase.from("wc_ticket_coverage").update({
@@ -195,7 +232,7 @@ Deno.serve(async (req) => {
           debug.push(dbg);
           continue;
         }
-        const links = extractEventLinks(html, r.url);
+        const links = extractEventLinks(html, sourceUrl);
         dbg.detected = links.length;
         if (links.length === 0) {
           await supabase.from("wc_ticket_coverage").update({
@@ -235,6 +272,7 @@ Deno.serve(async (req) => {
           }
 
           const row = {
+            active: true,
             stadium_slug: r.stadium_slug,
             stadium_name: r.stadium_name,
             city: r.city,
@@ -242,6 +280,7 @@ Deno.serve(async (req) => {
             kind: r.kind,
             provider: r.provider,
             url: link,
+            ticket_url: link,
             currency: r.currency ?? "EUR",
             status: "active",
             priority: r.priority ?? 100,
@@ -268,6 +307,7 @@ Deno.serve(async (req) => {
 
         // Mark parent landing as inactive (expanded)
         await supabase.from("wc_ticket_coverage").update({
+          active: false,
           status: "archived",
           last_sync_at: new Date().toISOString(),
           last_sync_status: "expanded",
@@ -278,7 +318,7 @@ Deno.serve(async (req) => {
       }
 
       // ---- Single event scrape ----
-      const html = await fetchHtml(r.url);
+      const html = await fetchHtml(sourceUrl);
       if (!html) {
         failed++;
         await supabase.from("wc_ticket_coverage").update({
@@ -338,7 +378,7 @@ Deno.serve(async (req) => {
       debug.push(dbg);
     }
 
-    return new Response(JSON.stringify({ scanned, enriched, expanded, created, linked, failed, skipped, debug }), {
+    return new Response(JSON.stringify({ rows_loaded: rowsLoaded, rows_skipped_inactive: rowsSkippedInactive, rows_skipped_missing_url: rowsSkippedMissingUrl, rows_processed: rowsProcessed, scanned, enriched, expanded, created, linked, failed, skipped, debug }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {

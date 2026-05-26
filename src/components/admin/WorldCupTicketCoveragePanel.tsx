@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Plus, Sparkles, Trash2, Trophy, Ticket, CalendarPlus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useWorldCupTicketCoverage, type WCTicketCoverage, type WCCoverageKind, groupCoverageByEvent } from "@/hooks/useWorldCupTicketCoverage";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 type Host = { slug: string; stadium_name: string; city: string; country: string };
 
@@ -17,11 +18,13 @@ const STATUS_OPTIONS = ["opening_match", "group_stage", "round_of_32", "round_of
 
 export function WorldCupTicketCoveragePanel() {
   const qc = useQueryClient();
+  const { t } = useLanguage();
   const { data: coverage = [], isLoading } = useWorldCupTicketCoverage({ adminAll: true });
   const [creating, setCreating] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [resyncing, setResyncing] = useState(false);
+  const [activating, setActivating] = useState(false);
   const [lastSync, setLastSync] = useState<any>(null);
   const [newEventHost, setNewEventHost] = useState<string>("");
 
@@ -79,9 +82,10 @@ export function WorldCupTicketCoveragePanel() {
   const publicReport = useMemo(() => {
     return coverage.map((c) => {
       const reasons: string[] = [];
+      if (c.active === false) reasons.push("inactive");
       if (c.status !== "active") reasons.push("inactive");
       if (!c.event_slug) reasons.push("no event_slug");
-      if (!c.url) reasons.push("no url");
+      if (!(c.ticket_url ?? c.url)) reasons.push("no url");
       if (c.is_available === false) reasons.push("unavailable");
       return { row: c, public: reasons.length === 0, reason: reasons.join(", ") || "—" };
     });
@@ -123,6 +127,28 @@ export function WorldCupTicketCoveragePanel() {
   }, [coverage, clicks, publicReport]);
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["wc-ticket-coverage"] });
+
+  const activateAllCoverageRows = async () => {
+    setActivating(true);
+    try {
+      const ids = coverage.filter((c) => c.provider.toLowerCase() === "ticombo" && (c.ticket_url ?? c.url)).map((c) => c.id);
+      if (ids.length === 0) {
+        toast.error("No Ticombo rows with a ticket URL found");
+        return;
+      }
+      const { error } = await supabase
+        .from("wc_ticket_coverage" as never)
+        .update({ active: true, status: "active" } as never)
+        .in("id", ids);
+      if (error) throw error;
+      toast.success(`Activated ${ids.length} coverage rows`);
+      refresh();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Activation failed");
+    } finally {
+      setActivating(false);
+    }
+  };
 
   const addEventDraft = async () => {
     const host = hosts.find((h) => h.slug === newEventHost);
@@ -220,6 +246,10 @@ export function WorldCupTicketCoveragePanel() {
               {resyncing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1" />}
               Re-sync failed rows
             </Button>
+            <Button size="sm" onClick={activateAllCoverageRows} disabled={activating} variant="outline" className="h-8 text-xs">
+              {activating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Plus className="w-3 h-3 mr-1" />}
+              {t("admin.wctickets.activate_rows")}
+            </Button>
             <Button size="sm" onClick={suggest} disabled={suggesting} className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs">
               {suggesting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
               Suggest host coverage
@@ -244,6 +274,10 @@ export function WorldCupTicketCoveragePanel() {
         {lastSync && (
           <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs space-y-2">
             <div className="flex items-center gap-3 flex-wrap text-sky-900 font-bold">
+              <span>{t("admin.wctickets.rows_loaded")}: {lastSync.rows_loaded ?? 0}</span>
+              <span>{t("admin.wctickets.rows_skipped_inactive")}: {lastSync.rows_skipped_inactive ?? 0}</span>
+              <span>{t("admin.wctickets.rows_skipped_missing_url")}: {lastSync.rows_skipped_missing_url ?? 0}</span>
+              <span>{t("admin.wctickets.rows_processed")}: {lastSync.rows_processed ?? 0}</span>
               <span>scanned: {lastSync.scanned}</span>
               <span>enriched: {lastSync.enriched}</span>
               <span>expanded: {lastSync.expanded}</span>
@@ -385,6 +419,7 @@ export function WorldCupTicketCoveragePanel() {
                     <div className="flex items-center gap-1">
                       {!c.event_slug && <Badge variant="outline" className="text-[10px] border-amber-400 text-amber-700">stadium-only</Badge>}
                       <Badge variant={c.status === "active" ? "default" : "secondary"} className="text-[10px]">{c.status}</Badge>
+                      <Badge variant={c.active === false ? "secondary" : "default"} className="text-[10px]">{c.active === false ? "inactive" : "active"}</Badge>
                       <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600" onClick={() => remove(c.id)}>
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -427,6 +462,10 @@ export function WorldCupTicketCoveragePanel() {
                     <div className="md:col-span-3">
                       <Label className="text-[10px] uppercase font-bold text-slate-600">URL</Label>
                       <Input defaultValue={c.url} onBlur={(e) => e.target.value !== c.url && update(c.id, { url: e.target.value })} className="h-8 text-xs" />
+                    </div>
+                    <div className="md:col-span-3">
+                      <Label className="text-[10px] uppercase font-bold text-slate-600">Ticket URL</Label>
+                      <Input defaultValue={c.ticket_url ?? ""} onBlur={(e) => e.target.value !== (c.ticket_url ?? "") && update(c.id, { ticket_url: e.target.value || null })} className="h-8 text-xs" />
                     </div>
                     <div>
                       <Label className="text-[10px] uppercase font-bold text-slate-600">From price</Label>
