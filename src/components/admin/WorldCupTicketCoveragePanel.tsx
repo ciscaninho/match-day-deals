@@ -260,7 +260,10 @@ export function WorldCupTicketCoveragePanel() {
             </Button>
             <Button size="sm" onClick={activateAllCoverageRows} disabled={activating} variant="outline" className="h-8 text-xs">
               {activating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Plus className="w-3 h-3 mr-1" />}
-              {t("admin.wctickets.activate_rows")}
+              Activate rows
+            </Button>
+            <Button size="sm" onClick={() => sync(false)} disabled={syncing} variant="outline" className="h-8 text-xs border-amber-300 text-amber-800">
+              <RefreshCw className="w-3 h-3 mr-1" /> Expand search URLs
             </Button>
             <Button size="sm" onClick={suggest} disabled={suggesting} className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs">
               {suggesting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
