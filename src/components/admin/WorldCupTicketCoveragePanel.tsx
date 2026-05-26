@@ -299,6 +299,8 @@ export function WorldCupTicketCoveragePanel() {
               <span>enriched: {lastSync.enriched}</span>
               <span>expanded: {lastSync.expanded}</span>
               <span>created: {lastSync.created}</span>
+              <span className="text-emerald-700">accepted: {lastSync.accepted ?? 0}</span>
+              <span className="text-rose-700">rejected: {lastSync.rejected ?? 0}</span>
               <span>drafts: {lastSync.drafts ?? 0}</span>
               <span>linked: {lastSync.linked}</span>
               <span>failed: {lastSync.failed}</span>
