@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Loader2, Plus, Sparkles, Trash2, Trophy, Ticket, CalendarPlus } from "lucide-react";
+import { Loader2, Plus, Sparkles, Trash2, Trophy, Ticket, CalendarPlus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useWorldCupTicketCoverage, type WCTicketCoverage, type WCCoverageKind, groupCoverageByEvent } from "@/hooks/useWorldCupTicketCoverage";
 
