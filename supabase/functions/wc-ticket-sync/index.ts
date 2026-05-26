@@ -135,17 +135,60 @@ function extractJsonLd(html: string): any[] {
   return out;
 }
 
+type PriceConfidence = "high" | "medium" | "estimated";
 type EventEnrichment = {
   image_url: string | null;
   starting_price: number | null;
   currency: string | null;
   stadium: string | null;
   city: string | null;
+  price_source: string | null;
+  price_confidence: PriceConfidence | null;
 };
 
+// Walk arbitrary JSON to find the lowest plausible price + currency
+function walkForPrice(node: any, acc: { price: number | null; currency: string | null }) {
+  if (!node || typeof node !== "object") return;
+  const PRICE_KEYS = /^(low_?price|min_?price|from_?price|starting_?price|price|amount|lowestPrice)$/i;
+  const CUR_KEYS = /^(currency|currency_?code|price_?currency)$/i;
+  if (Array.isArray(node)) { for (const v of node) walkForPrice(v, acc); return; }
+  for (const [k, v] of Object.entries(node)) {
+    if (v == null) continue;
+    if (typeof v === "object") { walkForPrice(v, acc); continue; }
+    if (PRICE_KEYS.test(k)) {
+      const n = Number(typeof v === "string" ? v.replace(/[^\d.]/g, "") : v);
+      if (Number.isFinite(n) && n >= 5 && n <= 50000 && (acc.price == null || n < acc.price)) acc.price = n;
+    } else if (CUR_KEYS.test(k) && typeof v === "string" && /^[A-Z]{3}$/.test(v)) {
+      if (!acc.currency) acc.currency = v;
+    }
+  }
+}
+
+function extractScriptJsonBlobs(html: string): any[] {
+  const out: any[] = [];
+  // __NEXT_DATA__ first
+  const nx = html.match(/<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i);
+  if (nx) { try { out.push(JSON.parse(nx[1])); } catch { /* ignore */ } }
+  // Generic application/json blobs
+  const re = /<script[^>]+type=["']application\/json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    try { out.push(JSON.parse(m[1].trim())); } catch { /* ignore */ }
+    if (out.length > 8) break;
+  }
+  return out;
+}
+
+const CUR_SYMBOL: Record<string, string> = { "€": "EUR", "$": "USD", "£": "GBP", "C$": "CAD", "MX$": "MXN" };
+
 function enrichFromHtml(html: string): EventEnrichment {
-  const out: EventEnrichment = { image_url: null, starting_price: null, currency: null, stadium: null, city: null };
+  const out: EventEnrichment = {
+    image_url: null, starting_price: null, currency: null, stadium: null, city: null,
+    price_source: null, price_confidence: null,
+  };
   out.image_url = extractMeta(html, "og:image") ?? extractMeta(html, "twitter:image");
+
+  // (1) JSON-LD Offer — highest confidence
   for (const block of extractJsonLd(html)) {
     const arr = Array.isArray(block) ? block : [block];
     for (const n of arr) {
@@ -159,20 +202,63 @@ function enrichFromHtml(html: string): EventEnrichment {
       const offers = Array.isArray(n.offers) ? n.offers : n.offers ? [n.offers] : [];
       for (const o of offers) {
         const p = Number(o?.lowPrice ?? o?.price);
-        if (Number.isFinite(p) && p > 0 && (out.starting_price == null || p < out.starting_price)) out.starting_price = p;
+        if (Number.isFinite(p) && p > 0 && (out.starting_price == null || p < out.starting_price)) {
+          out.starting_price = p;
+          out.price_source = "jsonld";
+          out.price_confidence = "high";
+        }
         if (!out.currency && typeof o?.priceCurrency === "string") out.currency = o.priceCurrency;
       }
     }
   }
+
+  // (2) Meta price tags — high
   if (out.starting_price == null) {
-    const m = html.match(/(?:from|à partir de|ab|desde)\s*[€£$]\s*(\d{2,5})/i) ?? html.match(/[€£$]\s*(\d{2,5})/);
-    if (m) {
-      const p = Number(m[1]);
-      if (Number.isFinite(p) && p > 0) { out.starting_price = p; if (!out.currency) out.currency = "EUR"; }
+    const metaPrice = extractMeta(html, "product:price:amount") ?? extractMeta(html, "og:price:amount");
+    const metaCur = extractMeta(html, "product:price:currency") ?? extractMeta(html, "og:price:currency");
+    if (metaPrice) {
+      const p = Number(metaPrice);
+      if (Number.isFinite(p) && p > 0) {
+        out.starting_price = p;
+        out.price_source = "meta";
+        out.price_confidence = "high";
+        if (!out.currency && metaCur) out.currency = metaCur;
+      }
     }
   }
+
+  // (3) __NEXT_DATA__ + (4) other JSON script blobs — medium
+  if (out.starting_price == null) {
+    const acc = { price: null as number | null, currency: null as string | null };
+    for (const blob of extractScriptJsonBlobs(html)) walkForPrice(blob, acc);
+    if (acc.price != null) {
+      out.starting_price = acc.price;
+      out.price_source = "hydration";
+      out.price_confidence = "medium";
+      if (!out.currency && acc.currency) out.currency = acc.currency;
+    }
+  }
+
+  // (5/6) Visible DOM / regex fallback — estimated
+  if (out.starting_price == null) {
+    const re = /(?:from|à partir de|ab|desde|a partire da)\s*(€|\$|£|C\$|MX\$)\s*(\d{2,5})|(€|\$|£|C\$|MX\$)\s*(\d{2,5})/i;
+    const m = html.match(re);
+    if (m) {
+      const symbol = m[1] ?? m[3];
+      const amount = m[2] ?? m[4];
+      const p = Number(amount);
+      if (Number.isFinite(p) && p > 0) {
+        out.starting_price = p;
+        out.price_source = "regex";
+        out.price_confidence = "estimated";
+        if (!out.currency && symbol) out.currency = CUR_SYMBOL[symbol] ?? "EUR";
+      }
+    }
+  }
+
   return out;
 }
+
 
 // ---------- Main ----------
 type CoverageRow = {
