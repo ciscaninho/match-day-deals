@@ -38,6 +38,9 @@ export type WCTicketCoverage = {
   last_sync_at: string | null;
   last_sync_status: string | null;
   url_type: string | null;
+  price_source: string | null;
+  price_confidence: "high" | "medium" | "estimated" | null;
+  price_checked_at: string | null;
 };
 
 const KIND_RANK: Record<string, number> = { official: 0, hospitality: 1, resale: 2, affiliate: 3 };
