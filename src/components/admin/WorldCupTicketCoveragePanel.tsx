@@ -6,19 +6,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Loader2, Plus, Sparkles, Trash2, Trophy, Ticket } from "lucide-react";
+import { Loader2, Plus, Sparkles, Trash2, Trophy, Ticket, CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
-import { useWorldCupTicketCoverage, type WCTicketCoverage, type WCCoverageKind } from "@/hooks/useWorldCupTicketCoverage";
+import { useWorldCupTicketCoverage, type WCTicketCoverage, type WCCoverageKind, groupCoverageByEvent } from "@/hooks/useWorldCupTicketCoverage";
 
 type Host = { slug: string; stadium_name: string; city: string; country: string };
 
 const KIND_OPTIONS: WCCoverageKind[] = ["official", "hospitality", "resale", "affiliate"];
+const STATUS_OPTIONS = ["opening_match", "group_stage", "round_of_32", "round_of_16", "quarter_final", "semi_final", "third_place", "final"];
 
 export function WorldCupTicketCoveragePanel() {
   const qc = useQueryClient();
   const { data: coverage = [], isLoading } = useWorldCupTicketCoverage({ adminAll: true });
   const [creating, setCreating] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
+  const [newEventHost, setNewEventHost] = useState<string>("");
 
   const { data: hosts = [] } = useQuery<Host[]>({
     queryKey: ["wc-hosts-admin"],
@@ -46,39 +48,60 @@ export function WorldCupTicketCoveragePanel() {
     },
   });
 
+  const events = useMemo(() => groupCoverageByEvent(coverage), [coverage]);
+  const eventRows = useMemo(() => events.filter((e) => e.event_slug != null), [events]);
+
   const metrics = useMemo(() => {
-    const hostSlugs = new Set(hosts.map((h) => h.slug));
-    const covered = new Set(coverage.filter((c) => c.status === "active").map((c) => c.stadium_slug));
-    const byKind = (k: WCCoverageKind) => coverage.filter((c) => c.status === "active" && c.kind === k).length;
+    const active = coverage.filter((c) => c.status === "active");
+    const events = new Set(active.filter((c) => c.event_slug).map((c) => c.event_slug as string));
+    const urlCounts = new Map<string, number>();
+    for (const c of active) urlCounts.set(c.url, (urlCounts.get(c.url) ?? 0) + 1);
+    const duplicateUrls = [...urlCounts.values()].filter((n) => n > 1).length;
+    const withPrice = active.filter((c) => c.event_slug && c.starting_price != null);
+    const stale = withPrice.filter((c) => {
+      if (!c.last_price_check) return true;
+      return Date.now() - new Date(c.last_price_check).getTime() > 7 * 24 * 3600 * 1000;
+    }).length;
     return {
-      hosts: hosts.length,
-      ticketReady: [...hostSlugs].filter((s) => covered.has(s)).length,
-      affiliateReady: byKind("affiliate"),
-      officialOnly: byKind("official"),
-      hospitality: byKind("hospitality"),
+      events: events.size,
+      providers: active.filter((c) => c.event_slug).length,
+      affiliate: active.filter((c) => c.event_slug && c.kind === "affiliate").length,
+      official: active.filter((c) => c.event_slug && c.kind === "official").length,
+      duplicateUrls,
+      staleP: stale,
       clicks: clicks ?? 0,
+      stadiumOnly: active.filter((c) => !c.event_slug).length,
     };
-  }, [hosts, coverage, clicks]);
+  }, [coverage, clicks]);
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["wc-ticket-coverage"] });
 
-  const addRow = async (host: Host, init?: Partial<WCTicketCoverage>) => {
+  const addEventDraft = async () => {
+    const host = hosts.find((h) => h.slug === newEventHost);
+    if (!host) return toast.error("Pick a host stadium first");
     setCreating(true);
     try {
+      const ts = Date.now();
       const row = {
         stadium_slug: host.slug,
         stadium_name: host.stadium_name,
         city: host.city,
         country: host.country,
-        kind: init?.kind ?? "affiliate",
-        provider: init?.provider ?? "Ticombo",
-        url: init?.url ?? `https://www.ticombo.com/en/search?query=${encodeURIComponent(host.stadium_name)}`,
-        currency: init?.currency ?? "EUR",
+        kind: "affiliate",
+        provider: "Ticombo",
+        url: `https://www.ticombo.com/en/search?query=${encodeURIComponent(`${host.stadium_name} World Cup 2026`)}`,
+        currency: "EUR",
         status: "active",
+        event_slug: `wc2026-${host.slug}-${ts}`,
+        event_name: `World Cup match at ${host.stadium_name}`,
+        event_status: "group_stage",
+        home_label: "TBD",
+        away_label: "TBD",
+        ticket_source_type: "affiliate",
       };
       const { error } = await supabase.from("wc_ticket_coverage" as never).insert(row as never);
       if (error) throw error;
-      toast.success(`Added ${host.stadium_name}`);
+      toast.success("Event draft added");
       refresh();
     } catch (e: any) {
       toast.error(e?.message ?? "Insert failed");
@@ -114,30 +137,29 @@ export function WorldCupTicketCoveragePanel() {
     }
   };
 
-  const missing = hosts.filter((h) => !coverage.some((c) => c.stadium_slug === h.slug));
-
   return (
     <Card className="border-slate-200 bg-white">
       <CardContent className="p-6 space-y-6">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-emerald-600" />
-            <h2 className="text-lg font-extrabold text-slate-900">World Cup ticket coverage</h2>
+            <h2 className="text-lg font-extrabold text-slate-900">World Cup event coverage</h2>
           </div>
-          <Button size="sm" onClick={suggest} disabled={suggesting || missing.length === 0} className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs">
+          <Button size="sm" onClick={suggest} disabled={suggesting} className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs">
             {suggesting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
-            Suggest coverage ({missing.length} missing)
+            Suggest host coverage
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
           {[
-            { label: "Host stadiums", value: metrics.hosts },
-            { label: "Ticket ready", value: metrics.ticketReady },
-            { label: "Affiliate ready", value: metrics.affiliateReady },
-            { label: "Official only", value: metrics.officialOnly },
-            { label: "Hospitality", value: metrics.hospitality },
-            { label: "Revenue clicks (30d)", value: metrics.clicks },
+            { label: "Unique events", value: metrics.events },
+            { label: "Provider rows", value: metrics.providers },
+            { label: "Affiliate", value: metrics.affiliate },
+            { label: "Official", value: metrics.official },
+            { label: "Duplicate URLs", value: metrics.duplicateUrls },
+            { label: "Stale prices", value: metrics.staleP },
+            { label: "Clicks (30d)", value: metrics.clicks },
           ].map((m) => (
             <div key={m.label} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
               <p className="text-2xl font-extrabold text-slate-900 leading-none">{m.value}</p>
@@ -146,24 +168,29 @@ export function WorldCupTicketCoveragePanel() {
           ))}
         </div>
 
-        {missing.length > 0 && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
-            <p className="text-xs font-bold uppercase tracking-wider text-amber-800">Hosts missing coverage ({missing.length})</p>
-            <div className="flex flex-wrap gap-2">
-              {missing.map((h) => (
-                <Button key={h.slug} size="sm" variant="outline" disabled={creating} className="h-7 text-xs"
-                  onClick={() => addRow(h)}>
-                  <Plus className="w-3 h-3 mr-1" /> {h.stadium_name}
-                </Button>
-              ))}
-            </div>
+        {metrics.stadiumOnly > 0 && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            <strong>{metrics.stadiumOnly}</strong> legacy stadium-only rows have no event attached. Convert them by filling event fields below — only event rows appear publicly.
           </div>
         )}
+
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 flex items-end gap-2 flex-wrap">
+          <div className="flex-1 min-w-[200px]">
+            <Label className="text-[10px] uppercase font-bold text-slate-600">Add event draft at host</Label>
+            <select value={newEventHost} onChange={(e) => setNewEventHost(e.target.value)} className="h-9 w-full text-xs border border-slate-200 rounded px-2 bg-white">
+              <option value="">Select host stadium…</option>
+              {hosts.map((h) => <option key={h.slug} value={h.slug}>{h.stadium_name} · {h.city}</option>)}
+            </select>
+          </div>
+          <Button size="sm" onClick={addEventDraft} disabled={creating || !newEventHost} className="h-9">
+            <CalendarPlus className="w-3 h-3 mr-1" /> New event
+          </Button>
+        </div>
 
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Ticket className="w-4 h-4 text-slate-500" />
-            <h3 className="text-sm font-extrabold text-slate-900">Coverage entries ({coverage.length})</h3>
+            <h3 className="text-sm font-extrabold text-slate-900">Coverage entries ({coverage.length}) — {eventRows.length} unique events</h3>
           </div>
           {isLoading ? <p className="text-sm text-slate-500">Loading…</p> : coverage.length === 0 ? (
             <p className="text-sm text-slate-500 italic">No coverage entries yet.</p>
@@ -173,21 +200,46 @@ export function WorldCupTicketCoveragePanel() {
                 <div key={c.id} className="rounded-lg border border-slate-200 p-3 space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900 truncate">{c.stadium_name}</p>
-                      <p className="text-[11px] text-slate-500">{[c.city, c.country].filter(Boolean).join(", ")}</p>
+                      <p className="text-sm font-bold text-slate-900 truncate">
+                        {c.home_label && c.away_label ? `${c.home_label} vs ${c.away_label}` : c.event_name ?? `(no event) ${c.stadium_name}`}
+                      </p>
+                      <p className="text-[11px] text-slate-500">{c.stadium_name} · {[c.city, c.country].filter(Boolean).join(", ")}</p>
                     </div>
                     <div className="flex items-center gap-1">
+                      {!c.event_slug && <Badge variant="outline" className="text-[10px] border-amber-400 text-amber-700">stadium-only</Badge>}
                       <Badge variant={c.status === "active" ? "default" : "secondary"} className="text-[10px]">{c.status}</Badge>
                       <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600" onClick={() => remove(c.id)}>
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                    <div>
+                      <Label className="text-[10px] uppercase font-bold text-slate-600">Home</Label>
+                      <Input defaultValue={c.home_label ?? ""} onBlur={(e) => e.target.value !== (c.home_label ?? "") && update(c.id, { home_label: e.target.value || null })} className="h-8 text-xs" />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] uppercase font-bold text-slate-600">Away</Label>
+                      <Input defaultValue={c.away_label ?? ""} onBlur={(e) => e.target.value !== (c.away_label ?? "") && update(c.id, { away_label: e.target.value || null })} className="h-8 text-xs" />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] uppercase font-bold text-slate-600">Event date</Label>
+                      <Input type="date" defaultValue={c.event_date ?? ""} onBlur={(e) => e.target.value !== (c.event_date ?? "") && update(c.id, { event_date: e.target.value || null })} className="h-8 text-xs" />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] uppercase font-bold text-slate-600">Phase</Label>
+                      <select value={c.event_status ?? ""} onChange={(e) => update(c.id, { event_status: e.target.value || null })} className="h-8 w-full text-xs border border-slate-200 rounded px-2">
+                        <option value="">—</option>
+                        {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <Label className="text-[10px] uppercase font-bold text-slate-600">Event slug</Label>
+                      <Input defaultValue={c.event_slug ?? ""} onBlur={(e) => e.target.value !== (c.event_slug ?? "") && update(c.id, { event_slug: e.target.value || null })} className="h-8 text-xs" />
+                    </div>
                     <div>
                       <Label className="text-[10px] uppercase font-bold text-slate-600">Kind</Label>
-                      <select value={c.kind} onChange={(e) => update(c.id, { kind: e.target.value as WCCoverageKind })}
-                        className="h-8 w-full text-xs border border-slate-200 rounded px-2">
+                      <select value={c.kind} onChange={(e) => update(c.id, { kind: e.target.value as WCCoverageKind })} className="h-8 w-full text-xs border border-slate-200 rounded px-2">
                         {KIND_OPTIONS.map((k) => <option key={k} value={k}>{k}</option>)}
                       </select>
                     </div>
@@ -195,7 +247,7 @@ export function WorldCupTicketCoveragePanel() {
                       <Label className="text-[10px] uppercase font-bold text-slate-600">Provider</Label>
                       <Input defaultValue={c.provider} onBlur={(e) => e.target.value !== c.provider && update(c.id, { provider: e.target.value })} className="h-8 text-xs" />
                     </div>
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-3">
                       <Label className="text-[10px] uppercase font-bold text-slate-600">URL</Label>
                       <Input defaultValue={c.url} onBlur={(e) => e.target.value !== c.url && update(c.id, { url: e.target.value })} className="h-8 text-xs" />
                     </div>
@@ -203,8 +255,12 @@ export function WorldCupTicketCoveragePanel() {
                       <Label className="text-[10px] uppercase font-bold text-slate-600">From price</Label>
                       <Input type="number" defaultValue={c.starting_price ?? ""} onBlur={(e) => {
                         const v = e.target.value === "" ? null : Number(e.target.value);
-                        if (v !== c.starting_price) update(c.id, { starting_price: v });
+                        if (v !== c.starting_price) update(c.id, { starting_price: v, last_price_check: new Date().toISOString() });
                       }} className="h-8 text-xs" />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] uppercase font-bold text-slate-600">Image URL</Label>
+                      <Input defaultValue={c.image_url ?? ""} onBlur={(e) => e.target.value !== (c.image_url ?? "") && update(c.id, { image_url: e.target.value || null })} className="h-8 text-xs" />
                     </div>
                   </div>
                 </div>

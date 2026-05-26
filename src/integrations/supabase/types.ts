@@ -1850,15 +1850,23 @@ export type Database = {
       }
       wc_ticket_coverage: {
         Row: {
+          away_label: string | null
           city: string | null
           country: string | null
           created_at: string
           created_by: string | null
           currency: string
           event_date: string | null
+          event_name: string | null
+          event_slug: string | null
+          event_status: string | null
+          event_time: string | null
+          home_label: string | null
           id: string
+          image_url: string | null
           kind: string
           label: string | null
+          last_price_check: string | null
           notes: string | null
           priority: number
           provider: string
@@ -1867,19 +1875,28 @@ export type Database = {
           stadium_slug: string
           starting_price: number | null
           status: string
+          ticket_source_type: string | null
           updated_at: string
           url: string
         }
         Insert: {
+          away_label?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
           event_date?: string | null
+          event_name?: string | null
+          event_slug?: string | null
+          event_status?: string | null
+          event_time?: string | null
+          home_label?: string | null
           id?: string
+          image_url?: string | null
           kind?: string
           label?: string | null
+          last_price_check?: string | null
           notes?: string | null
           priority?: number
           provider: string
@@ -1888,19 +1905,28 @@ export type Database = {
           stadium_slug: string
           starting_price?: number | null
           status?: string
+          ticket_source_type?: string | null
           updated_at?: string
           url: string
         }
         Update: {
+          away_label?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
           event_date?: string | null
+          event_name?: string | null
+          event_slug?: string | null
+          event_status?: string | null
+          event_time?: string | null
+          home_label?: string | null
           id?: string
+          image_url?: string | null
           kind?: string
           label?: string | null
+          last_price_check?: string | null
           notes?: string | null
           priority?: number
           provider?: string
@@ -1909,6 +1935,7 @@ export type Database = {
           stadium_slug?: string
           starting_price?: number | null
           status?: string
+          ticket_source_type?: string | null
           updated_at?: string
           url?: string
         }
