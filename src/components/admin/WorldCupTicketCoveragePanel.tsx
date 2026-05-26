@@ -358,7 +358,7 @@ export function WorldCupTicketCoveragePanel() {
                               {d.rejection_reasons.length > 6 ? ` · +${d.rejection_reasons.length - 6}` : ""}
                             </td>
                           </tr>
-                        )
+                        )}
                       </Fragment>
                     ))}
                   </tbody>
