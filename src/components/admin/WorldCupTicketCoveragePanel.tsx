@@ -185,7 +185,16 @@ export function WorldCupTicketCoveragePanel() {
   };
 
   const update = async (id: string, patch: Partial<WCTicketCoverage>) => {
-    const { error } = await supabase.from("wc_ticket_coverage" as never).update(patch as never).eq("id", id);
+    // Lock any field the admin edits so future syncs won't overwrite it.
+    const overrideKeys = Object.keys(patch).filter((k) =>
+      ["home_label", "away_label", "event_date", "event_time", "event_name", "stadium_name", "city", "country", "image_url", "starting_price", "currency", "event_status"].includes(k),
+    );
+    const row = coverage.find((c) => c.id === id) as any;
+    const nextOverrides = { ...(row?.manual_overrides ?? {}) };
+    for (const k of overrideKeys) nextOverrides[k] = true;
+    const payload: any = { ...patch };
+    if (overrideKeys.length) payload.manual_overrides = nextOverrides;
+    const { error } = await supabase.from("wc_ticket_coverage" as never).update(payload as never).eq("id", id);
     if (error) toast.error(error.message);
     else refresh();
   };
@@ -196,6 +205,28 @@ export function WorldCupTicketCoveragePanel() {
     if (error) toast.error(error.message);
     else refresh();
   };
+
+  const refreshRow = async (id: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("wc-ticket-sync", { body: { refreshIds: [id] } });
+      if (error || data?.error) throw new Error(error?.message || data?.error);
+      toast.success("Refreshed from provider");
+      refresh();
+    } catch (e: any) { toast.error(e?.message ?? "Refresh failed"); }
+  };
+
+  const detachMatch = async (id: string) => {
+    const { error } = await supabase.from("wc_ticket_coverage" as never).update({ match_id: null } as never).eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Detached from match"); refresh(); }
+  };
+
+  const clearOverrides = async (id: string) => {
+    const { error } = await supabase.from("wc_ticket_coverage" as never).update({ manual_overrides: {} } as never).eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Manual overrides cleared"); refresh(); }
+  };
+
 
   const suggest = async () => {
     setSuggesting(true);

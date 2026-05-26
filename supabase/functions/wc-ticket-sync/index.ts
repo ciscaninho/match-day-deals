@@ -142,11 +142,16 @@ type EventEnrichment = {
   currency: string | null;
   stadium: string | null;
   city: string | null;
+  country: string | null;
+  home_team: string | null;
+  away_team: string | null;
+  event_name: string | null;
+  event_date: string | null;
+  event_time: string | null;
   price_source: string | null;
   price_confidence: PriceConfidence | null;
 };
 
-// Walk arbitrary JSON to find the lowest plausible price + currency
 function walkForPrice(node: any, acc: { price: number | null; currency: string | null }) {
   if (!node || typeof node !== "object") return;
   const PRICE_KEYS = /^(low_?price|min_?price|from_?price|starting_?price|price|amount|lowestPrice)$/i;
@@ -166,10 +171,8 @@ function walkForPrice(node: any, acc: { price: number | null; currency: string |
 
 function extractScriptJsonBlobs(html: string): any[] {
   const out: any[] = [];
-  // __NEXT_DATA__ first
   const nx = html.match(/<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i);
   if (nx) { try { out.push(JSON.parse(nx[1])); } catch { /* ignore */ } }
-  // Generic application/json blobs
   const re = /<script[^>]+type=["']application\/json["'][^>]*>([\s\S]*?)<\/script>/gi;
   let m;
   while ((m = re.exec(html)) !== null) {
@@ -181,24 +184,56 @@ function extractScriptJsonBlobs(html: string): any[] {
 
 const CUR_SYMBOL: Record<string, string> = { "€": "EUR", "$": "USD", "£": "GBP", "C$": "CAD", "MX$": "MXN" };
 
+function parseISODateTime(iso: string | null | undefined): { date: string | null; time: string | null } {
+  if (!iso || typeof iso !== "string") return { date: null, time: null };
+  const m = iso.match(/^(\d{4}-\d{2}-\d{2})(?:T(\d{2}):(\d{2}))?/);
+  if (!m) return { date: null, time: null };
+  return { date: m[1], time: m[2] && m[3] ? `${m[2]}:${m[3]}` : null };
+}
+
 function enrichFromHtml(html: string): EventEnrichment {
   const out: EventEnrichment = {
-    image_url: null, starting_price: null, currency: null, stadium: null, city: null,
+    image_url: null, starting_price: null, currency: null, stadium: null, city: null, country: null,
+    home_team: null, away_team: null, event_name: null, event_date: null, event_time: null,
     price_source: null, price_confidence: null,
   };
-  out.image_url = extractMeta(html, "og:image") ?? extractMeta(html, "twitter:image");
 
-  // (1) JSON-LD Offer — highest confidence
+  // (1) OpenGraph
+  out.image_url = extractMeta(html, "og:image") ?? extractMeta(html, "twitter:image");
+  const ogTitle = extractMeta(html, "og:title");
+  if (ogTitle) out.event_name = ogTitle;
+
+  // (2) JSON-LD Event — source of truth
   for (const block of extractJsonLd(html)) {
     const arr = Array.isArray(block) ? block : [block];
     for (const n of arr) {
       const t = String(n?.["@type"] ?? "").toLowerCase();
       if (!t.includes("event")) continue;
+
+      if (typeof n.name === "string" && !out.event_name) out.event_name = n.name;
+      if (typeof n.startDate === "string") {
+        const dt = parseISODateTime(n.startDate);
+        if (dt.date && !out.event_date) out.event_date = dt.date;
+        if (dt.time && !out.event_time) out.event_time = dt.time;
+      }
+      if (typeof n.image === "string" && !out.image_url) out.image_url = n.image;
+      else if (Array.isArray(n.image) && n.image[0] && !out.image_url) out.image_url = String(n.image[0]);
+
       const loc = Array.isArray(n.location) ? n.location[0] : n.location;
       if (loc) {
         if (!out.stadium && typeof loc.name === "string") out.stadium = loc.name;
-        if (!out.city && typeof loc.address?.addressLocality === "string") out.city = loc.address.addressLocality;
+        const addr = loc.address ?? {};
+        if (!out.city && typeof addr.addressLocality === "string") out.city = addr.addressLocality;
+        if (!out.country && typeof addr.addressCountry === "string") out.country = addr.addressCountry;
       }
+
+      const perfs = Array.isArray(n.performer) ? n.performer : n.performer ? [n.performer] : [];
+      const teams = perfs.map((p: any) => (typeof p === "string" ? p : (p?.name ?? null))).filter(Boolean) as string[];
+      if (teams.length >= 2) {
+        if (!out.home_team) out.home_team = teams[0];
+        if (!out.away_team) out.away_team = teams[1];
+      }
+
       const offers = Array.isArray(n.offers) ? n.offers : n.offers ? [n.offers] : [];
       for (const o of offers) {
         const p = Number(o?.lowPrice ?? o?.price);
@@ -212,7 +247,7 @@ function enrichFromHtml(html: string): EventEnrichment {
     }
   }
 
-  // (2) Meta price tags — high
+  // (3) Meta price tags — high
   if (out.starting_price == null) {
     const metaPrice = extractMeta(html, "product:price:amount") ?? extractMeta(html, "og:price:amount");
     const metaCur = extractMeta(html, "product:price:currency") ?? extractMeta(html, "og:price:currency");
@@ -227,7 +262,7 @@ function enrichFromHtml(html: string): EventEnrichment {
     }
   }
 
-  // (3) __NEXT_DATA__ + (4) other JSON script blobs — medium
+  // (4) NEXT_DATA + (5) JSON blobs — medium
   if (out.starting_price == null) {
     const acc = { price: null as number | null, currency: null as string | null };
     for (const blob of extractScriptJsonBlobs(html)) walkForPrice(blob, acc);
@@ -239,7 +274,7 @@ function enrichFromHtml(html: string): EventEnrichment {
     }
   }
 
-  // (5/6) Visible DOM / regex fallback — estimated
+  // (6) DOM regex — estimated
   if (out.starting_price == null) {
     const re = /(?:from|à partir de|ab|desde|a partire da)\s*(€|\$|£|C\$|MX\$)\s*(\d{2,5})|(€|\$|£|C\$|MX\$)\s*(\d{2,5})/i;
     const m = html.match(re);
@@ -257,6 +292,17 @@ function enrichFromHtml(html: string): EventEnrichment {
   }
 
   return out;
+}
+
+// Filter out keys the admin manually overrode.
+function respectOverrides<T extends Record<string, unknown>>(patch: T, overrides: Record<string, unknown> | null | undefined): T {
+  if (!overrides) return patch;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(patch)) {
+    if (overrides[k]) continue;
+    out[k] = v;
+  }
+  return out as T;
 }
 
 
@@ -277,6 +323,7 @@ type CoverageRow = {
   priority: number | null;
   event_slug: string | null;
   url_type: string | null;
+  manual_overrides: Record<string, unknown> | null;
 };
 
 Deno.serve(async (req) => {
@@ -296,14 +343,25 @@ Deno.serve(async (req) => {
     const provider = (body.provider as string | undefined) ?? "ticombo";
     const limit = Math.min(Number(body.limit ?? 50), 200);
     const maxEvents = Math.min(Number(body.maxEvents ?? 30), 120);
+    const refreshIds: string[] | null = Array.isArray(body.refreshIds) && body.refreshIds.length > 0
+      ? body.refreshIds.map(String) : null;
 
-    // Load source rows
-    const { data: allRowsRaw, error: loadErr } = await supabase
-      .from("wc_ticket_coverage")
-      .select("*")
-      .ilike("provider", provider)
-      .limit(limit * 4);
+    // Load source rows. When refreshIds is set, target those specifically.
+    let query = supabase.from("wc_ticket_coverage").select("*");
+    if (refreshIds) query = query.in("id", refreshIds);
+    else query = query.ilike("provider", provider).limit(limit * 4);
+    const { data: allRowsRaw, error: loadErr } = await query;
     if (loadErr) throw loadErr;
+
+    const allRows = ((allRowsRaw ?? []) as CoverageRow[]);
+    const rowsSkippedInactive = refreshIds ? 0 : allRows.filter((r) => r.active === false).length;
+    const rowsSkippedMissingUrl = allRows.filter((r) => !(r.ticket_url ?? r.url)).length;
+    const rows = refreshIds
+      ? allRows.filter((r) => !!(r.ticket_url ?? r.url))
+      : allRows
+          .filter((r) => r.active !== false)
+          .filter((r) => !!(r.ticket_url ?? r.url))
+          .slice(0, limit);
 
     const allRows = ((allRowsRaw ?? []) as CoverageRow[]);
     const rowsSkippedInactive = allRows.filter((r) => r.active === false).length;
@@ -355,9 +413,12 @@ Deno.serve(async (req) => {
         dbg.rejection_reasons.push("missing_url");
         return false;
       }
-      const eventName = (info.event_name && info.event_name.trim().length > 0)
-        ? info.event_name
-        : "World Cup Tickets";
+      // Prefer enriched (provider page) values over slug-parsed fallbacks.
+      const eventName = enr.event_name ?? (info.event_name && info.event_name.trim() ? info.event_name : "World Cup Tickets");
+      const home = enr.home_team ?? info.home_label;
+      const away = enr.away_team ?? info.away_label;
+      const eventDate = enr.event_date ?? info.event_date;
+      const eventTime = enr.event_time ?? info.event_time;
 
       const slugTail = eventUrl.split("/").pop()?.split("?")[0] ?? "";
       const eventSlug = info.uuid
@@ -370,8 +431,8 @@ Deno.serve(async (req) => {
       const stadiumName = enr.stadium ?? parent.stadium_name ?? "FIFA World Cup 2026";
       const stadiumSlug = parent.stadium_slug ?? "wc-2026-hub";
       let match_id: string | null = null;
-      if (info.event_date && stadiumName) {
-        match_id = stadiumDateIndex.get(`${stadiumName.toLowerCase()}|${info.event_date}`) ?? null;
+      if (eventDate && stadiumName) {
+        match_id = stadiumDateIndex.get(`${stadiumName.toLowerCase()}|${eventDate}`) ?? null;
         if (match_id) linked++;
       }
 
@@ -380,9 +441,10 @@ Deno.serve(async (req) => {
         stadium_slug: stadiumSlug,
         stadium_name: stadiumName,
         city: enr.city ?? parent.city,
-        country: parent.country,
+        country: enr.country ?? parent.country,
         kind: parent.kind ?? "resale",
         provider: parent.provider,
+        provider_event_id: info.uuid ?? null,
         url: eventUrl,
         ticket_url: eventUrl,
         currency: enr.currency ?? parent.currency ?? "EUR",
@@ -391,11 +453,11 @@ Deno.serve(async (req) => {
         url_type: "event",
         event_slug: eventSlug,
         event_name: eventName,
-        event_date: info.event_date,
-        event_time: info.event_time,
+        event_date: eventDate,
+        event_time: eventTime,
         event_status: info.event_status ?? "draft",
-        home_label: info.home_label,
-        away_label: info.away_label,
+        home_label: home,
+        away_label: away,
         image_url: enr.image_url,
         starting_price: enr.starting_price,
         price_source: enr.price_source,
@@ -527,18 +589,18 @@ Deno.serve(async (req) => {
         }
         const info = parseEventUrl(sourceUrl);
         const enr = enrichFromHtml(html);
-        const patch: Record<string, unknown> = {
-          last_sync_at: new Date().toISOString(),
-          last_price_check: new Date().toISOString(),
-          last_sync_status: "ok",
-          url_type: "event",
+        const fullPatch: Record<string, unknown> = {
           event_slug: r.event_slug ?? (info.uuid ? `ticombo-${info.uuid}` : null),
-          event_name: info.event_name,
-          event_date: info.event_date,
-          event_time: info.event_time,
+          provider_event_id: info.uuid ?? null,
+          event_name: enr.event_name ?? info.event_name,
+          event_date: enr.event_date ?? info.event_date,
+          event_time: enr.event_time ?? info.event_time,
           event_status: info.event_status,
-          home_label: info.home_label,
-          away_label: info.away_label,
+          home_label: enr.home_team ?? info.home_label,
+          away_label: enr.away_team ?? info.away_label,
+          stadium_name: enr.stadium ?? r.stadium_name,
+          city: enr.city ?? r.city,
+          country: enr.country ?? r.country,
           image_url: enr.image_url,
           starting_price: enr.starting_price,
           currency: enr.currency ?? r.currency ?? "EUR",
@@ -546,10 +608,20 @@ Deno.serve(async (req) => {
           price_confidence: enr.price_confidence,
           price_checked_at: enr.starting_price != null ? new Date().toISOString() : null,
         };
+        // Respect admin-locked fields
+        const overrides = (r.manual_overrides ?? {}) as Record<string, unknown>;
+        const respected = respectOverrides(fullPatch, overrides);
+        const patch = {
+          ...respected,
+          last_sync_at: new Date().toISOString(),
+          last_price_check: new Date().toISOString(),
+          last_sync_status: "ok",
+          url_type: "event",
+        };
         const { error: upErr } = await supabase.from("wc_ticket_coverage").update(patch).eq("id", r.id);
         if (upErr) { failed++; dbg.reason = upErr.message; debug.push(dbg); continue; }
         eventsExtracted++; dbg.extracted++;
-        dbg.preview.push({ url: sourceUrl, name: info.event_name, date: info.event_date, status: info.event_status, price: enr.starting_price, price_source: enr.price_source, price_confidence: enr.price_confidence });
+        dbg.preview.push({ url: sourceUrl, name: enr.event_name ?? info.event_name, date: enr.event_date ?? info.event_date, status: info.event_status, price: enr.starting_price, price_source: enr.price_source, price_confidence: enr.price_confidence, teams: enr.home_team && enr.away_team ? `${enr.home_team} vs ${enr.away_team}` : null });
         debug.push(dbg);
         continue;
       }
