@@ -1874,6 +1874,9 @@ export type Database = {
           last_sync_status: string | null
           match_id: string | null
           notes: string | null
+          price_checked_at: string | null
+          price_confidence: string | null
+          price_source: string | null
           priority: number
           provider: string
           provider_logo: string | null
@@ -1912,6 +1915,9 @@ export type Database = {
           last_sync_status?: string | null
           match_id?: string | null
           notes?: string | null
+          price_checked_at?: string | null
+          price_confidence?: string | null
+          price_source?: string | null
           priority?: number
           provider: string
           provider_logo?: string | null
@@ -1950,6 +1956,9 @@ export type Database = {
           last_sync_status?: string | null
           match_id?: string | null
           notes?: string | null
+          price_checked_at?: string | null
+          price_confidence?: string | null
+          price_source?: string | null
           priority?: number
           provider?: string
           provider_logo?: string | null
