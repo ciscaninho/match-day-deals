@@ -220,7 +220,7 @@ export function WorldCupTicketCoveragePanel() {
       });
       if (error || data?.error) throw new Error(error?.message || data?.error);
       setLastSync(data);
-      toast.success(`Synced · enriched ${data?.enriched ?? 0} · expanded ${data?.expanded ?? 0} · created ${data?.created ?? 0} · linked ${data?.linked ?? 0}`);
+      toast.success(`Synced · extracted ${data?.events_extracted ?? 0} · created ${data?.created ?? 0} · drafts ${data?.drafts ?? 0} · linked ${data?.linked ?? 0}`);
       refresh();
     } catch (e: any) {
       toast.error(e?.message ?? "Sync failed");
@@ -228,6 +228,18 @@ export function WorldCupTicketCoveragePanel() {
       setter(false);
     }
   };
+
+  // Auto-run sync once when the panel mounts and we have rows but no events
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRan.current || isLoading) return;
+    const ticketRows = coverage.length;
+    const eventRows = coverage.filter((c) => c.event_slug).length;
+    if (ticketRows > 0 && eventRows === 0) {
+      autoRan.current = true;
+      sync(false);
+    }
+  }, [isLoading, coverage]);
 
   return (
     <Card className="border-slate-200 bg-white">
