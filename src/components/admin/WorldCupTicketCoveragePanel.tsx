@@ -21,6 +21,8 @@ export function WorldCupTicketCoveragePanel() {
   const [creating, setCreating] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [resyncing, setResyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<any>(null);
   const [newEventHost, setNewEventHost] = useState<string>("");
 
   const { data: hosts = [] } = useQuery<Host[]>({
@@ -183,17 +185,21 @@ export function WorldCupTicketCoveragePanel() {
     }
   };
 
-  const sync = async () => {
-    setSyncing(true);
+  const sync = async (onlyFailed = false) => {
+    const setter = onlyFailed ? setResyncing : setSyncing;
+    setter(true);
     try {
-      const { data, error } = await supabase.functions.invoke("wc-ticket-sync", { body: { provider: "Ticombo", limit: 50 } });
+      const { data, error } = await supabase.functions.invoke("wc-ticket-sync", {
+        body: { provider: "Ticombo", limit: 50, onlyFailed },
+      });
       if (error || data?.error) throw new Error(error?.message || data?.error);
-      toast.success(`Synced ${data?.enriched ?? 0} event(s) · linked ${data?.linked ?? 0}`);
+      setLastSync(data);
+      toast.success(`Synced · enriched ${data?.enriched ?? 0} · expanded ${data?.expanded ?? 0} · created ${data?.created ?? 0} · linked ${data?.linked ?? 0}`);
       refresh();
     } catch (e: any) {
       toast.error(e?.message ?? "Sync failed");
     } finally {
-      setSyncing(false);
+      setter(false);
     }
   };
 
@@ -206,9 +212,13 @@ export function WorldCupTicketCoveragePanel() {
             <h2 className="text-lg font-extrabold text-slate-900">World Cup event coverage</h2>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="sm" onClick={sync} disabled={syncing} className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 text-xs">
+            <Button size="sm" onClick={() => sync(false)} disabled={syncing} className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 text-xs">
               {syncing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1" />}
               Sync Ticombo events
+            </Button>
+            <Button size="sm" onClick={() => sync(true)} disabled={resyncing} variant="outline" className="h-8 text-xs">
+              {resyncing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+              Re-sync failed rows
             </Button>
             <Button size="sm" onClick={suggest} disabled={suggesting} className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs">
               {suggesting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
@@ -230,6 +240,47 @@ export function WorldCupTicketCoveragePanel() {
             </div>
           ))}
         </div>
+
+        {lastSync && (
+          <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs space-y-2">
+            <div className="flex items-center gap-3 flex-wrap text-sky-900 font-bold">
+              <span>scanned: {lastSync.scanned}</span>
+              <span>enriched: {lastSync.enriched}</span>
+              <span>expanded: {lastSync.expanded}</span>
+              <span>created: {lastSync.created}</span>
+              <span>linked: {lastSync.linked}</span>
+              <span>failed: {lastSync.failed}</span>
+            </div>
+            {Array.isArray(lastSync.debug) && lastSync.debug.length > 0 && (
+              <div className="max-h-48 overflow-auto bg-white rounded border border-sky-100">
+                <table className="w-full text-[11px]">
+                  <thead className="bg-sky-100 text-sky-900 uppercase tracking-wider text-[10px]">
+                    <tr>
+                      <th className="text-left px-2 py-1">Parsed URL</th>
+                      <th className="text-center px-2 py-1">Landing</th>
+                      <th className="text-center px-2 py-1">Detected</th>
+                      <th className="text-center px-2 py-1">Created</th>
+                      <th className="text-center px-2 py-1">Skipped</th>
+                      <th className="text-left px-2 py-1">Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lastSync.debug.map((d: any, i: number) => (
+                      <tr key={i} className="border-t border-sky-100">
+                        <td className="px-2 py-1 text-slate-700 truncate max-w-[260px]">{d.parsed_url}</td>
+                        <td className="px-2 py-1 text-center">{d.landing ? "yes" : "no"}</td>
+                        <td className="px-2 py-1 text-center">{d.detected}</td>
+                        <td className="px-2 py-1 text-center text-emerald-700 font-bold">{d.created}</td>
+                        <td className="px-2 py-1 text-center text-slate-500">{d.skipped}</td>
+                        <td className="px-2 py-1 text-amber-700">{d.reason ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
           <div className="px-3 py-2 border-b border-slate-200 bg-slate-50">
