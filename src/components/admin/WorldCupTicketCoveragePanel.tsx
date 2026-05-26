@@ -71,6 +71,20 @@ export function WorldCupTicketCoveragePanel() {
     },
   });
 
+  const SLOT_RE = /^(tbd|tba|winner|runner[- ]?up|loser|group\s+[a-h].*|[a-h][1-4]|w\d+|r\d+|l\d+)$/i;
+  const isSlot = (s: string | null) => !s || SLOT_RE.test(s.trim());
+
+  const publicReport = useMemo(() => {
+    return coverage.map((c) => {
+      const reasons: string[] = [];
+      if (c.status !== "active") reasons.push("inactive");
+      if (!c.event_slug) reasons.push("no event_slug");
+      if (!c.url) reasons.push("no url");
+      if (c.is_available === false) reasons.push("unavailable");
+      return { row: c, public: reasons.length === 0, reason: reasons.join(", ") || "—" };
+    });
+  }, [coverage]);
+
   const metrics = useMemo(() => {
     const active = coverage.filter((c) => c.status === "active");
     const events = new Set(active.filter((c) => c.event_slug).map((c) => c.event_slug as string));
@@ -84,9 +98,15 @@ export function WorldCupTicketCoveragePanel() {
     }).length;
     const eventRowsActive = active.filter((c) => c.event_slug);
     const detected = events.size;
-    const published = new Set(eventRowsActive.filter((c) => c.is_available !== false && c.home_label && c.away_label).map((c) => c.event_slug as string)).size;
+    const published = new Set(eventRowsActive.filter((c) => c.is_available !== false && !isSlot(c.home_label) && !isSlot(c.away_label)).map((c) => c.event_slug as string)).size;
     const unmatched = new Set(eventRowsActive.filter((c) => !c.match_id).map((c) => c.event_slug as string)).size;
+    const publicCards = publicReport.filter((r) => r.public).length;
+    const hidden = publicReport.filter((r) => !r.public).length;
     return {
+      ticketRows: coverage.length,
+      eventRows: detected,
+      publicCards,
+      hidden,
       detected,
       published,
       unmatched,
@@ -98,7 +118,7 @@ export function WorldCupTicketCoveragePanel() {
       clicks: clicks ?? 0,
       stadiumOnly: active.filter((c) => !c.event_slug).length,
     };
-  }, [coverage, clicks]);
+  }, [coverage, clicks, publicReport]);
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["wc-ticket-coverage"] });
 
