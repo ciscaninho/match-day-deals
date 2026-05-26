@@ -345,7 +345,7 @@ export function WorldCupTicketCoveragePanel() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>
