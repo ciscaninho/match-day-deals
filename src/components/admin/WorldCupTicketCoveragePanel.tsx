@@ -350,6 +350,15 @@ export function WorldCupTicketCoveragePanel() {
                             </td>
                           </tr>
                         )}
+                        {Array.isArray(d.rejection_reasons) && d.rejection_reasons.length > 0 && (
+                          <tr key={`${i}-rej`} className="border-t border-rose-50 bg-rose-50/40">
+                            <td colSpan={10} className="px-2 py-1 text-[10px] text-rose-800">
+                              <span className="font-bold">rejected ({d.rejected ?? 0}):</span>{" "}
+                              {d.rejection_reasons.slice(0, 6).join(" · ")}
+                              {d.rejection_reasons.length > 6 ? ` · +${d.rejection_reasons.length - 6}` : ""}
+                            </td>
+                          </tr>
+                        )
                       </Fragment>
                     ))}
                   </tbody>
