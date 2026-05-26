@@ -452,6 +452,8 @@ Deno.serve(async (req) => {
       events_extracted: eventsExtracted,
       scanned: rowsProcessed,
       created, expanded, failed, linked,
+      accepted: debug.reduce((s: number, d: any) => s + (d.accepted ?? 0), 0),
+      rejected: debug.reduce((s: number, d: any) => s + (d.rejected ?? 0), 0),
       hub_links: hubLinks?.length ?? 0,
       debug,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
