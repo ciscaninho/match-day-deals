@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -220,7 +220,7 @@ export function WorldCupTicketCoveragePanel() {
       });
       if (error || data?.error) throw new Error(error?.message || data?.error);
       setLastSync(data);
-      toast.success(`Synced · enriched ${data?.enriched ?? 0} · expanded ${data?.expanded ?? 0} · created ${data?.created ?? 0} · linked ${data?.linked ?? 0}`);
+      toast.success(`Synced · extracted ${data?.events_extracted ?? 0} · created ${data?.created ?? 0} · drafts ${data?.drafts ?? 0} · linked ${data?.linked ?? 0}`);
       refresh();
     } catch (e: any) {
       toast.error(e?.message ?? "Sync failed");
@@ -228,6 +228,18 @@ export function WorldCupTicketCoveragePanel() {
       setter(false);
     }
   };
+
+  // Auto-run sync once when the panel mounts and we have rows but no events
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRan.current || isLoading) return;
+    const ticketRows = coverage.length;
+    const eventRows = coverage.filter((c) => c.event_slug).length;
+    if (ticketRows > 0 && eventRows === 0) {
+      autoRan.current = true;
+      sync(false);
+    }
+  }, [isLoading, coverage]);
 
   return (
     <Card className="border-slate-200 bg-white">
@@ -279,35 +291,61 @@ export function WorldCupTicketCoveragePanel() {
               <span>{t("admin.wctickets.rows_skipped_missing_url")}: {lastSync.rows_skipped_missing_url ?? 0}</span>
               <span>{t("admin.wctickets.rows_processed")}: {lastSync.rows_processed ?? 0}</span>
               <span>scanned: {lastSync.scanned}</span>
+              <span>urls fetched: {lastSync.urls_fetched ?? 0}</span>
+              <span>events extracted: {lastSync.events_extracted ?? 0}</span>
               <span>enriched: {lastSync.enriched}</span>
               <span>expanded: {lastSync.expanded}</span>
               <span>created: {lastSync.created}</span>
+              <span>drafts: {lastSync.drafts ?? 0}</span>
               <span>linked: {lastSync.linked}</span>
               <span>failed: {lastSync.failed}</span>
             </div>
             {Array.isArray(lastSync.debug) && lastSync.debug.length > 0 && (
-              <div className="max-h-48 overflow-auto bg-white rounded border border-sky-100">
+              <div className="max-h-72 overflow-auto bg-white rounded border border-sky-100">
                 <table className="w-full text-[11px]">
                   <thead className="bg-sky-100 text-sky-900 uppercase tracking-wider text-[10px]">
                     <tr>
                       <th className="text-left px-2 py-1">Parsed URL</th>
                       <th className="text-center px-2 py-1">Landing</th>
+                      <th className="text-center px-2 py-1">Fetched</th>
                       <th className="text-center px-2 py-1">Detected</th>
+                      <th className="text-center px-2 py-1">Extracted</th>
                       <th className="text-center px-2 py-1">Created</th>
-                      <th className="text-center px-2 py-1">Skipped</th>
+                      <th className="text-center px-2 py-1">Drafts</th>
+                      <th className="text-center px-2 py-1">Score</th>
+                      <th className="text-left px-2 py-1">Strategies</th>
                       <th className="text-left px-2 py-1">Reason</th>
                     </tr>
                   </thead>
                   <tbody>
                     {lastSync.debug.map((d: any, i: number) => (
-                      <tr key={i} className="border-t border-sky-100">
-                        <td className="px-2 py-1 text-slate-700 truncate max-w-[260px]">{d.parsed_url}</td>
-                        <td className="px-2 py-1 text-center">{d.landing ? "yes" : "no"}</td>
-                        <td className="px-2 py-1 text-center">{d.detected}</td>
-                        <td className="px-2 py-1 text-center text-emerald-700 font-bold">{d.created}</td>
-                        <td className="px-2 py-1 text-center text-slate-500">{d.skipped}</td>
-                        <td className="px-2 py-1 text-amber-700">{d.reason ?? "—"}</td>
-                      </tr>
+                      <Fragment key={i}>
+                        <tr className="border-t border-sky-100">
+                          <td className="px-2 py-1 text-slate-700 truncate max-w-[220px]">{d.parsed_url}</td>
+                          <td className="px-2 py-1 text-center">{d.landing ? "yes" : "no"}</td>
+                          <td className="px-2 py-1 text-center">{d.urls_fetched ?? 0}</td>
+                          <td className="px-2 py-1 text-center">{d.detected}</td>
+                          <td className="px-2 py-1 text-center">{d.extracted ?? 0}</td>
+                          <td className="px-2 py-1 text-center text-emerald-700 font-bold">{d.created}</td>
+                          <td className="px-2 py-1 text-center text-amber-700">{d.drafts ?? 0}</td>
+                          <td className="px-2 py-1 text-center font-mono">{d.avg_score ?? 0}</td>
+                          <td className="px-2 py-1 text-slate-600 text-[10px]">{(d.strategies ?? []).join(", ") || "—"}</td>
+                          <td className="px-2 py-1 text-amber-700">{d.reason ?? "—"}</td>
+                        </tr>
+                        {Array.isArray(d.preview) && d.preview.length > 0 && (
+                          <tr key={`${i}-prev`} className="border-t border-sky-50 bg-sky-50/40">
+                            <td colSpan={10} className="px-2 py-1">
+                              <div className="flex flex-wrap gap-2">
+                                {d.preview.map((p: any, j: number) => (
+                                  <span key={j} className={`px-2 py-0.5 rounded ${p.draft ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"} text-[10px]`}>
+                                    {p.name ?? "—"} · {p.date ?? "?"} · {p.price ? `€${p.price}` : "—"} · s{p.score}{p.draft ? " · draft" : ""}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>
