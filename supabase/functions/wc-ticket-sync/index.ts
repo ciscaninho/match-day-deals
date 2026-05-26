@@ -589,18 +589,18 @@ Deno.serve(async (req) => {
         }
         const info = parseEventUrl(sourceUrl);
         const enr = enrichFromHtml(html);
-        const patch: Record<string, unknown> = {
-          last_sync_at: new Date().toISOString(),
-          last_price_check: new Date().toISOString(),
-          last_sync_status: "ok",
-          url_type: "event",
+        const fullPatch: Record<string, unknown> = {
           event_slug: r.event_slug ?? (info.uuid ? `ticombo-${info.uuid}` : null),
-          event_name: info.event_name,
-          event_date: info.event_date,
-          event_time: info.event_time,
+          provider_event_id: info.uuid ?? null,
+          event_name: enr.event_name ?? info.event_name,
+          event_date: enr.event_date ?? info.event_date,
+          event_time: enr.event_time ?? info.event_time,
           event_status: info.event_status,
-          home_label: info.home_label,
-          away_label: info.away_label,
+          home_label: enr.home_team ?? info.home_label,
+          away_label: enr.away_team ?? info.away_label,
+          stadium_name: enr.stadium ?? r.stadium_name,
+          city: enr.city ?? r.city,
+          country: enr.country ?? r.country,
           image_url: enr.image_url,
           starting_price: enr.starting_price,
           currency: enr.currency ?? r.currency ?? "EUR",
@@ -608,10 +608,20 @@ Deno.serve(async (req) => {
           price_confidence: enr.price_confidence,
           price_checked_at: enr.starting_price != null ? new Date().toISOString() : null,
         };
+        // Respect admin-locked fields
+        const overrides = (r.manual_overrides ?? {}) as Record<string, unknown>;
+        const respected = respectOverrides(fullPatch, overrides);
+        const patch = {
+          ...respected,
+          last_sync_at: new Date().toISOString(),
+          last_price_check: new Date().toISOString(),
+          last_sync_status: "ok",
+          url_type: "event",
+        };
         const { error: upErr } = await supabase.from("wc_ticket_coverage").update(patch).eq("id", r.id);
         if (upErr) { failed++; dbg.reason = upErr.message; debug.push(dbg); continue; }
         eventsExtracted++; dbg.extracted++;
-        dbg.preview.push({ url: sourceUrl, name: info.event_name, date: info.event_date, status: info.event_status, price: enr.starting_price, price_source: enr.price_source, price_confidence: enr.price_confidence });
+        dbg.preview.push({ url: sourceUrl, name: enr.event_name ?? info.event_name, date: enr.event_date ?? info.event_date, status: info.event_status, price: enr.starting_price, price_source: enr.price_source, price_confidence: enr.price_confidence, teams: enr.home_team && enr.away_team ? `${enr.home_team} vs ${enr.away_team}` : null });
         debug.push(dbg);
         continue;
       }
