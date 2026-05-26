@@ -323,6 +323,7 @@ type CoverageRow = {
   priority: number | null;
   event_slug: string | null;
   url_type: string | null;
+  manual_overrides: Record<string, unknown> | null;
 };
 
 Deno.serve(async (req) => {
@@ -342,14 +343,25 @@ Deno.serve(async (req) => {
     const provider = (body.provider as string | undefined) ?? "ticombo";
     const limit = Math.min(Number(body.limit ?? 50), 200);
     const maxEvents = Math.min(Number(body.maxEvents ?? 30), 120);
+    const refreshIds: string[] | null = Array.isArray(body.refreshIds) && body.refreshIds.length > 0
+      ? body.refreshIds.map(String) : null;
 
-    // Load source rows
-    const { data: allRowsRaw, error: loadErr } = await supabase
-      .from("wc_ticket_coverage")
-      .select("*")
-      .ilike("provider", provider)
-      .limit(limit * 4);
+    // Load source rows. When refreshIds is set, target those specifically.
+    let query = supabase.from("wc_ticket_coverage").select("*");
+    if (refreshIds) query = query.in("id", refreshIds);
+    else query = query.ilike("provider", provider).limit(limit * 4);
+    const { data: allRowsRaw, error: loadErr } = await query;
     if (loadErr) throw loadErr;
+
+    const allRows = ((allRowsRaw ?? []) as CoverageRow[]);
+    const rowsSkippedInactive = refreshIds ? 0 : allRows.filter((r) => r.active === false).length;
+    const rowsSkippedMissingUrl = allRows.filter((r) => !(r.ticket_url ?? r.url)).length;
+    const rows = refreshIds
+      ? allRows.filter((r) => !!(r.ticket_url ?? r.url))
+      : allRows
+          .filter((r) => r.active !== false)
+          .filter((r) => !!(r.ticket_url ?? r.url))
+          .slice(0, limit);
 
     const allRows = ((allRowsRaw ?? []) as CoverageRow[]);
     const rowsSkippedInactive = allRows.filter((r) => r.active === false).length;
