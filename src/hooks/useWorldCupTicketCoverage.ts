@@ -30,6 +30,11 @@ export type WCTicketCoverage = {
   ticket_source_type: string | null;
   image_url: string | null;
   last_price_check: string | null;
+  match_id: string | null;
+  is_available: boolean;
+  is_limited: boolean;
+  last_sync_at: string | null;
+  last_sync_status: string | null;
 };
 
 const KIND_RANK: Record<string, number> = { official: 0, hospitality: 1, resale: 2, affiliate: 3 };
