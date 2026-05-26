@@ -5,6 +5,7 @@ export type WCCoverageKind = "official" | "hospitality" | "resale" | "affiliate"
 
 export type WCTicketCoverage = {
   id: string;
+  active: boolean;
   stadium_slug: string;
   stadium_name: string;
   city: string | null;
@@ -13,6 +14,7 @@ export type WCTicketCoverage = {
   provider: string;
   provider_logo: string | null;
   url: string;
+  ticket_url: string | null;
   starting_price: number | null;
   currency: string;
   event_date: string | null;
@@ -147,6 +149,6 @@ export const useWorldCupEvents = () => {
   const q = useWorldCupTicketCoverage();
   return {
     ...q,
-    events: groupCoverageByEvent(q.data ?? []).filter((e) => e.event_slug != null),
+    events: groupCoverageByEvent(q.data ?? []).filter((e) => e.event_slug != null && !!(e.primary.ticket_url ?? e.primary.url)),
   };
 };
