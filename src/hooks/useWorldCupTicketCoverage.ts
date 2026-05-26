@@ -115,6 +115,7 @@ export const groupCoverageByEvent = (rows: WCTicketCoverage[]): GroupedWCEvent[]
       image_url: primary.image_url,
       best_price,
       currency: primary.currency,
+      price_confidence: (group.find((g) => g.starting_price === best_price)?.price_confidence) ?? null,
       providers: sorted,
       primary,
       match_id: primary.match_id,
