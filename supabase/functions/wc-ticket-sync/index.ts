@@ -319,18 +319,45 @@ Deno.serve(async (req) => {
         last_sync_at: new Date().toISOString(),
         last_sync_status: "ok",
       };
-      const { error } = await supabase
+      // Strategy: try upsert; if ON CONFLICT spec unsupported, fall back to manual lookup → update/insert.
+      let persistStatus: "inserted" | "updated" | "skipped" | "conflict" | "failed" = "inserted";
+      let { error } = await supabase
         .from("wc_ticket_coverage")
         .upsert(row as never, { onConflict: "event_slug,provider", ignoreDuplicates: false });
+
+      if (error && /no unique or exclusion constraint matching the ON CONFLICT/i.test(error.message)) {
+        dbg.conflict_errors = (dbg.conflict_errors ?? 0) + 1;
+        const { data: existing } = await supabase
+          .from("wc_ticket_coverage")
+          .select("id")
+          .eq("event_slug", eventSlug)
+          .eq("provider", parent.provider)
+          .maybeSingle();
+        if (existing?.id) {
+          const { error: updErr } = await supabase
+            .from("wc_ticket_coverage").update(row as never).eq("id", existing.id);
+          error = updErr ?? null;
+          persistStatus = updErr ? "failed" : "updated";
+        } else {
+          const { error: insErr } = await supabase
+            .from("wc_ticket_coverage").insert(row as never);
+          error = insErr ?? null;
+          persistStatus = insErr ? "failed" : "inserted";
+        }
+      }
+
       if (error) {
         dbg.rejected++;
         dbg.rejection_reasons.push(`db:${error.message}`);
         dbg.failed_urls.push(`${eventUrl} :: ${error.message}`);
+        dbg.persist_failed = (dbg.persist_failed ?? 0) + 1;
         return false;
       }
+      if (persistStatus === "updated") dbg.persist_updated = (dbg.persist_updated ?? 0) + 1;
+      else dbg.persist_inserted = (dbg.persist_inserted ?? 0) + 1;
       created++; dbg.created++; dbg.accepted++; eventsExtracted++; dbg.extracted++;
       if (dbg.preview.length < 8) {
-        dbg.preview.push({ url: eventUrl, name: eventName, date: info.event_date, status: info.event_status ?? "draft", price: enr.starting_price });
+        dbg.preview.push({ url: eventUrl, name: eventName, date: info.event_date, status: info.event_status ?? "draft", price: enr.starting_price, persist: persistStatus });
       }
       return true;
     };
