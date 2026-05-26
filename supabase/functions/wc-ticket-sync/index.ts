@@ -342,6 +342,7 @@ Deno.serve(async (req) => {
       const dbg: any = {
         id: r.id, parsed_url: sourceUrl, url_type: urlType,
         urls_fetched: 0, detected: 0, extracted: 0, created: 0, skipped: 0,
+        accepted: 0, rejected: 0, rejection_reasons: [] as string[],
         failed_urls: [] as string[], reason: null as string | null, preview: [] as any[],
       };
 
