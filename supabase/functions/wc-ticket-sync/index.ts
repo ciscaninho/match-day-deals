@@ -542,6 +542,9 @@ Deno.serve(async (req) => {
           image_url: enr.image_url,
           starting_price: enr.starting_price,
           currency: enr.currency ?? r.currency ?? "EUR",
+          price_source: enr.price_source,
+          price_confidence: enr.price_confidence,
+          price_checked_at: enr.starting_price != null ? new Date().toISOString() : null,
         };
         const { error: upErr } = await supabase.from("wc_ticket_coverage").update(patch).eq("id", r.id);
         if (upErr) { failed++; dbg.reason = upErr.message; debug.push(dbg); continue; }
