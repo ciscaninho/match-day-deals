@@ -163,6 +163,20 @@ export function WorldCupTicketCoveragePanel() {
     }
   };
 
+  const sync = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("wc-ticket-sync", { body: { provider: "Ticombo", limit: 50 } });
+      if (error || data?.error) throw new Error(error?.message || data?.error);
+      toast.success(`Synced ${data?.enriched ?? 0} event(s) · linked ${data?.linked ?? 0}`);
+      refresh();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <Card className="border-slate-200 bg-white">
       <CardContent className="p-6 space-y-6">
@@ -171,10 +185,16 @@ export function WorldCupTicketCoveragePanel() {
             <Trophy className="w-5 h-5 text-emerald-600" />
             <h2 className="text-lg font-extrabold text-slate-900">World Cup event coverage</h2>
           </div>
-          <Button size="sm" onClick={suggest} disabled={suggesting} className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs">
-            {suggesting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
-            Suggest host coverage
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={sync} disabled={syncing} className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 text-xs">
+              {syncing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+              Sync Ticombo events
+            </Button>
+            <Button size="sm" onClick={suggest} disabled={suggesting} className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs">
+              {suggesting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
+              Suggest host coverage
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
