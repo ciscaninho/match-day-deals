@@ -179,10 +179,10 @@ export function WorldCupTicketCoveragePanel() {
 
         <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
           {[
-            { label: "Unique events", value: metrics.events },
-            { label: "Provider rows", value: metrics.providers },
-            { label: "Affiliate", value: metrics.affiliate },
-            { label: "Official", value: metrics.official },
+            { label: "Events detected", value: metrics.detected },
+            { label: "Events published", value: metrics.published },
+            { label: "Events unmatched", value: metrics.unmatched },
+            { label: "Official rows", value: metrics.official },
             { label: "Duplicate URLs", value: metrics.duplicateUrls },
             { label: "Stale prices", value: metrics.staleP },
             { label: "Clicks (30d)", value: metrics.clicks },
@@ -193,6 +193,20 @@ export function WorldCupTicketCoveragePanel() {
             </div>
           ))}
         </div>
+
+        {topClicks && topClicks.length > 0 && (
+          <div className="rounded-xl border border-slate-200 bg-white p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Top clicked URLs (30d)</p>
+            <ul className="space-y-1">
+              {topClicks.map(([url, n]) => (
+                <li key={url} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="truncate text-slate-700">{url}</span>
+                  <span className="font-bold text-emerald-700 shrink-0">{n}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {metrics.stadiumOnly > 0 && (
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
