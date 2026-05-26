@@ -15,6 +15,9 @@ const STATUS_LABEL: Record<string, string> = {
   final: "Final",
 };
 
+const SLOT_RE = /^(tbd|tba|winner|runner[- ]?up|loser|group\s+[a-h]\s*(position|pos|runner|winner)?\s*\d*|[a-h][1-4]|w\d+|r\d+|l\d+)$/i;
+const isSlotLabel = (s: string | null | undefined): boolean => !s || SLOT_RE.test(s.trim());
+
 function relativeTime(iso: string | null): string | null {
   if (!iso) return null;
   const diff = Date.now() - new Date(iso).getTime();
