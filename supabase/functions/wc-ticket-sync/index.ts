@@ -482,6 +482,11 @@ Deno.serve(async (req) => {
       created, expanded, failed, linked,
       accepted: debug.reduce((s: number, d: any) => s + (d.accepted ?? 0), 0),
       rejected: debug.reduce((s: number, d: any) => s + (d.rejected ?? 0), 0),
+      conflict_errors: debug.reduce((s: number, d: any) => s + (d.conflict_errors ?? 0), 0),
+      persist_inserted: debug.reduce((s: number, d: any) => s + (d.persist_inserted ?? 0), 0),
+      persist_updated: debug.reduce((s: number, d: any) => s + (d.persist_updated ?? 0), 0),
+      persist_failed: debug.reduce((s: number, d: any) => s + (d.persist_failed ?? 0), 0),
+      conflict_key: "event_slug,provider",
       hub_links: hubLinks?.length ?? 0,
       debug,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
