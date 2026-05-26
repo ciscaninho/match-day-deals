@@ -21,6 +21,8 @@ export function WorldCupTicketCoveragePanel() {
   const [creating, setCreating] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [resyncing, setResyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<any>(null);
   const [newEventHost, setNewEventHost] = useState<string>("");
 
   const { data: hosts = [] } = useQuery<Host[]>({
