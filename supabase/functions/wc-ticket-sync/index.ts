@@ -446,7 +446,7 @@ Deno.serve(async (req) => {
       else dbg.persist_inserted = (dbg.persist_inserted ?? 0) + 1;
       created++; dbg.created++; dbg.accepted++; eventsExtracted++; dbg.extracted++;
       if (dbg.preview.length < 8) {
-        dbg.preview.push({ url: eventUrl, name: eventName, date: info.event_date, status: info.event_status ?? "draft", price: enr.starting_price, persist: persistStatus });
+        dbg.preview.push({ url: eventUrl, name: eventName, date: info.event_date, status: info.event_status ?? "draft", price: enr.starting_price, price_source: enr.price_source, price_confidence: enr.price_confidence, persist: persistStatus });
       }
       return true;
     };
