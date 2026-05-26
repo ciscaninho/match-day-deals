@@ -1,50 +1,9 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Ticket, ArrowRight, ShieldCheck } from "lucide-react";
 import { groupCoverageByEvent, useWorldCupTicketCoverage, type GroupedWCEvent } from "@/hooks/useWorldCupTicketCoverage";
 import { transformAffiliateUrl } from "@/lib/affiliate";
 import { trackAffiliateClick } from "@/lib/affiliateTracking";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
-
-// --- Editorial WC2026 image pool (host cities) ------------------------------
-// Used as last resort so cards never collapse onto the same stadium photo.
-const EDITORIAL_POOL: string[] = [
-  "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&q=80", // crowd
-  "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80", // pitch
-  "https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=1200&q=80", // stadium dusk
-  "https://images.unsplash.com/photo-1577223625816-7546f13df25d?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1540552103450-1ce63b3eaaee?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1493673272479-a20888bcee10?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1606925797300-0b35e9d1794e?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1471295253337-3ceaaedca402?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1592231487929-eb45ab1cb0e3?auto=format&fit=crop&w=1200&q=80",
-];
-
-// City-keyed editorial overrides (host cities for WC2026).
-const CITY_POOL: Record<string, string> = {
-  "los angeles": "https://images.unsplash.com/photo-1504457047772-27faf1c00561?auto=format&fit=crop&w=1200&q=80",
-  "new york": "https://images.unsplash.com/photo-1496588152823-86ff7695e68f?auto=format&fit=crop&w=1200&q=80",
-  "miami": "https://images.unsplash.com/photo-1535498730771-e735b998cd64?auto=format&fit=crop&w=1200&q=80",
-  "dallas": "https://images.unsplash.com/photo-1531218150217-54595bc2b934?auto=format&fit=crop&w=1200&q=80",
-  "houston": "https://images.unsplash.com/photo-1571415060716-baff5f717066?auto=format&fit=crop&w=1200&q=80",
-  "atlanta": "https://images.unsplash.com/photo-1575917649705-5b59aaa12e6b?auto=format&fit=crop&w=1200&q=80",
-  "boston": "https://images.unsplash.com/photo-1501979376754-99ab3a6b8a93?auto=format&fit=crop&w=1200&q=80",
-  "philadelphia": "https://images.unsplash.com/photo-1564507004663-b6dfb3c824d5?auto=format&fit=crop&w=1200&q=80",
-  "kansas city": "https://images.unsplash.com/photo-1568445722683-1f1d9c6c83a9?auto=format&fit=crop&w=1200&q=80",
-  "seattle": "https://images.unsplash.com/photo-1502175353174-a7a1f0d7b3a3?auto=format&fit=crop&w=1200&q=80",
-  "san francisco": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=1200&q=80",
-  "mexico city": "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&w=1200&q=80",
-  "guadalajara": "https://images.unsplash.com/photo-1518638150340-f706e86654de?auto=format&fit=crop&w=1200&q=80",
-  "monterrey": "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80",
-  "toronto": "https://images.unsplash.com/photo-1517090504586-fde19ea6066f?auto=format&fit=crop&w=1200&q=80",
-  "vancouver": "https://images.unsplash.com/photo-1559511260-66a654ae982a?auto=format&fit=crop&w=1200&q=80",
-};
 
 // Country flag emojis for visible matchup labels.
 const COUNTRY_FLAG: Record<string, string> = {
@@ -65,8 +24,6 @@ const flagFor = (label?: string | null): string => {
   return COUNTRY_FLAG[label.trim().toLowerCase()] ?? "";
 };
 
-// --- Helpers -----------------------------------------------------------------
-
 const PHASE_LABEL: Record<string, string> = {
   opening_match: "Opening Match",
   group_stage: "Group Stage",
@@ -81,154 +38,43 @@ const PHASE_LABEL: Record<string, string> = {
 const SLOT_RE = /^(tbd|tba|winner|runner[- ]?up|loser|group\s+[a-h]\s*(position|pos|runner|winner)?\s*\d*|[a-h][1-4]|w\d+|r\d+|l\d+)$/i;
 const isSlotLabel = (s: string | null | undefined): boolean => !s || SLOT_RE.test(s.trim());
 
-function parseGenericMatchName(name?: string | null): { matchday?: number; group?: string } | null {
-  if (!name) return null;
-  const m = name.match(/^\s*Match\s+(\d+)\s+Group\s+([A-L])\s*$/i);
-  if (!m) return null;
-  return { matchday: Number(m[1]), group: m[2].toUpperCase() };
-}
-
-type Headline = { matchup?: { home: string; away: string; homeFlag: string; awayFlag: string }; primary: string; secondary?: string };
-
-function buildHeadline(ev: GroupedWCEvent): Headline {
+function buildHeadline(ev: GroupedWCEvent) {
   const hasRealTeams = !isSlotLabel(ev.home_label) && !isSlotLabel(ev.away_label);
-  const parsed = parseGenericMatchName(ev.event_name);
   const phase = PHASE_LABEL[ev.event_status ?? ""] ?? null;
-  const secondary = phase ?? (parsed?.group ? `Group ${parsed.group}${parsed.matchday ? ` — Matchday ${parsed.matchday}` : ""}` : undefined);
-
   if (hasRealTeams) {
     return {
-      matchup: {
-        home: ev.home_label!,
-        away: ev.away_label!,
-        homeFlag: flagFor(ev.home_label),
-        awayFlag: flagFor(ev.away_label),
-      },
+      matchup: { home: ev.home_label!, away: ev.away_label!, homeFlag: flagFor(ev.home_label), awayFlag: flagFor(ev.away_label) },
       primary: `${ev.home_label} vs ${ev.away_label}`,
-      secondary,
+      secondary: phase ?? undefined,
     };
   }
-  if (parsed?.group) return { primary: `Group ${parsed.group}${parsed.matchday ? ` — Matchday ${parsed.matchday}` : ""}`, secondary: "Group Stage" };
-  if (phase) return { primary: phase, secondary: "FIFA World Cup 2026" };
-  if (ev.event_name && !isSlotLabel(ev.event_name)) return { primary: ev.event_name };
-  return { primary: "World Cup Match" };
+  if (phase) return { primary: phase, secondary: "FIFA World Cup 2026", matchup: undefined };
+  if (ev.event_name && !isSlotLabel(ev.event_name)) return { primary: ev.event_name, matchup: undefined };
+  return { primary: "World Cup Match", matchup: undefined };
 }
 
 function formatEventDate(iso: string | null, time: string | null, locale: string): string {
-  if (!iso) return "Date to be confirmed";
+  if (!iso) return "Date TBA";
   const datePart = iso.slice(0, 10);
   const timePart = time && /^\d{2}:\d{2}/.test(time) ? time.slice(0, 5) : null;
   const d = new Date(`${datePart}T${timePart ?? "12:00"}:00`);
-  if (Number.isNaN(d.getTime())) return "Date to be confirmed";
+  if (Number.isNaN(d.getTime())) return "Date TBA";
   const dateStr = d.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
   return timePart ? `${dateStr} • ${timePart}` : dateStr;
 }
 
-// --- Stadium media -----------------------------------------------------------
-
-type StadiumMedia = {
-  slug: string;
-  hero_image_url: string | null;
-  image_url: string | null;
-  background_image_url: string | null;
-  gallery_images: string[] | null;
-};
-
-type StadiumAssets = { hero: string | null; gallery: string[] };
-
-function useStadiumAssetsMap(slugs: string[]) {
-  const key = slugs.slice().sort().join("|");
-  return useQuery({
-    queryKey: ["wc-stadium-assets", key],
-    enabled: slugs.length > 0,
-    staleTime: 10 * 60 * 1000,
-    queryFn: async (): Promise<Record<string, StadiumAssets>> => {
-      const { data, error } = await supabase
-        .from("stadiums")
-        .select("slug, hero_image_url, image_url, background_image_url, gallery_images")
-        .in("slug", slugs);
-      if (error) throw error;
-      const map: Record<string, StadiumAssets> = {};
-      for (const s of (data ?? []) as StadiumMedia[]) {
-        const gallery = Array.isArray(s.gallery_images) ? s.gallery_images.filter(Boolean) : [];
-        map[s.slug] = {
-          hero: s.hero_image_url || s.image_url || s.background_image_url || gallery[0] || null,
-          gallery,
-        };
-      }
-      return map;
-    },
-  });
+// Elegant placeholder when the provider has no image yet — pure CSS, no stock photo.
+function HeroPlaceholder({ label }: { label: string }) {
+  return (
+    <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-slate-900 to-violet-950 flex items-center justify-center">
+      <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.4),transparent_55%),radial-gradient(circle_at_75%_75%,rgba(139,92,246,0.4),transparent_60%)]" />
+      <div className="relative text-center px-4">
+        <div className="text-4xl mb-2 opacity-80">🏆</div>
+        <p className="text-[11px] uppercase tracking-[0.28em] text-white/60 font-bold">{label}</p>
+      </div>
+    </div>
+  );
 }
-
-// --- Image distribution algorithm -------------------------------------------
-// Goals: no same image twice in a row, same stadium ≤2 consecutive,
-// distribute host countries. Returns map keyed by event.key.
-
-type ImageOrigin = "event" | "stadium_hero" | "stadium_gallery" | "city" | "editorial";
-
-function assignImages(
-  events: GroupedWCEvent[],
-  assets: Record<string, StadiumAssets>,
-): Map<string, { url: string; origin: ImageOrigin }> {
-  const out = new Map<string, { url: string; origin: ImageOrigin }>();
-  const usedCount = new Map<string, number>();
-  let prevUrl: string | null = null;
-  let prevStadium: string | null = null;
-  let prevStadiumStreak = 0;
-  let editorialIdx = 0;
-
-  const pick = (url: string | null | undefined, origin: ImageOrigin): { url: string; origin: ImageOrigin } | null => {
-    if (!url) return null;
-    if (url === prevUrl) return null;
-    return { url, origin };
-  };
-
-  for (const ev of events) {
-    const a = assets[ev.stadium_slug];
-    const cityKey = (ev.city ?? "").trim().toLowerCase();
-    const cityImg = CITY_POOL[cityKey] ?? null;
-
-    // Build priority candidates
-    const stadiumStreakBlocked = prevStadium === ev.stadium_slug && prevStadiumStreak >= 2;
-    const candidates: Array<{ url: string | null | undefined; origin: ImageOrigin; isStadium: boolean }> = [];
-    candidates.push({ url: ev.image_url, origin: "event", isStadium: false });
-    if (!stadiumStreakBlocked) {
-      candidates.push({ url: a?.hero, origin: "stadium_hero", isStadium: true });
-      for (const g of a?.gallery ?? []) candidates.push({ url: g, origin: "stadium_gallery", isStadium: true });
-    }
-    candidates.push({ url: cityImg, origin: "city", isStadium: false });
-
-    let chosen: { url: string; origin: ImageOrigin } | null = null;
-    let chosenIsStadium = false;
-    for (const c of candidates) {
-      const got = pick(c.url, c.origin);
-      if (got) {
-        // Prefer not-yet-used to spread variety
-        if ((usedCount.get(got.url) ?? 0) === 0) { chosen = got; chosenIsStadium = c.isStadium; break; }
-        if (!chosen) { chosen = got; chosenIsStadium = c.isStadium; }
-      }
-    }
-    if (!chosen) {
-      // Editorial fallback — rotate, skip prevUrl
-      for (let i = 0; i < EDITORIAL_POOL.length; i++) {
-        const url = EDITORIAL_POOL[(editorialIdx + i) % EDITORIAL_POOL.length];
-        if (url !== prevUrl) { chosen = { url, origin: "editorial" }; editorialIdx = (editorialIdx + i + 1) % EDITORIAL_POOL.length; break; }
-      }
-    }
-    if (!chosen) chosen = { url: EDITORIAL_POOL[0], origin: "editorial" };
-
-    out.set(ev.key, chosen);
-    usedCount.set(chosen.url, (usedCount.get(chosen.url) ?? 0) + 1);
-    if (chosenIsStadium && prevStadium === ev.stadium_slug) prevStadiumStreak++;
-    else prevStadiumStreak = chosenIsStadium ? 1 : 0;
-    prevStadium = chosenIsStadium ? ev.stadium_slug : null;
-    prevUrl = chosen.url;
-  }
-  return out;
-}
-
-// --- UI ----------------------------------------------------------------------
 
 function Chip({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "emerald" | "amber" | "violet" | "sky" }) {
   const tones: Record<string, string> = {
@@ -245,7 +91,6 @@ function Chip({ children, tone = "default" }: { children: React.ReactNode; tone?
   );
 }
 
-// Pick the single most important phase badge for this event.
 function phaseBadge(ev: GroupedWCEvent): { label: string; tone: "amber" | "violet" | "emerald" } | null {
   const s = ev.event_status ?? "";
   if (s === "opening_match") return { label: "Opening Match", tone: "amber" };
@@ -254,13 +99,11 @@ function phaseBadge(ev: GroupedWCEvent): { label: string; tone: "amber" | "viole
   if (s === "quarter_final") return { label: "Quarter-final", tone: "violet" };
   if (s === "round_of_16") return { label: "Round of 16", tone: "violet" };
   if (s === "third_place") return { label: "3rd-place", tone: "violet" };
-  const parsed = parseGenericMatchName(ev.event_name);
-  if (parsed?.group) return { label: `Group ${parsed.group}`, tone: "emerald" };
   if (s === "group_stage") return { label: "Group Stage", tone: "emerald" };
   return null;
 }
 
-function EventCard({ ev, image }: { ev: GroupedWCEvent; image: { url: string; origin: ImageOrigin } }) {
+function EventCard({ ev }: { ev: GroupedWCEvent }) {
   const { locale } = useLanguage();
   const p = ev.primary;
   const href = transformAffiliateUrl(p.ticket_url ?? p.url);
@@ -268,6 +111,7 @@ function EventCard({ ev, image }: { ev: GroupedWCEvent; image: { url: string; or
   const dateStr = formatEventDate(ev.event_date, ev.event_time, locale);
   const hasOfficial = ev.providers.some((x) => x.kind === "official");
   const phase = phaseBadge(ev);
+  const heroUrl = ev.image_url || p.image_url || null;
 
   const onClick = () =>
     trackAffiliateClick({
@@ -285,27 +129,27 @@ function EventCard({ ev, image }: { ev: GroupedWCEvent; image: { url: string; or
       target="_blank"
       rel="sponsored noopener"
       onClick={onClick}
-      data-image-origin={image.origin}
+      data-image-origin={heroUrl ? "provider" : "placeholder"}
       className="group relative rounded-xl overflow-hidden border border-white/10 hover:border-white/20 hover:-translate-y-0.5 transition-all duration-300 flex flex-col bg-slate-900"
     >
-      {/* Hero image — fully visible with soft bottom gradient only */}
       <div className="relative aspect-[4/5] overflow-hidden">
-        <img
-          src={image.url}
-          alt={headline.primary}
-          loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-[700ms] ease-out"
-        />
-        {/* Soft bottom gradient only */}
+        {heroUrl ? (
+          <img
+            src={heroUrl}
+            alt={headline.primary}
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-[700ms] ease-out"
+          />
+        ) : (
+          <HeroPlaceholder label="World Cup 2026" />
+        )}
         <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
 
-        {/* TOP-LEFT badges (max 2) */}
         <div className="absolute top-3 left-3 right-3 flex items-center gap-1.5 flex-wrap">
           {phase && <Chip tone={phase.tone}>{phase.label}</Chip>}
           {hasOfficial ? <Chip tone="sky">Official</Chip> : <Chip>Resale</Chip>}
         </div>
 
-        {/* CENTER matchup */}
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-4 flex flex-col items-center text-center">
           {headline.matchup ? (
             <div className="flex flex-col items-center gap-1.5">
@@ -326,7 +170,6 @@ function EventCard({ ev, image }: { ev: GroupedWCEvent; image: { url: string; or
           )}
         </div>
 
-        {/* BOTTOM meta — stadium + city + date */}
         <div className="absolute inset-x-0 bottom-0 p-3 flex flex-col gap-0.5 text-[11px] text-white/85">
           <p className="truncate">🏟 {ev.stadium_name}</p>
           {ev.city && <p className="text-white/65 truncate">📍 {ev.city}</p>}
@@ -334,7 +177,6 @@ function EventCard({ ev, image }: { ev: GroupedWCEvent; image: { url: string; or
         </div>
       </div>
 
-      {/* Price + single CTA */}
       <div className="flex items-end justify-between gap-2 px-4 py-3 bg-slate-900">
         <div className="min-w-0">
           {ev.best_price != null ? (() => {
@@ -366,9 +208,6 @@ export function WorldCupTicketsSection() {
     () => groupCoverageByEvent(data).filter((e) => e.event_slug != null && e.is_available !== false),
     [data],
   );
-  const slugs = useMemo(() => Array.from(new Set(events.map((e) => e.stadium_slug).filter(Boolean))), [events]);
-  const { data: assets = {} } = useStadiumAssetsMap(slugs);
-  const imageMap = useMemo(() => assignImages(events, assets), [events, assets]);
 
   if (events.length === 0) return null;
 
@@ -387,10 +226,7 @@ export function WorldCupTicketsSection() {
           Each card is a purchasable event — verified marketplace or official provider. We never sell tickets directly.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {events.map((ev) => {
-            const img = imageMap.get(ev.key) ?? { url: EDITORIAL_POOL[0], origin: "editorial" as const };
-            return <EventCard key={ev.key} ev={ev} image={img} />;
-          })}
+          {events.map((ev) => <EventCard key={ev.key} ev={ev} />)}
         </div>
       </div>
     </section>
