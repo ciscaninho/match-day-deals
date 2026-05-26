@@ -15,6 +15,9 @@ const STATUS_LABEL: Record<string, string> = {
   final: "Final",
 };
 
+const SLOT_RE = /^(tbd|tba|winner|runner[- ]?up|loser|group\s+[a-h]\s*(position|pos|runner|winner)?\s*\d*|[a-h][1-4]|w\d+|r\d+|l\d+)$/i;
+const isSlotLabel = (s: string | null | undefined): boolean => !s || SLOT_RE.test(s.trim());
+
 function relativeTime(iso: string | null): string | null {
   if (!iso) return null;
   const diff = Date.now() - new Date(iso).getTime();
@@ -57,9 +60,11 @@ function EventCard({ ev }: { ev: GroupedWCEvent }) {
       matchId: ev.match_id ?? ev.event_slug ?? null,
     });
 
-  const matchup = ev.home_label && ev.away_label
+  const phaseFallback = ev.event_status ? STATUS_LABEL[ev.event_status] ?? ev.event_status : "World Cup match";
+  const hasRealTeams = !isSlotLabel(ev.home_label) && !isSlotLabel(ev.away_label);
+  const matchup = hasRealTeams
     ? `${ev.home_label} vs ${ev.away_label}`
-    : ev.event_name ?? (ev.event_status ? STATUS_LABEL[ev.event_status] ?? ev.event_status : "World Cup match");
+    : ev.event_name && !isSlotLabel(ev.event_name) ? ev.event_name : phaseFallback;
 
   const phaseLabel = ev.event_status ? STATUS_LABEL[ev.event_status] ?? ev.event_status : null;
   const isOpening = ev.event_status === "opening_match";
