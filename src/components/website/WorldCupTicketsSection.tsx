@@ -15,6 +15,34 @@ const STATUS_LABEL: Record<string, string> = {
   final: "Final",
 };
 
+function relativeTime(iso: string | null): string | null {
+  if (!iso) return null;
+  const diff = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(diff) || diff < 0) return null;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
+
+function Chip({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "emerald" | "amber" | "violet" | "sky" }) {
+  const tones: Record<string, string> = {
+    default: "bg-white/10 text-white/80 border-white/15",
+    emerald: "bg-emerald-500/90 text-white border-transparent",
+    amber: "bg-amber-500/90 text-slate-900 border-transparent",
+    violet: "bg-violet-500/90 text-white border-transparent",
+    sky: "bg-sky-500/90 text-white border-transparent",
+  };
+  return (
+    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full border ${tones[tone]}`}>
+      {children}
+    </span>
+  );
+}
+
 function EventCard({ ev }: { ev: GroupedWCEvent }) {
   const { locale } = useLanguage();
   const p = ev.primary;
@@ -26,7 +54,7 @@ function EventCard({ ev }: { ev: GroupedWCEvent }) {
       provider: p.provider,
       stadiumName: ev.stadium_name,
       league: "FIFA World Cup 2026",
-      matchId: ev.event_slug ?? null,
+      matchId: ev.match_id ?? ev.event_slug ?? null,
     });
 
   const matchup = ev.home_label && ev.away_label
@@ -34,6 +62,11 @@ function EventCard({ ev }: { ev: GroupedWCEvent }) {
     : ev.event_name ?? (ev.event_status ? STATUS_LABEL[ev.event_status] ?? ev.event_status : "World Cup match");
 
   const phaseLabel = ev.event_status ? STATUS_LABEL[ev.event_status] ?? ev.event_status : null;
+  const isOpening = ev.event_status === "opening_match";
+  const isFinal = ev.event_status === "final";
+  const hasOfficial = ev.providers.some((x) => x.kind === "official");
+  const hasResale = ev.providers.some((x) => x.kind === "resale" || x.kind === "affiliate");
+  const freshness = relativeTime(ev.last_price_check);
 
   const dateStr = ev.event_date
     ? new Date(ev.event_date + (ev.event_time ? `T${ev.event_time}` : "T12:00")).toLocaleDateString(locale, {
@@ -60,12 +93,15 @@ function EventCard({ ev }: { ev: GroupedWCEvent }) {
       )}
       <div className="p-5 flex-1 flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
-          {phaseLabel && (
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-emerald-500/90 text-white">
-              {phaseLabel}
-            </span>
-          )}
-          <ArrowUpRight className="w-4 h-4 text-white/40 group-hover:text-emerald-300 transition ml-auto" />
+          <div className="flex flex-wrap gap-1">
+            {isOpening && <Chip tone="amber">Opening</Chip>}
+            {isFinal && <Chip tone="violet">Final</Chip>}
+            {!isOpening && !isFinal && phaseLabel && <Chip tone="emerald">{phaseLabel}</Chip>}
+            {hasOfficial && <Chip tone="sky">Official</Chip>}
+            {!hasOfficial && hasResale && <Chip>Resale</Chip>}
+            {ev.is_limited && <Chip tone="amber">Limited</Chip>}
+          </div>
+          <ArrowUpRight className="w-4 h-4 text-white/40 group-hover:text-emerald-300 transition ml-auto shrink-0" />
         </div>
         <div>
           <h3 className="font-display text-lg text-white leading-tight">{matchup}</h3>
@@ -79,6 +115,9 @@ function EventCard({ ev }: { ev: GroupedWCEvent }) {
             <p className="text-[10px] uppercase tracking-wider text-white/50">{p.provider}</p>
             {ev.providers.length > 1 && (
               <p className="text-[10px] text-white/50 mt-0.5">+{ev.providers.length - 1} more</p>
+            )}
+            {freshness && (
+              <p className="text-[10px] text-white/40 mt-0.5">Updated {freshness}</p>
             )}
           </div>
           <div className="text-right">
@@ -101,7 +140,7 @@ function EventCard({ ev }: { ev: GroupedWCEvent }) {
 
 export function WorldCupTicketsSection() {
   const { data = [] } = useWorldCupTicketCoverage();
-  const events = groupCoverageByEvent(data).filter((e) => e.event_slug != null);
+  const events = groupCoverageByEvent(data).filter((e) => e.event_slug != null && e.is_available !== false);
 
   if (events.length === 0) return null;
 
