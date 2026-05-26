@@ -1885,6 +1885,7 @@ export type Database = {
           ticket_url: string | null
           updated_at: string
           url: string
+          url_type: string | null
         }
         Insert: {
           active?: boolean
@@ -1922,6 +1923,7 @@ export type Database = {
           ticket_url?: string | null
           updated_at?: string
           url: string
+          url_type?: string | null
         }
         Update: {
           active?: boolean
@@ -1959,6 +1961,7 @@ export type Database = {
           ticket_url?: string | null
           updated_at?: string
           url?: string
+          url_type?: string | null
         }
         Relationships: []
       }
