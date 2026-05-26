@@ -61,6 +61,7 @@ export type GroupedWCEvent = {
   image_url: string | null;
   best_price: number | null;
   currency: string;
+  price_confidence: "high" | "medium" | "estimated" | null;
   providers: WCTicketCoverage[];
   primary: WCTicketCoverage;
   match_id: string | null;
