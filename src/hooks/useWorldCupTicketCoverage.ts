@@ -37,6 +37,7 @@ export type WCTicketCoverage = {
   is_limited: boolean;
   last_sync_at: string | null;
   last_sync_status: string | null;
+  url_type: string | null;
 };
 
 const KIND_RANK: Record<string, number> = { official: 0, hospitality: 1, resale: 2, affiliate: 3 };
