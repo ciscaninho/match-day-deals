@@ -282,6 +282,7 @@ export function WorldCupTicketCoveragePanel() {
           </div>
         )}
 
+        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
           <div className="px-3 py-2 border-b border-slate-200 bg-slate-50">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Publicibility debug ({publicReport.length} rows)</p>
           </div>
