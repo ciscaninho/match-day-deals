@@ -549,7 +549,7 @@ Deno.serve(async (req) => {
         const { error: upErr } = await supabase.from("wc_ticket_coverage").update(patch).eq("id", r.id);
         if (upErr) { failed++; dbg.reason = upErr.message; debug.push(dbg); continue; }
         eventsExtracted++; dbg.extracted++;
-        dbg.preview.push({ url: sourceUrl, name: info.event_name, date: info.event_date, status: info.event_status, price: enr.starting_price });
+        dbg.preview.push({ url: sourceUrl, name: info.event_name, date: info.event_date, status: info.event_status, price: enr.starting_price, price_source: enr.price_source, price_confidence: enr.price_confidence });
         debug.push(dbg);
         continue;
       }
