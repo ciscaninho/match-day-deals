@@ -1850,6 +1850,7 @@ export type Database = {
       }
       wc_ticket_coverage: {
         Row: {
+          active: boolean
           away_label: string | null
           city: string | null
           country: string | null
@@ -1881,10 +1882,12 @@ export type Database = {
           starting_price: number | null
           status: string
           ticket_source_type: string | null
+          ticket_url: string | null
           updated_at: string
           url: string
         }
         Insert: {
+          active?: boolean
           away_label?: string | null
           city?: string | null
           country?: string | null
@@ -1916,10 +1919,12 @@ export type Database = {
           starting_price?: number | null
           status?: string
           ticket_source_type?: string | null
+          ticket_url?: string | null
           updated_at?: string
           url: string
         }
         Update: {
+          active?: boolean
           away_label?: string | null
           city?: string | null
           country?: string | null
@@ -1951,6 +1956,7 @@ export type Database = {
           starting_price?: number | null
           status?: string
           ticket_source_type?: string | null
+          ticket_url?: string | null
           updated_at?: string
           url?: string
         }
