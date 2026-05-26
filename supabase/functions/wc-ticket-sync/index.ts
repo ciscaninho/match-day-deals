@@ -413,9 +413,12 @@ Deno.serve(async (req) => {
         dbg.rejection_reasons.push("missing_url");
         return false;
       }
-      const eventName = (info.event_name && info.event_name.trim().length > 0)
-        ? info.event_name
-        : "World Cup Tickets";
+      // Prefer enriched (provider page) values over slug-parsed fallbacks.
+      const eventName = enr.event_name ?? (info.event_name && info.event_name.trim() ? info.event_name : "World Cup Tickets");
+      const home = enr.home_team ?? info.home_label;
+      const away = enr.away_team ?? info.away_label;
+      const eventDate = enr.event_date ?? info.event_date;
+      const eventTime = enr.event_time ?? info.event_time;
 
       const slugTail = eventUrl.split("/").pop()?.split("?")[0] ?? "";
       const eventSlug = info.uuid
@@ -428,8 +431,8 @@ Deno.serve(async (req) => {
       const stadiumName = enr.stadium ?? parent.stadium_name ?? "FIFA World Cup 2026";
       const stadiumSlug = parent.stadium_slug ?? "wc-2026-hub";
       let match_id: string | null = null;
-      if (info.event_date && stadiumName) {
-        match_id = stadiumDateIndex.get(`${stadiumName.toLowerCase()}|${info.event_date}`) ?? null;
+      if (eventDate && stadiumName) {
+        match_id = stadiumDateIndex.get(`${stadiumName.toLowerCase()}|${eventDate}`) ?? null;
         if (match_id) linked++;
       }
 
@@ -438,9 +441,10 @@ Deno.serve(async (req) => {
         stadium_slug: stadiumSlug,
         stadium_name: stadiumName,
         city: enr.city ?? parent.city,
-        country: parent.country,
+        country: enr.country ?? parent.country,
         kind: parent.kind ?? "resale",
         provider: parent.provider,
+        provider_event_id: info.uuid ?? null,
         url: eventUrl,
         ticket_url: eventUrl,
         currency: enr.currency ?? parent.currency ?? "EUR",
@@ -449,11 +453,11 @@ Deno.serve(async (req) => {
         url_type: "event",
         event_slug: eventSlug,
         event_name: eventName,
-        event_date: info.event_date,
-        event_time: info.event_time,
+        event_date: eventDate,
+        event_time: eventTime,
         event_status: info.event_status ?? "draft",
-        home_label: info.home_label,
-        away_label: info.away_label,
+        home_label: home,
+        away_label: away,
         image_url: enr.image_url,
         starting_price: enr.starting_price,
         price_source: enr.price_source,
