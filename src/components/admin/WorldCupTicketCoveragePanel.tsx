@@ -212,9 +212,13 @@ export function WorldCupTicketCoveragePanel() {
             <h2 className="text-lg font-extrabold text-slate-900">World Cup event coverage</h2>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="sm" onClick={sync} disabled={syncing} className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 text-xs">
+            <Button size="sm" onClick={() => sync(false)} disabled={syncing} className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 text-xs">
               {syncing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1" />}
               Sync Ticombo events
+            </Button>
+            <Button size="sm" onClick={() => sync(true)} disabled={resyncing} variant="outline" className="h-8 text-xs">
+              {resyncing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+              Re-sync failed rows
             </Button>
             <Button size="sm" onClick={suggest} disabled={suggesting} className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs">
               {suggesting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
