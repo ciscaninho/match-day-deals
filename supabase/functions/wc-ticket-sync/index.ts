@@ -563,6 +563,19 @@ Deno.serve(async (req) => {
       debug.push(dbg);
     }
 
+    // Aggregate price extraction sources across all preview rows for coverage report
+    const priceSources: Record<string, number> = {};
+    let priceCovered = 0;
+    for (const d of debug) {
+      for (const p of (d.preview ?? [])) {
+        if (p.price != null) {
+          priceCovered++;
+          const src = p.price_source ?? "unknown";
+          priceSources[src] = (priceSources[src] ?? 0) + 1;
+        }
+      }
+    }
+
     return new Response(JSON.stringify({
       rows_loaded: rowsLoaded,
       rows_skipped_inactive: rowsSkippedInactive,
@@ -578,6 +591,8 @@ Deno.serve(async (req) => {
       persist_inserted: debug.reduce((s: number, d: any) => s + (d.persist_inserted ?? 0), 0),
       persist_updated: debug.reduce((s: number, d: any) => s + (d.persist_updated ?? 0), 0),
       persist_failed: debug.reduce((s: number, d: any) => s + (d.persist_failed ?? 0), 0),
+      price_sources: priceSources,
+      price_covered: priceCovered,
       conflict_key: "event_slug,provider",
       hub_links: hubLinks?.length ?? 0,
       debug,
