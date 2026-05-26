@@ -319,18 +319,45 @@ Deno.serve(async (req) => {
         last_sync_at: new Date().toISOString(),
         last_sync_status: "ok",
       };
-      const { error } = await supabase
+      // Strategy: try upsert; if ON CONFLICT spec unsupported, fall back to manual lookup → update/insert.
+      let persistStatus: "inserted" | "updated" | "skipped" | "conflict" | "failed" = "inserted";
+      let { error } = await supabase
         .from("wc_ticket_coverage")
         .upsert(row as never, { onConflict: "event_slug,provider", ignoreDuplicates: false });
+
+      if (error && /no unique or exclusion constraint matching the ON CONFLICT/i.test(error.message)) {
+        dbg.conflict_errors = (dbg.conflict_errors ?? 0) + 1;
+        const { data: existing } = await supabase
+          .from("wc_ticket_coverage")
+          .select("id")
+          .eq("event_slug", eventSlug)
+          .eq("provider", parent.provider)
+          .maybeSingle();
+        if (existing?.id) {
+          const { error: updErr } = await supabase
+            .from("wc_ticket_coverage").update(row as never).eq("id", existing.id);
+          error = updErr ?? null;
+          persistStatus = updErr ? "failed" : "updated";
+        } else {
+          const { error: insErr } = await supabase
+            .from("wc_ticket_coverage").insert(row as never);
+          error = insErr ?? null;
+          persistStatus = insErr ? "failed" : "inserted";
+        }
+      }
+
       if (error) {
         dbg.rejected++;
         dbg.rejection_reasons.push(`db:${error.message}`);
         dbg.failed_urls.push(`${eventUrl} :: ${error.message}`);
+        dbg.persist_failed = (dbg.persist_failed ?? 0) + 1;
         return false;
       }
+      if (persistStatus === "updated") dbg.persist_updated = (dbg.persist_updated ?? 0) + 1;
+      else dbg.persist_inserted = (dbg.persist_inserted ?? 0) + 1;
       created++; dbg.created++; dbg.accepted++; eventsExtracted++; dbg.extracted++;
       if (dbg.preview.length < 8) {
-        dbg.preview.push({ url: eventUrl, name: eventName, date: info.event_date, status: info.event_status ?? "draft", price: enr.starting_price });
+        dbg.preview.push({ url: eventUrl, name: eventName, date: info.event_date, status: info.event_status ?? "draft", price: enr.starting_price, persist: persistStatus });
       }
       return true;
     };
@@ -340,9 +367,10 @@ Deno.serve(async (req) => {
       const sourceUrl = (r.ticket_url ?? r.url)!;
       const urlType = (r.url_type as UrlType) || classifyUrl(sourceUrl);
       const dbg: any = {
-        id: r.id, parsed_url: sourceUrl, url_type: urlType,
+        id: r.id, parsed_url: sourceUrl, url_type: urlType, conflict_key: "event_slug,provider",
         urls_fetched: 0, detected: 0, extracted: 0, created: 0, skipped: 0,
         accepted: 0, rejected: 0, rejection_reasons: [] as string[],
+        conflict_errors: 0, persist_inserted: 0, persist_updated: 0, persist_failed: 0,
         failed_urls: [] as string[], reason: null as string | null, preview: [] as any[],
       };
 
@@ -454,6 +482,11 @@ Deno.serve(async (req) => {
       created, expanded, failed, linked,
       accepted: debug.reduce((s: number, d: any) => s + (d.accepted ?? 0), 0),
       rejected: debug.reduce((s: number, d: any) => s + (d.rejected ?? 0), 0),
+      conflict_errors: debug.reduce((s: number, d: any) => s + (d.conflict_errors ?? 0), 0),
+      persist_inserted: debug.reduce((s: number, d: any) => s + (d.persist_inserted ?? 0), 0),
+      persist_updated: debug.reduce((s: number, d: any) => s + (d.persist_updated ?? 0), 0),
+      persist_failed: debug.reduce((s: number, d: any) => s + (d.persist_failed ?? 0), 0),
+      conflict_key: "event_slug,provider",
       hub_links: hubLinks?.length ?? 0,
       debug,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
