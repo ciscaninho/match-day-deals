@@ -111,7 +111,7 @@ function EventCard({ ev }: { ev: GroupedWCEvent }) {
         <div>
           <h3 className="font-display text-lg text-white leading-tight">{matchup}</h3>
           <div className="flex flex-col gap-1 mt-2 text-[11px] text-white/65">
-            {dateStr && <p className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {dateStr}</p>}
+            <p className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {dateStr ?? "Date TBA"}</p>
             <p className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {ev.stadium_name}{ev.city ? ` · ${ev.city}` : ""}</p>
           </div>
         </div>
