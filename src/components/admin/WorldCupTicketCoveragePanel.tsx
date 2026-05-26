@@ -319,8 +319,8 @@ export function WorldCupTicketCoveragePanel() {
                   </thead>
                   <tbody>
                     {lastSync.debug.map((d: any, i: number) => (
-                      <>
-                        <tr key={i} className="border-t border-sky-100">
+                      <Fragment key={i}>
+                        <tr className="border-t border-sky-100">
                           <td className="px-2 py-1 text-slate-700 truncate max-w-[220px]">{d.parsed_url}</td>
                           <td className="px-2 py-1 text-center">{d.landing ? "yes" : "no"}</td>
                           <td className="px-2 py-1 text-center">{d.urls_fetched ?? 0}</td>
