@@ -1864,9 +1864,14 @@ export type Database = {
           home_label: string | null
           id: string
           image_url: string | null
+          is_available: boolean
+          is_limited: boolean
           kind: string
           label: string | null
           last_price_check: string | null
+          last_sync_at: string | null
+          last_sync_status: string | null
+          match_id: string | null
           notes: string | null
           priority: number
           provider: string
@@ -1894,9 +1899,14 @@ export type Database = {
           home_label?: string | null
           id?: string
           image_url?: string | null
+          is_available?: boolean
+          is_limited?: boolean
           kind?: string
           label?: string | null
           last_price_check?: string | null
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          match_id?: string | null
           notes?: string | null
           priority?: number
           provider: string
@@ -1924,9 +1934,14 @@ export type Database = {
           home_label?: string | null
           id?: string
           image_url?: string | null
+          is_available?: boolean
+          is_limited?: boolean
           kind?: string
           label?: string | null
           last_price_check?: string | null
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          match_id?: string | null
           notes?: string | null
           priority?: number
           provider?: string
