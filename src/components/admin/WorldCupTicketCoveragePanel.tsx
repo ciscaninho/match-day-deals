@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Loader2, Plus, Sparkles, Trash2, Trophy, Ticket, CalendarPlus } from "lucide-react";
+import { Loader2, Plus, Sparkles, Trash2, Trophy, Ticket, CalendarPlus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useWorldCupTicketCoverage, type WCTicketCoverage, type WCCoverageKind, groupCoverageByEvent } from "@/hooks/useWorldCupTicketCoverage";
 
@@ -20,6 +20,7 @@ export function WorldCupTicketCoveragePanel() {
   const { data: coverage = [], isLoading } = useWorldCupTicketCoverage({ adminAll: true });
   const [creating, setCreating] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [newEventHost, setNewEventHost] = useState<string>("");
 
   const { data: hosts = [] } = useQuery<Host[]>({
@@ -51,6 +52,25 @@ export function WorldCupTicketCoveragePanel() {
   const events = useMemo(() => groupCoverageByEvent(coverage), [coverage]);
   const eventRows = useMemo(() => events.filter((e) => e.event_slug != null), [events]);
 
+  const { data: topClicks } = useQuery({
+    queryKey: ["wc-affiliate-top-clicked-30d"],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+      const { data } = await supabase
+        .from("affiliate_clicks" as never)
+        .select("destination")
+        .eq("league", "FIFA World Cup 2026")
+        .gte("created_at", since)
+        .limit(2000);
+      const counts = new Map<string, number>();
+      for (const r of (data ?? []) as any[]) {
+        if (!r.destination) continue;
+        counts.set(r.destination, (counts.get(r.destination) ?? 0) + 1);
+      }
+      return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+    },
+  });
+
   const metrics = useMemo(() => {
     const active = coverage.filter((c) => c.status === "active");
     const events = new Set(active.filter((c) => c.event_slug).map((c) => c.event_slug as string));
@@ -62,9 +82,15 @@ export function WorldCupTicketCoveragePanel() {
       if (!c.last_price_check) return true;
       return Date.now() - new Date(c.last_price_check).getTime() > 7 * 24 * 3600 * 1000;
     }).length;
+    const eventRowsActive = active.filter((c) => c.event_slug);
+    const detected = events.size;
+    const published = new Set(eventRowsActive.filter((c) => c.is_available !== false && c.home_label && c.away_label).map((c) => c.event_slug as string)).size;
+    const unmatched = new Set(eventRowsActive.filter((c) => !c.match_id).map((c) => c.event_slug as string)).size;
     return {
-      events: events.size,
-      providers: active.filter((c) => c.event_slug).length,
+      detected,
+      published,
+      unmatched,
+      providers: eventRowsActive.length,
       affiliate: active.filter((c) => c.event_slug && c.kind === "affiliate").length,
       official: active.filter((c) => c.event_slug && c.kind === "official").length,
       duplicateUrls,
@@ -137,6 +163,20 @@ export function WorldCupTicketCoveragePanel() {
     }
   };
 
+  const sync = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("wc-ticket-sync", { body: { provider: "Ticombo", limit: 50 } });
+      if (error || data?.error) throw new Error(error?.message || data?.error);
+      toast.success(`Synced ${data?.enriched ?? 0} event(s) · linked ${data?.linked ?? 0}`);
+      refresh();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <Card className="border-slate-200 bg-white">
       <CardContent className="p-6 space-y-6">
@@ -145,18 +185,24 @@ export function WorldCupTicketCoveragePanel() {
             <Trophy className="w-5 h-5 text-emerald-600" />
             <h2 className="text-lg font-extrabold text-slate-900">World Cup event coverage</h2>
           </div>
-          <Button size="sm" onClick={suggest} disabled={suggesting} className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs">
-            {suggesting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
-            Suggest host coverage
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={sync} disabled={syncing} className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 text-xs">
+              {syncing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+              Sync Ticombo events
+            </Button>
+            <Button size="sm" onClick={suggest} disabled={suggesting} className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs">
+              {suggesting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
+              Suggest host coverage
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
           {[
-            { label: "Unique events", value: metrics.events },
-            { label: "Provider rows", value: metrics.providers },
-            { label: "Affiliate", value: metrics.affiliate },
-            { label: "Official", value: metrics.official },
+            { label: "Events detected", value: metrics.detected },
+            { label: "Events published", value: metrics.published },
+            { label: "Events unmatched", value: metrics.unmatched },
+            { label: "Official rows", value: metrics.official },
             { label: "Duplicate URLs", value: metrics.duplicateUrls },
             { label: "Stale prices", value: metrics.staleP },
             { label: "Clicks (30d)", value: metrics.clicks },
@@ -167,6 +213,20 @@ export function WorldCupTicketCoveragePanel() {
             </div>
           ))}
         </div>
+
+        {topClicks && topClicks.length > 0 && (
+          <div className="rounded-xl border border-slate-200 bg-white p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Top clicked URLs (30d)</p>
+            <ul className="space-y-1">
+              {topClicks.map(([url, n]) => (
+                <li key={url} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="truncate text-slate-700">{url}</span>
+                  <span className="font-bold text-emerald-700 shrink-0">{n}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {metrics.stadiumOnly > 0 && (
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">

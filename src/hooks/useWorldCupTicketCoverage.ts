@@ -30,6 +30,11 @@ export type WCTicketCoverage = {
   ticket_source_type: string | null;
   image_url: string | null;
   last_price_check: string | null;
+  match_id: string | null;
+  is_available: boolean;
+  is_limited: boolean;
+  last_sync_at: string | null;
+  last_sync_status: string | null;
 };
 
 const KIND_RANK: Record<string, number> = { official: 0, hospitality: 1, resale: 2, affiliate: 3 };
@@ -52,6 +57,21 @@ export type GroupedWCEvent = {
   currency: string;
   providers: WCTicketCoverage[];
   primary: WCTicketCoverage;
+  match_id: string | null;
+  is_available: boolean;
+  is_limited: boolean;
+  last_price_check: string | null;
+};
+
+const PHASE_RANK: Record<string, number> = {
+  opening_match: 0,
+  final: 1,
+  third_place: 2,
+  semi_final: 3,
+  quarter_final: 4,
+  round_of_16: 5,
+  round_of_32: 6,
+  group_stage: 7,
 };
 
 export const groupCoverageByEvent = (rows: WCTicketCoverage[]): GroupedWCEvent[] => {
@@ -67,6 +87,11 @@ export const groupCoverageByEvent = (rows: WCTicketCoverage[]): GroupedWCEvent[]
     const primary = sorted[0];
     const prices = group.map((g) => g.starting_price).filter((p): p is number => p != null);
     const best_price = prices.length > 0 ? Math.min(...prices) : null;
+    const latestPriceCheck = group
+      .map((g) => g.last_price_check)
+      .filter((v): v is string => !!v)
+      .sort()
+      .at(-1) ?? null;
     return {
       key,
       event_name: primary.event_name,
@@ -85,8 +110,19 @@ export const groupCoverageByEvent = (rows: WCTicketCoverage[]): GroupedWCEvent[]
       currency: primary.currency,
       providers: sorted,
       primary,
+      match_id: primary.match_id,
+      is_available: group.some((g) => g.is_available !== false),
+      is_limited: group.some((g) => g.is_limited === true),
+      last_price_check: latestPriceCheck,
     };
   }).sort((a, b) => {
+    // 1) Opening match  2) Final  3) Cheapest  4) Soonest  5) Remaining
+    const pa = PHASE_RANK[a.event_status ?? ""] ?? 99;
+    const pb = PHASE_RANK[b.event_status ?? ""] ?? 99;
+    if ((pa <= 1 || pb <= 1) && pa !== pb) return pa - pb;
+    const priceA = a.best_price ?? Number.POSITIVE_INFINITY;
+    const priceB = b.best_price ?? Number.POSITIVE_INFINITY;
+    if (priceA !== priceB) return priceA - priceB;
     const da = a.event_date ?? "9999-12-31";
     const db = b.event_date ?? "9999-12-31";
     return da.localeCompare(db);
