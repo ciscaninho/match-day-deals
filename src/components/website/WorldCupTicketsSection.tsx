@@ -202,14 +202,18 @@ function EventCard({ ev, stadiumFallback }: { ev: GroupedWCEvent; stadiumFallbac
 
         <div className="flex items-end justify-between gap-2 pt-2.5 border-t border-white/10">
           <div className="min-w-0">
-            {ev.best_price != null ? (
-              <>
-                <p className="text-[9px] uppercase tracking-wider text-white/45">From</p>
-                <p className="font-display text-lg text-emerald-300 leading-none">
-                  {ev.best_price.toLocaleString(locale, { style: "currency", currency: ev.currency, maximumFractionDigits: 0 })}
-                </p>
-              </>
-            ) : (
+            {ev.best_price != null ? (() => {
+              const conf = ev.price_confidence ?? "medium";
+              const priceStr = ev.best_price.toLocaleString(locale, { style: "currency", currency: ev.currency, maximumFractionDigits: 0 });
+              const eyebrow = conf === "high" ? "From" : conf === "medium" ? "From ~" : "Approx.";
+              const tip = conf === "high" ? "Verified provider price" : conf === "medium" ? "Detected from provider data" : "Estimated from listing text";
+              return (
+                <>
+                  <p className="text-[9px] uppercase tracking-wider text-white/45">{eyebrow}</p>
+                  <p title={tip} className="font-display text-lg text-emerald-300 leading-none">{priceStr}</p>
+                </>
+              );
+            })() : (
               <>
                 <p className="text-[9px] uppercase tracking-wider text-white/45">Price</p>
                 <p className="text-[12px] font-semibold text-emerald-300 leading-none">Coming soon</p>
