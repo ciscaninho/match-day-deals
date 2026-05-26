@@ -134,7 +134,7 @@ function EventCard({ ev }: { ev: GroupedWCEvent }) {
                 </p>
               </>
             ) : (
-              <p className="text-[11px] font-semibold text-emerald-300">Compare tickets</p>
+              <p className="text-[11px] font-semibold text-emerald-300">Tickets available</p>
             )}
           </div>
         </div>
