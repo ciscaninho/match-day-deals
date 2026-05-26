@@ -52,6 +52,25 @@ export function WorldCupTicketCoveragePanel() {
   const events = useMemo(() => groupCoverageByEvent(coverage), [coverage]);
   const eventRows = useMemo(() => events.filter((e) => e.event_slug != null), [events]);
 
+  const { data: topClicks } = useQuery({
+    queryKey: ["wc-affiliate-top-clicked-30d"],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+      const { data } = await supabase
+        .from("affiliate_clicks" as never)
+        .select("destination")
+        .eq("league", "FIFA World Cup 2026")
+        .gte("created_at", since)
+        .limit(2000);
+      const counts = new Map<string, number>();
+      for (const r of (data ?? []) as any[]) {
+        if (!r.destination) continue;
+        counts.set(r.destination, (counts.get(r.destination) ?? 0) + 1);
+      }
+      return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+    },
+  });
+
   const metrics = useMemo(() => {
     const active = coverage.filter((c) => c.status === "active");
     const events = new Set(active.filter((c) => c.event_slug).map((c) => c.event_slug as string));
@@ -63,9 +82,15 @@ export function WorldCupTicketCoveragePanel() {
       if (!c.last_price_check) return true;
       return Date.now() - new Date(c.last_price_check).getTime() > 7 * 24 * 3600 * 1000;
     }).length;
+    const eventRowsActive = active.filter((c) => c.event_slug);
+    const detected = events.size;
+    const published = new Set(eventRowsActive.filter((c) => c.is_available !== false && c.home_label && c.away_label).map((c) => c.event_slug as string)).size;
+    const unmatched = new Set(eventRowsActive.filter((c) => !c.match_id).map((c) => c.event_slug as string)).size;
     return {
-      events: events.size,
-      providers: active.filter((c) => c.event_slug).length,
+      detected,
+      published,
+      unmatched,
+      providers: eventRowsActive.length,
       affiliate: active.filter((c) => c.event_slug && c.kind === "affiliate").length,
       official: active.filter((c) => c.event_slug && c.kind === "official").length,
       duplicateUrls,
