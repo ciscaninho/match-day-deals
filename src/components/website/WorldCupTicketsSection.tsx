@@ -60,9 +60,11 @@ function EventCard({ ev }: { ev: GroupedWCEvent }) {
       matchId: ev.match_id ?? ev.event_slug ?? null,
     });
 
-  const matchup = ev.home_label && ev.away_label
+  const phaseFallback = ev.event_status ? STATUS_LABEL[ev.event_status] ?? ev.event_status : "World Cup match";
+  const hasRealTeams = !isSlotLabel(ev.home_label) && !isSlotLabel(ev.away_label);
+  const matchup = hasRealTeams
     ? `${ev.home_label} vs ${ev.away_label}`
-    : ev.event_name ?? (ev.event_status ? STATUS_LABEL[ev.event_status] ?? ev.event_status : "World Cup match");
+    : ev.event_name && !isSlotLabel(ev.event_name) ? ev.event_name : phaseFallback;
 
   const phaseLabel = ev.event_status ? STATUS_LABEL[ev.event_status] ?? ev.event_status : null;
   const isOpening = ev.event_status === "opening_match";
