@@ -348,6 +348,11 @@ const en = {
   "admin.wcimport.propose_match": "Propose missing World Cup match",
   "admin.wcimport.no_missing": "No missing fixtures for this stadium",
   "admin.wcimport.mark_approved": "Mark approved for publication",
+  "admin.wctickets.activate_rows": "Activate all coverage rows",
+  "admin.wctickets.rows_loaded": "Rows loaded",
+  "admin.wctickets.rows_skipped_inactive": "Rows skipped inactive",
+  "admin.wctickets.rows_skipped_missing_url": "Rows skipped missing URL",
+  "admin.wctickets.rows_processed": "Rows processed",
 };
 
 const fr: Record<keyof typeof en, string> = {
@@ -698,6 +703,11 @@ const fr: Record<keyof typeof en, string> = {
   "admin.wcimport.propose_match": "Proposer un match CdM manquant",
   "admin.wcimport.no_missing": "Aucun match manquant pour ce stade",
   "admin.wcimport.mark_approved": "Marquer approuvé pour publication",
+  "admin.wctickets.activate_rows": "Activer toutes les lignes de couverture",
+  "admin.wctickets.rows_loaded": "Lignes chargées",
+  "admin.wctickets.rows_skipped_inactive": "Lignes ignorées inactives",
+  "admin.wctickets.rows_skipped_missing_url": "Lignes ignorées sans URL",
+  "admin.wctickets.rows_processed": "Lignes traitées",
 };
 
 // Other locales fall back to English (existing project pattern).

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Plus, Sparkles, Trash2, Trophy, Ticket, CalendarPlus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useWorldCupTicketCoverage, type WCTicketCoverage, type WCCoverageKind, groupCoverageByEvent } from "@/hooks/useWorldCupTicketCoverage";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 type Host = { slug: string; stadium_name: string; city: string; country: string };
 
@@ -17,6 +18,7 @@ const STATUS_OPTIONS = ["opening_match", "group_stage", "round_of_32", "round_of
 
 export function WorldCupTicketCoveragePanel() {
   const qc = useQueryClient();
+  const { t } = useLanguage();
   const { data: coverage = [], isLoading } = useWorldCupTicketCoverage({ adminAll: true });
   const [creating, setCreating] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
@@ -246,7 +248,7 @@ export function WorldCupTicketCoveragePanel() {
             </Button>
             <Button size="sm" onClick={activateAllCoverageRows} disabled={activating} variant="outline" className="h-8 text-xs">
               {activating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Plus className="w-3 h-3 mr-1" />}
-              Activate all coverage rows
+              {t("admin.wctickets.activate_rows")}
             </Button>
             <Button size="sm" onClick={suggest} disabled={suggesting} className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs">
               {suggesting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
@@ -272,10 +274,10 @@ export function WorldCupTicketCoveragePanel() {
         {lastSync && (
           <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs space-y-2">
             <div className="flex items-center gap-3 flex-wrap text-sky-900 font-bold">
-              <span>rows loaded: {lastSync.rows_loaded ?? 0}</span>
-              <span>rows skipped inactive: {lastSync.rows_skipped_inactive ?? 0}</span>
-              <span>rows skipped missing url: {lastSync.rows_skipped_missing_url ?? 0}</span>
-              <span>rows processed: {lastSync.rows_processed ?? 0}</span>
+              <span>{t("admin.wctickets.rows_loaded")}: {lastSync.rows_loaded ?? 0}</span>
+              <span>{t("admin.wctickets.rows_skipped_inactive")}: {lastSync.rows_skipped_inactive ?? 0}</span>
+              <span>{t("admin.wctickets.rows_skipped_missing_url")}: {lastSync.rows_skipped_missing_url ?? 0}</span>
+              <span>{t("admin.wctickets.rows_processed")}: {lastSync.rows_processed ?? 0}</span>
               <span>scanned: {lastSync.scanned}</span>
               <span>enriched: {lastSync.enriched}</span>
               <span>expanded: {lastSync.expanded}</span>
