@@ -457,7 +457,12 @@ export function WorldCupTicketCoveragePanel() {
                       </p>
                       <p className="text-[11px] text-slate-500">{c.stadium_name} · {[c.city, c.country].filter(Boolean).join(", ")}</p>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {c.url_type === "search" && <Badge variant="outline" className="text-[10px] border-amber-400 text-amber-700">search url</Badge>}
+                      {c.url_type === "event" && <Badge variant="outline" className="text-[10px] border-emerald-400 text-emerald-700">event url</Badge>}
+                      {c.url_type === "discovery" && <Badge variant="outline" className="text-[10px] border-sky-400 text-sky-700">discovery</Badge>}
+                      {c.url_type === "landing" && <Badge variant="outline" className="text-[10px] border-violet-400 text-violet-700">landing</Badge>}
+                      {c.last_sync_status === "expanded" && <Badge variant="outline" className="text-[10px] border-sky-400 text-sky-700">expanded</Badge>}
                       {!c.event_slug && <Badge variant="outline" className="text-[10px] border-amber-400 text-amber-700">stadium-only</Badge>}
                       <Badge variant={c.status === "active" ? "default" : "secondary"} className="text-[10px]">{c.status}</Badge>
                       <Badge variant={c.active === false ? "secondary" : "default"} className="text-[10px]">{c.active === false ? "inactive" : "active"}</Badge>
