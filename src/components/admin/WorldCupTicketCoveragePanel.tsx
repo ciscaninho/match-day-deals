@@ -241,7 +241,47 @@ export function WorldCupTicketCoveragePanel() {
           ))}
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+        {lastSync && (
+          <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs space-y-2">
+            <div className="flex items-center gap-3 flex-wrap text-sky-900 font-bold">
+              <span>scanned: {lastSync.scanned}</span>
+              <span>enriched: {lastSync.enriched}</span>
+              <span>expanded: {lastSync.expanded}</span>
+              <span>created: {lastSync.created}</span>
+              <span>linked: {lastSync.linked}</span>
+              <span>failed: {lastSync.failed}</span>
+            </div>
+            {Array.isArray(lastSync.debug) && lastSync.debug.length > 0 && (
+              <div className="max-h-48 overflow-auto bg-white rounded border border-sky-100">
+                <table className="w-full text-[11px]">
+                  <thead className="bg-sky-100 text-sky-900 uppercase tracking-wider text-[10px]">
+                    <tr>
+                      <th className="text-left px-2 py-1">Parsed URL</th>
+                      <th className="text-center px-2 py-1">Landing</th>
+                      <th className="text-center px-2 py-1">Detected</th>
+                      <th className="text-center px-2 py-1">Created</th>
+                      <th className="text-center px-2 py-1">Skipped</th>
+                      <th className="text-left px-2 py-1">Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lastSync.debug.map((d: any, i: number) => (
+                      <tr key={i} className="border-t border-sky-100">
+                        <td className="px-2 py-1 text-slate-700 truncate max-w-[260px]">{d.parsed_url}</td>
+                        <td className="px-2 py-1 text-center">{d.landing ? "yes" : "no"}</td>
+                        <td className="px-2 py-1 text-center">{d.detected}</td>
+                        <td className="px-2 py-1 text-center text-emerald-700 font-bold">{d.created}</td>
+                        <td className="px-2 py-1 text-center text-slate-500">{d.skipped}</td>
+                        <td className="px-2 py-1 text-amber-700">{d.reason ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
           <div className="px-3 py-2 border-b border-slate-200 bg-slate-50">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Publicibility debug ({publicReport.length} rows)</p>
           </div>
