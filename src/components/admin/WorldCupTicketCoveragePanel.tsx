@@ -217,6 +217,52 @@ export function WorldCupTicketCoveragePanel() {
           </div>
         </div>
 
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: "Ticket rows", value: metrics.ticketRows },
+            { label: "Event rows", value: metrics.eventRows },
+            { label: "Public cards", value: metrics.publicCards },
+            { label: "Rows hidden", value: metrics.hidden },
+          ].map((m) => (
+            <div key={m.label} className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+              <p className="text-2xl font-extrabold text-emerald-900 leading-none">{m.value}</p>
+              <p className="text-[10px] font-semibold text-emerald-700 mt-1.5 uppercase tracking-wider">{m.label}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <div className="px-3 py-2 border-b border-slate-200 bg-slate-50">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Publicibility debug ({publicReport.length} rows)</p>
+          </div>
+          <div className="max-h-72 overflow-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
+                <tr>
+                  <th className="text-left px-3 py-1.5">Provider</th>
+                  <th className="text-left px-3 py-1.5">Event slug</th>
+                  <th className="text-left px-3 py-1.5">Event name</th>
+                  <th className="text-right px-3 py-1.5">Price</th>
+                  <th className="text-center px-3 py-1.5">Public</th>
+                  <th className="text-left px-3 py-1.5">Hidden reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {publicReport.map(({ row, public: isPub, reason }) => (
+                  <tr key={row.id} className="border-t border-slate-100">
+                    <td className="px-3 py-1.5 text-slate-700">{row.provider}</td>
+                    <td className="px-3 py-1.5 text-slate-500 font-mono text-[10px] truncate max-w-[180px]">{row.event_slug ?? "—"}</td>
+                    <td className="px-3 py-1.5 text-slate-700 truncate max-w-[220px]">{row.event_name ?? (row.home_label && row.away_label ? `${row.home_label} vs ${row.away_label}` : "—")}</td>
+                    <td className="px-3 py-1.5 text-right text-slate-700">{row.starting_price != null ? `${row.starting_price} ${row.currency}` : "—"}</td>
+                    <td className="px-3 py-1.5 text-center">{isPub ? <span className="text-emerald-700 font-bold">yes</span> : <span className="text-slate-400">no</span>}</td>
+                    <td className="px-3 py-1.5 text-amber-700 text-[11px]">{isPub ? "—" : reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
           {[
             { label: "Events detected", value: metrics.detected },
