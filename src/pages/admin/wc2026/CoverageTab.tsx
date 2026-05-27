@@ -223,6 +223,71 @@ export default function CoverageTab() {
   );
 }
 
+function TicomboQueuePanel({ busy, runFn }: { busy: string | null; runFn: (name: string, payload?: Record<string, unknown>) => Promise<void> }) {
+  const { data, refetch } = useQuery({
+    queryKey: ["wc-ticombo-queue-stats"],
+    refetchInterval: 5000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wc_ticombo_discovery_queue" as never)
+        .select("status");
+      if (error) throw error;
+      const rows = (data ?? []) as Array<{ status: string }>;
+      const c = { pending: 0, done: 0, failed: 0 };
+      for (const r of rows) {
+        if (r.status === "pending") c.pending++;
+        else if (r.status === "done") c.done++;
+        else if (r.status === "failed") c.failed++;
+      }
+      return c;
+    },
+  });
+  const c = data ?? { pending: 0, done: 0, failed: 0 };
+  const wrap = async (name: string, payload?: Record<string, unknown>) => { await runFn(name, payload); refetch(); };
+  return (
+    <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-3 space-y-2">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="text-xs font-bold uppercase text-indigo-900">Ticombo auto-crawler</div>
+        <div className="flex gap-3 text-xs font-mono">
+          <span className="text-amber-700">pending {c.pending}</span>
+          <span className="text-emerald-700">done {c.done}</span>
+          <span className="text-red-700">failed {c.failed}</span>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button disabled={!!busy} onClick={() => wrap("wc-ticombo-discover")} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50">
+          {busy === "wc-ticombo-discover" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Radar className="w-3.5 h-3.5" />} Discover events
+        </button>
+        <button disabled={!!busy || c.pending === 0} onClick={() => wrap("wc-ticombo-crawl-batch", { limit: 25 })} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300 text-xs font-semibold hover:bg-indigo-200 disabled:opacity-50">
+          {busy === "wc-ticombo-crawl-batch" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} Crawl batch (25)
+        </button>
+        <button
+          disabled={!!busy}
+          onClick={async () => {
+            await wrap("wc-ticombo-discover");
+            // Loop batches until queue is empty or 6 batches (max 150 events) to stay within tool timeouts
+            for (let i = 0; i < 6; i++) {
+              await wrap("wc-ticombo-crawl-batch", { limit: 25 });
+              const { data: rest } = await supabase
+                .from("wc_ticombo_discovery_queue" as never)
+                .select("id", { count: "exact", head: true } as never)
+                .eq("status", "pending");
+              if (!rest || (rest as { length?: number }).length === 0) break;
+            }
+            await runFn("wc-coverage-quality-audit");
+          }}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 text-white text-xs font-semibold hover:bg-emerald-800 disabled:opacity-50"
+        >
+          <Rocket className="w-3.5 h-3.5" /> Run full ingest
+        </button>
+      </div>
+      <div className="text-[11px] text-indigo-900/80">
+        Source: <code className="font-mono">ticombo.com/.../world-cup-2026</code>. Discovery finds real event URLs, then each is scraped, validated, and auto-linked to the canonical FIFA fixture.
+      </div>
+    </div>
+  );
+}
+
 function IngestDialog({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
   const [form, setForm] = useState({
     url: "", provider_event_id: "", event_name: "", event_date: "",
