@@ -278,7 +278,15 @@ function Placeholder({ label }: { label: string }) {
 }
 
 export default function AdminWorldCup2026Page() {
-  const [tab, setTab] = useState<TabId>("overview");
+  const [tab, setTab] = useState<TabId>(() => {
+    try {
+      const saved = localStorage.getItem(TAB_KEY) as TabId | null;
+      if (saved && TABS.some(t => t.id === saved)) return saved;
+    } catch {}
+    return "matches";
+  });
+  useEffect(() => { try { localStorage.setItem(TAB_KEY, tab); } catch {} }, [tab]);
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -300,11 +308,11 @@ export default function AdminWorldCup2026Page() {
         ))}
       </div>
 
+      {tab === "matches" && <MatchesTab />}
       {tab === "overview" && <OverviewTab />}
       {tab === "groups" && <GroupsTab />}
-      {tab === "matches" && <Placeholder label="Matches table + bracket" />}
-      {tab === "coverage" && <Placeholder label="Coverage rows with blockers" />}
-      {tab === "resolver" && <Placeholder label="Unmatched ↔ candidate resolver" />}
+      {tab === "coverage" && <CoverageTab />}
+      {tab === "resolver" && <ResolverTab />}
       {tab === "analytics" && <Placeholder label="CTR, conversions, image quality" />}
     </div>
   );
