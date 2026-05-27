@@ -236,7 +236,7 @@ export default function MatchesTab() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-3 py-8 text-center text-sm text-slate-400">No matches match the current filters.</td></tr>
+                <tr><td colSpan={8} className="px-3 py-8 text-center text-sm text-slate-400">No matches match the current filters.</td></tr>
               )}
             </tbody>
           </table>
