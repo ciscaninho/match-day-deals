@@ -56,6 +56,61 @@ type Extracted = {
   ticket_url?: string;
 };
 
+type FailureCode =
+  | "firecrawl_parse_failed"
+  | "provider_event_id_missing"
+  | "generic_title_detected"
+  | "no_event_name"
+  | "no_kickoff"
+  | "bad_kickoff_iso"
+  | "kickoff_outside_tolerance"
+  | "stadium_alias_unresolved"
+  | "no_match_candidate"
+  | "invalid_price"
+  | "no_visible_ticket_price"
+  | "db_insert_failed"
+  | "db_update_failed"
+  | "unknown";
+
+type BatchLog = {
+  ok: boolean;
+  url: string;
+  scrape_url: string;
+  extraction?: Record<string, unknown>;
+  provider_event_id?: string | null;
+  title?: string | null;
+  stadium?: string | null;
+  kickoff?: string | null;
+  price_eur?: number | null;
+  image_url?: string | null;
+  matched_fixture_id?: string | null;
+  match_confidence?: string | null;
+  stadium_confidence?: string | null;
+  archived_generic_rows?: number;
+  final_action?: "inserted" | "updated" | "rejected";
+  rejection_code?: FailureCode | null;
+  rejection_reason?: string | null;
+  upsert_result?: "inserted" | "updated";
+  error?: string;
+};
+
+const normalizeFailure = (message: string): { code: FailureCode; reason: string } => {
+  if (message.startsWith("firecrawl ")) return { code: "firecrawl_parse_failed", reason: message };
+  if (message === "no_event_id") return { code: "provider_event_id_missing", reason: message };
+  if (message.startsWith("generic_title:")) return { code: "generic_title_detected", reason: message.slice("generic_title:".length) || message };
+  if (message === "no_event_name") return { code: "no_event_name", reason: message };
+  if (message === "no_kickoff") return { code: "no_kickoff", reason: message };
+  if (message.startsWith("bad_kickoff_iso")) return { code: "bad_kickoff_iso", reason: message };
+  if (message.startsWith("stadium_unresolved:")) return { code: "stadium_alias_unresolved", reason: message.slice("stadium_unresolved:".length) || message };
+  if (message === "kickoff_outside_tolerance") return { code: "kickoff_outside_tolerance", reason: message };
+  if (message === "no_match_candidate") return { code: "no_match_candidate", reason: message };
+  if (message === "invalid_price") return { code: "invalid_price", reason: message };
+  if (message === "no_visible_ticket_price") return { code: "no_visible_ticket_price", reason: message };
+  if (message.startsWith("db_insert:")) return { code: "db_insert_failed", reason: message.slice("db_insert:".length) || message };
+  if (message.startsWith("db_update:")) return { code: "db_update_failed", reason: message.slice("db_update:".length) || message };
+  return { code: "unknown", reason: message };
+};
+
 // Force the Ticombo page into "1 Ticket" mode using known query params so the
 // price list and the structured payload reflect a single seat.
 const forceQty1 = (url: string): string => {
