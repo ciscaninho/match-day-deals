@@ -121,6 +121,15 @@ export default function CoverageTab() {
 
       <TicomboQueuePanel busy={busy} runFn={runFn} />
 
+      {lastRun && (
+        <details className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs" open>
+          <summary className="cursor-pointer font-bold uppercase text-slate-700">
+            Last run: <code className="font-mono">{lastRun.name}</code>
+          </summary>
+          <LastRunDetail payload={lastRun.payload} />
+        </details>
+      )}
+
       {/* Quality KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2"><div className="text-[10px] uppercase font-bold text-emerald-700">High</div><div className="text-xl font-mono text-emerald-900">{counts.high}</div></div>
