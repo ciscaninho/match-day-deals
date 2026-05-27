@@ -356,15 +356,15 @@ Deno.serve(async (req) => {
       .limit(limit);
 
     const queue = (pending ?? []) as Array<{ id: string; url: string; attempts: number }>;
-    const results: Array<Record<string, unknown>> = [];
+    const results: BatchLog[] = [];
     let ok = 0, failed = 0;
 
     for (const q of queue) {
       const scrapeUrl = forceQty1(q.url);
-      const log: Record<string, unknown> = { url: q.url, scrape_url: scrapeUrl };
+      const log: BatchLog = { ok: false, url: q.url, scrape_url: scrapeUrl, final_action: "rejected" };
       try {
         const { data: ex, markdown } = await fcScrape(scrapeUrl);
-        log.extracted = {
+        log.extraction = {
           provider_event_id: ex.provider_event_id ?? extractIdFromUrl(q.url),
           title: ex.event_name,
           kickoff: ex.kickoff_iso,
@@ -373,9 +373,26 @@ Deno.serve(async (req) => {
           group_code: ex.group_code,
           price_payload: ex.lowest_single_ticket_price,
           md_min_price: minPriceFromMarkdown(markdown),
+          image_url: ex.image_url ?? null,
         };
         const meta = await validateAndUpsert(admin, q.url, ex, markdown);
-        Object.assign(log, meta, { ok: true });
+        Object.assign(log, {
+          ok: true,
+          provider_event_id: meta.provider_event_id,
+          title: meta.title,
+          stadium: meta.stadium,
+          kickoff: meta.kickoff,
+          price_eur: meta.price_eur,
+          image_url: meta.image_url,
+          matched_fixture_id: meta.match_id,
+          match_confidence: meta.link_confidence,
+          stadium_confidence: meta.stadium_confidence,
+          archived_generic_rows: meta.archived_generic,
+          upsert_result: meta.upsertResult,
+          final_action: meta.upsertResult,
+          rejection_code: null,
+          rejection_reason: null,
+        });
         await admin.from("wc_ticombo_discovery_queue").update({
           status: "done", processed_at: new Date().toISOString(), attempts: q.attempts + 1, result: log,
         }).eq("id", q.id);
@@ -383,7 +400,19 @@ Deno.serve(async (req) => {
         ok++;
       } catch (e) {
         const msg = String((e as Error).message ?? e).slice(0, 800);
+        const failure = normalizeFailure(msg);
+        const extraction = log.extraction ?? {};
         log.ok = false;
+        log.provider_event_id = typeof extraction.provider_event_id === "string" ? extraction.provider_event_id : null;
+        log.title = typeof extraction.title === "string" ? extraction.title : null;
+        log.stadium = typeof extraction.stadium === "string" ? extraction.stadium : null;
+        log.kickoff = typeof extraction.kickoff === "string" ? extraction.kickoff : null;
+        log.price_eur = typeof extraction.md_min_price === "number"
+          ? extraction.md_min_price
+          : (typeof extraction.price_payload === "number" ? extraction.price_payload : null);
+        log.image_url = typeof extraction.image_url === "string" ? extraction.image_url : null;
+        log.rejection_code = failure.code;
+        log.rejection_reason = failure.reason;
         log.error = msg;
         await admin.from("wc_ticombo_discovery_queue").update({
           status: q.attempts + 1 >= 3 ? "failed" : "pending",
