@@ -611,11 +611,23 @@ Deno.serve(async (req) => {
         // Respect admin-locked fields
         const overrides = (r.manual_overrides ?? {}) as Record<string, unknown>;
         const respected = respectOverrides(fullPatch, overrides);
+        // IMMUTABILITY GUARD: once a row is linked (match_id + provider_event_id set),
+        // automated sync may NEVER remap fixture identity. Strip those fields.
+        const isLocked = !!(r as any).match_id && !!(r as any).provider_event_id;
+        if (isLocked) {
+          delete (respected as any).provider_event_id;
+          delete (respected as any).event_date;
+          delete (respected as any).event_time;
+          delete (respected as any).event_slug;
+          delete (respected as any).stadium_name;
+          delete (respected as any).stadium_slug;
+          dbg.frozen_skip = ["provider_event_id", "event_date", "event_time", "event_slug", "stadium_name", "stadium_slug"];
+        }
         const patch = {
           ...respected,
           last_sync_at: new Date().toISOString(),
           last_price_check: new Date().toISOString(),
-          last_sync_status: "ok",
+          last_sync_status: isLocked ? "ok_locked" : "ok",
           url_type: "event",
         };
         const { error: upErr } = await supabase.from("wc_ticket_coverage").update(patch).eq("id", r.id);

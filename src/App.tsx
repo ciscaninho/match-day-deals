@@ -40,6 +40,7 @@ import AdminSuggestionsPage from "./pages/admin/AdminSuggestionsPage";
 import AdminLegacyPage from "./pages/admin/AdminLegacyPage";
 import AdminWorldMapPage from "./pages/admin/AdminWorldMapPage";
 import AdminAuditPage from "./pages/admin/AdminAuditPage";
+import AdminWorldCup2026Page from "./pages/admin/AdminWorldCup2026Page";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
@@ -148,6 +149,7 @@ const App = () => (
                 <Route path="assistant" element={<AdminAssistantPage />} />
                 <Route path="map" element={<AdminWorldMapPage />} />
                 <Route path="audit" element={<AdminAuditPage />} />
+                <Route path="world-cup-2026" element={<AdminWorldCup2026Page />} />
                 <Route path="legacy" element={<AdminLegacyPage />} />
               </Route>
               <Route path="/admin/media" element={<RequireAdmin><StadiumMediaSyncPage /></RequireAdmin>} />
