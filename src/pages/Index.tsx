@@ -6,7 +6,12 @@ export default function Index() {
 
   useEffect(() => {
     const loadMatches = async () => {
-      const { data, error } = await supabase.from("matches").select("*");
+      // World Cup 2026 fixtures are excluded from the generic matches list —
+      // they live exclusively in /world-cup-2026 and /admin/world-cup-2026.
+      const { data, error } = await supabase
+        .from("matches")
+        .select("*")
+        .neq("competition", "FIFA World Cup 2026");
 
       if (error) {
         console.error("Erreur:", error);
@@ -17,6 +22,7 @@ export default function Index() {
 
     loadMatches();
   }, []);
+
 
   return (
     <div style={{ padding: 20 }}>

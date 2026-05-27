@@ -36,9 +36,11 @@ export const AdminMatchesPage = () => {
   const { data = [], isLoading } = useQuery({
     queryKey: ["admin-matches-v3"],
     queryFn: async () => {
+      // World Cup 2026 fixtures are managed exclusively in /admin/world-cup-2026.
       const { data } = await supabase
         .from("matches")
         .select("id,home_team,away_team,competition,date,stadium,city,country,ticket_status,home_logo,away_logo,starting_price,featured,archived_at,lifecycle_status")
+        .neq("competition", "FIFA World Cup 2026")
         .order("date", { ascending: false })
         .limit(800);
       return (data || []).map((m: any) => ({
@@ -47,6 +49,7 @@ export const AdminMatchesPage = () => {
       }));
     },
   });
+
 
   const archiveMutation = useMutation({
     mutationFn: async ({ id, archive }: { id: string; archive: boolean }) => {
