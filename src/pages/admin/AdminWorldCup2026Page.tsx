@@ -127,9 +127,11 @@ function OverviewTab() {
 function GroupsTab() {
   const qc = useQueryClient();
   const { data: slots, isLoading } = useSlots();
-  const [drafts, setDrafts] = useState<Record<string, string>>({}); // key: `${group}${pos}` -> new team name
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState<any | null>(null);
   const [applying, setApplying] = useState(false);
+  const [resyncBusy, setResyncBusy] = useState<null | "validate" | "resync">(null);
+  const [resyncReport, setResyncReport] = useState<any | null>(null);
 
   const applyMut = useMutation({
     mutationFn: async (input: { group_code: string; slot_position: number; team_name: string | null; preview: boolean }) => {
@@ -138,6 +140,27 @@ function GroupsTab() {
       return data;
     },
   });
+
+  const runResync = async (dryRun: boolean) => {
+    setResyncBusy(dryRun ? "validate" : "resync");
+    try {
+      const { data, error } = await supabase.functions.invoke("wc-groups-resync", { body: { dry_run: dryRun, delete_duplicates: true } });
+      if (error) throw error;
+      setResyncReport(data);
+      const invalid = data?.invalid_groups ?? [];
+      toast({
+        title: dryRun ? "Validation complete" : "Resync complete",
+        description: `${data?.fixtures_updated ?? 0} fixture(s) updated · ${data?.duplicates_deleted ?? 0} duplicate(s) removed · ${invalid.length === 0 ? "all groups valid" : `invalid: ${invalid.join(", ")}`}`,
+        variant: invalid.length === 0 ? undefined : "destructive",
+      });
+      qc.invalidateQueries({ queryKey: ["wc-group-slots"] });
+      qc.invalidateQueries({ queryKey: ["wc-overview-kpis"] });
+    } catch (e: any) {
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
+    } finally { setResyncBusy(null); }
+  };
+
+
 
   if (isLoading) return <div className="text-sm text-slate-500 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin"/>Loading slots…</div>;
 
@@ -152,7 +175,33 @@ function GroupsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="text-xs text-slate-500">Edit unlocked slots. <strong>Preview</strong> shows impact. <strong>Apply</strong> propagates to fixtures. <strong>Revert</strong> empties the slot back to placeholder.</div>
+      <div className="flex items-center justify-between gap-3 flex-wrap rounded-xl border border-slate-200 bg-white p-3">
+        <div className="text-xs text-slate-500">Edit unlocked slots. <strong>Preview</strong> shows impact. <strong>Apply</strong> propagates to fixtures. <strong>Revert</strong> empties the slot back to placeholder.</div>
+        <div className="flex gap-2">
+          <button onClick={() => runResync(true)} disabled={!!resyncBusy} className="px-3 py-1.5 text-xs font-bold uppercase rounded border border-slate-300 hover:bg-slate-50 disabled:opacity-50">{resyncBusy === "validate" ? "Validating…" : "Validate groups"}</button>
+          <button onClick={() => runResync(false)} disabled={!!resyncBusy} className="px-3 py-1.5 text-xs font-bold uppercase rounded bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50">{resyncBusy === "resync" ? "Resyncing…" : "Resync propagation"}</button>
+        </div>
+      </div>
+
+      {resyncReport && (
+        <div className={`rounded-xl border-2 p-4 ${resyncReport.valid ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
+          <p className={`text-sm font-bold ${resyncReport.valid ? "text-emerald-900" : "text-rose-900"}`}>
+            {resyncReport.valid ? "✓ All groups valid" : "⚠ Validation failed"}
+            <span className="ml-2 font-normal text-xs">
+              · {resyncReport.fixtures_updated ?? 0} fixture(s) updated · {resyncReport.duplicates_deleted ?? 0} duplicate(s) removed
+            </span>
+          </p>
+          <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-1.5 text-[11px]">
+            {Object.entries(resyncReport.group_report ?? {}).map(([g, r]: any) => (
+              <div key={g} className={`px-2 py-1 rounded ${r.ok ? "bg-emerald-100 text-emerald-900" : "bg-rose-100 text-rose-900"}`}>
+                <strong>Group {g}</strong>: {r.count}/{r.expected}
+                {r.unresolved?.length > 0 && <div className="text-[10px]">unresolved: {r.unresolved.join(", ")}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {GROUPS.map((g) => (
