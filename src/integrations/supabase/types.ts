@@ -1806,6 +1806,51 @@ export type Database = {
         }
         Relationships: []
       }
+      wc_group_slots: {
+        Row: {
+          country_code: string | null
+          created_at: string
+          group_code: string
+          id: string
+          is_locked: boolean
+          notes: string | null
+          slot_position: number
+          source: string
+          status: string
+          team_name: string | null
+          team_short: string | null
+          updated_at: string
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string
+          group_code: string
+          id?: string
+          is_locked?: boolean
+          notes?: string | null
+          slot_position: number
+          source?: string
+          status?: string
+          team_name?: string | null
+          team_short?: string | null
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string
+          group_code?: string
+          id?: string
+          is_locked?: boolean
+          notes?: string | null
+          slot_position?: number
+          source?: string
+          status?: string
+          team_name?: string | null
+          team_short?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       wc_match_import_batches: {
         Row: {
           applied_at: string | null
