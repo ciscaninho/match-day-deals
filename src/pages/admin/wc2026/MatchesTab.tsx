@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Link2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 type HealthState = "healthy" | "missing_tickets" | "missing_price" | "unlinked" | "draft" | "published";
 
