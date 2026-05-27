@@ -112,6 +112,8 @@ export default function CoverageTab() {
         <strong>Coverage rebuild mode:</strong> rows are now scored for quality and ingestion accepts only direct event pages. Schedule/search extractions are blocked.
       </div>
 
+      <TicomboQueuePanel busy={busy} runFn={runFn} />
+
       {/* Quality KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2"><div className="text-[10px] uppercase font-bold text-emerald-700">High</div><div className="text-xl font-mono text-emerald-900">{counts.high}</div></div>
