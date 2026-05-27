@@ -58,6 +58,7 @@ type Extracted = {
 
 type FailureCode =
   | "firecrawl_parse_failed"
+  | "non_single_fixture_page"
   | "provider_event_id_missing"
   | "generic_title_detected"
   | "no_event_name"
@@ -71,6 +72,11 @@ type FailureCode =
   | "db_insert_failed"
   | "db_update_failed"
   | "unknown";
+
+// URL/title patterns that indicate a multi-match / bundle / package / follow-team product.
+const NON_SINGLE_URL_RE = /(all-|matches-world-cup|stadium-\d|-stadium-tickets|package|follow-|group-matches|hospitality|venue-series|vip-experience|bundle|series-pass)/i;
+const SINGLE_FIXTURE_URL_RE = /\/football-tickets\/match-/i;
+const TITLE_VS_RE = /\bvs\.?\b|\s—\s|\s-\s/i;
 
 type BatchLog = {
   ok: boolean;
@@ -96,6 +102,7 @@ type BatchLog = {
 
 const normalizeFailure = (message: string): { code: FailureCode; reason: string } => {
   if (message.startsWith("firecrawl ")) return { code: "firecrawl_parse_failed", reason: message };
+  if (message.startsWith("non_single_fixture_page")) return { code: "non_single_fixture_page", reason: message };
   if (message === "no_event_id") return { code: "provider_event_id_missing", reason: message };
   if (message.startsWith("generic_title:")) return { code: "generic_title_detected", reason: message.slice("generic_title:".length) || message };
   if (message === "no_event_name") return { code: "no_event_name", reason: message };
@@ -175,16 +182,29 @@ const validateAndUpsert = async (
   ex: Extracted,
   markdown: string,
 ) => {
+  // Hardened single-fixture guard: URL + title + 2 teams must all confirm
+  // this is ONE specific match (not a stadium pack / city bundle / follow-team product).
+  const pathLower = (() => { try { return new URL(url).pathname.toLowerCase(); } catch { return url.toLowerCase(); } })();
+  if (NON_SINGLE_URL_RE.test(pathLower)) {
+    throw new Error(`non_single_fixture_page:url_blacklisted:${pathLower}`);
+  }
+  const rawTitle = (ex.event_name ?? "").trim();
+  const looksLikeFixtureUrl = SINGLE_FIXTURE_URL_RE.test(pathLower);
+  const looksLikeFixtureTitle = TITLE_VS_RE.test(rawTitle) || /tickets/i.test(rawTitle);
+  if (!looksLikeFixtureUrl && !looksLikeFixtureTitle) {
+    throw new Error(`non_single_fixture_page:title="${rawTitle.slice(0, 80)}"`);
+  }
+  if (!ex.home_team || !ex.away_team) {
+    throw new Error(`non_single_fixture_page:missing_teams`);
+  }
+
   const provider_event_id = ex.provider_event_id?.trim() || extractIdFromUrl(url);
   if (!provider_event_id) throw new Error("no_event_id");
-  const event_name = (ex.event_name ?? "").trim();
+  const event_name = rawTitle;
   if (!event_name) throw new Error("no_event_name");
   if (GENERIC_RE.test(event_name)) throw new Error(`generic_title:${event_name}`);
   if (!ex.kickoff_iso) throw new Error("no_kickoff");
   if (!ex.stadium_name) throw new Error("no_stadium");
-
-  const kickoff = new Date(ex.kickoff_iso);
-  if (isNaN(kickoff.getTime())) throw new Error(`bad_kickoff_iso:${ex.kickoff_iso}`);
 
   // Resolve stadium
   const folded = fold(ex.stadium_name);

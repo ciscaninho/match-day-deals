@@ -10,21 +10,54 @@ const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
 const DEFAULT_ROOT =
   "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=group-date&key=bab812da-41b7-42b7-aabe-cb3908cbc347";
 
-// Direct Ticombo event page heuristics:
-//  - /en/event/<id> or /en/<sport>/<slug>-eXXXXXX
-//  - any path with "world-cup" plus a numeric event id at the end
-const EVENT_PATH_RE = /\/(en|de|fr|es|it|pt|nl)\/(event|events|tickets)\/[A-Za-z0-9._-]+/i;
+// Direct Ticombo SINGLE-FIXTURE event page heuristics.
+// We only accept pages that look like ONE specific match (Team A vs Team B at one stadium on one date).
+// We REJECT stadium bundles, city packages, multi-match offers, hospitality, "follow team" products, etc.
+const EVENT_PATH_RE = /\/(en|de|fr|es|it|pt|nl)\/(event|events|tickets|football-tickets)\/[A-Za-z0-9._-]+/i;
 const EVENT_ID_RE = /-(e?\d{5,})(?:[/?#]|$)/i;
-const BAD_PATH_RE = /\/(schedule|search|category|categories|group-stage|tournaments?|teams?|sports-tickets)(\/|$|\?)/i;
+const SINGLE_FIXTURE_PATH_RE = /\/football-tickets\/match-/i;
+
+// Hard blacklist of slug fragments that indicate non-single-fixture products.
+const BLACKLIST_FRAGMENTS = [
+  "all-",
+  "matches-world-cup",
+  "stadium-", // e.g. "los-angeles-stadium-8-matches"
+  "-stadium-tickets",
+  "package",
+  "follow-",
+  "group-matches",
+  "hospitality",
+  "venue-series",
+  "vip-experience",
+  "bundle",
+  "series-pass",
+];
+const BAD_PATH_RE = /\/(schedule|search|category|categories|group-stage|tournaments?|teams?|sports-tickets|hospitality)(\/|$|\?)/i;
+
+const hasBlacklistedFragment = (path: string): boolean => {
+  const p = path.toLowerCase();
+  return BLACKLIST_FRAGMENTS.some((frag) => p.includes(frag));
+};
 
 const isEventUrl = (u: string): boolean => {
   try {
     const url = new URL(u);
     if (!url.hostname.includes("ticombo.com")) return false;
-    const p = url.pathname + url.search;
-    if (BAD_PATH_RE.test(url.pathname) && !EVENT_ID_RE.test(p)) return false;
-    if (EVENT_PATH_RE.test(url.pathname)) return true;
-    if (EVENT_ID_RE.test(p) && /world-cup|world.cup|fifa/i.test(p)) return true;
+    const path = url.pathname;
+    const p = path + url.search;
+
+    // Hard rejects first
+    if (BAD_PATH_RE.test(path) && !SINGLE_FIXTURE_PATH_RE.test(path)) return false;
+    if (hasBlacklistedFragment(path)) return false;
+
+    // Strong accept: explicit single-fixture path pattern
+    if (SINGLE_FIXTURE_PATH_RE.test(path)) return true;
+
+    // Weaker accept: generic /event/<id> or /tickets/<slug>-eXXXXX page with a numeric id,
+    // but only if the slug clearly looks like a single fixture ("-vs-" between two teams).
+    if (EVENT_PATH_RE.test(path) && EVENT_ID_RE.test(p)) {
+      if (/-vs-/i.test(path)) return true;
+    }
     return false;
   } catch { return false; }
 };
@@ -82,6 +115,27 @@ Deno.serve(async (req) => {
       }
     }
 
+    // 3. retroactively purge pending/failed queue rows that no longer pass the
+    // hardened single-fixture filter (stadium bundles, packages, follow-team, etc.)
+    const { data: stale } = await admin
+      .from("wc_ticombo_discovery_queue")
+      .select("id, url")
+      .in("status", ["pending", "failed"]);
+    const toPurge = (stale ?? []).filter((r: { url: string }) => !isEventUrl(r.url));
+    let purged = 0;
+    if (toPurge.length) {
+      const { error } = await admin
+        .from("wc_ticombo_discovery_queue")
+        .update({
+          status: "failed",
+          last_error: "non_single_fixture_page",
+          processed_at: new Date().toISOString(),
+          result: { rejection_code: "non_single_fixture_page", rejection_reason: "URL rejected by hardened discovery filter (stadium bundle / package / follow-team / multi-match)." },
+        })
+        .in("id", toPurge.map((r: { id: string }) => r.id));
+      if (!error) purged = toPurge.length;
+    }
+
     const { count: pending } = await admin
       .from("wc_ticombo_discovery_queue")
       .select("id", { count: "exact", head: true })
@@ -92,6 +146,7 @@ Deno.serve(async (req) => {
       root,
       discovered: candidates.length,
       newly_queued: inserted,
+      purged_non_single_fixture: purged,
       pending_total: pending ?? null,
       sample: candidates.slice(0, 10),
       raw_map_count: mapped.length,
