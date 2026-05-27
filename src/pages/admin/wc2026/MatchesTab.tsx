@@ -19,6 +19,8 @@ interface Row {
   publication_status: string;
   ticket_status: string;
   starting_price: number | null;
+  fixture_origin: string;
+  fifa_match_number: number | null;
   coverage_count: number;
   linked_count: number;
   has_price: boolean;
@@ -69,7 +71,7 @@ function useMatches() {
     queryFn: async () => {
       const { data: matches, error } = await supabase
         .from("matches")
-        .select("id,home_team,away_team,home_team_status,away_team_status,date,stadium,city,group_code,phase,publication_status,ticket_status,starting_price")
+        .select("id,home_team,away_team,home_team_status,away_team_status,date,stadium,city,group_code,phase,publication_status,ticket_status,starting_price,fixture_origin,fifa_match_number")
         .eq("competition", "FIFA World Cup 2026")
         .order("date");
       if (error) throw error;
@@ -183,6 +185,7 @@ export default function MatchesTab() {
                 <th className="text-left px-3 py-2">Match</th>
                 <th className="text-left px-3 py-2">Venue</th>
                 <th className="text-left px-3 py-2">Group</th>
+                <th className="text-left px-3 py-2">Origin</th>
                 <th className="text-left px-3 py-2">Health</th>
                 <th className="text-left px-3 py-2">Tickets</th>
                 <th className="text-right px-3 py-2">Price</th>
@@ -192,6 +195,7 @@ export default function MatchesTab() {
               {filtered.map(r => {
                 const date = r.date ? new Date(r.date) : null;
                 const valid = date && !isNaN(date.getTime());
+                const isOfficial = r.fixture_origin === "official_import";
                 return (
                   <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50/60">
                     <td className="px-3 py-2 text-xs whitespace-nowrap text-slate-700">
@@ -203,10 +207,16 @@ export default function MatchesTab() {
                       <div className="text-[11px] text-slate-500 flex gap-1.5">
                         {(r.home_team_status !== "confirmed" || r.away_team_status !== "confirmed") && <span className="text-amber-600">projected</span>}
                         <span>{r.phase ?? "group"}</span>
+                        {r.fifa_match_number != null && <span className="text-slate-400">#{r.fifa_match_number}</span>}
                       </div>
                     </td>
                     <td className="px-3 py-2 text-xs text-slate-700">{r.stadium}<div className="text-[10px] text-slate-400">{r.city}</div></td>
                     <td className="px-3 py-2 text-xs">{r.group_code ?? <span className="text-slate-400">—</span>}</td>
+                    <td className="px-3 py-2">
+                      {isOfficial
+                        ? <span className="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 border-emerald-200" title="Locked: date / stadium / city / phase">Official</span>
+                        : <span className="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase bg-amber-100 text-amber-800 border-amber-200" title="Synthetic — will be removed by Purge generated">Generated</span>}
+                    </td>
                     <td className="px-3 py-2">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase ${HEALTH_META[r.health].cls}`}>{HEALTH_META[r.health].label}</span>
                     </td>
@@ -226,7 +236,7 @@ export default function MatchesTab() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-3 py-8 text-center text-sm text-slate-400">No matches match the current filters.</td></tr>
+                <tr><td colSpan={8} className="px-3 py-8 text-center text-sm text-slate-400">No matches match the current filters.</td></tr>
               )}
             </tbody>
           </table>

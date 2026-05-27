@@ -484,7 +484,9 @@ export type Database = {
           data_source: string | null
           date: string
           featured: boolean
+          fifa_match_number: number | null
           fixture_confidence: string
+          fixture_origin: string
           group_code: string | null
           home_logo: string | null
           home_short: string
@@ -495,6 +497,7 @@ export type Database = {
           import_batch_id: string | null
           import_source: string | null
           kickoff_local: string | null
+          kickoff_locked: boolean
           last_synced_at: string | null
           lifecycle_status: string
           matchday: number | null
@@ -506,6 +509,7 @@ export type Database = {
           sportmonks_id: number | null
           stadium: string
           stadium_id: string | null
+          stadium_locked: boolean
           starting_price: number | null
           ticket_release_date: string | null
           ticket_sources: Json
@@ -528,7 +532,9 @@ export type Database = {
           data_source?: string | null
           date: string
           featured?: boolean
+          fifa_match_number?: number | null
           fixture_confidence?: string
+          fixture_origin?: string
           group_code?: string | null
           home_logo?: string | null
           home_short: string
@@ -539,6 +545,7 @@ export type Database = {
           import_batch_id?: string | null
           import_source?: string | null
           kickoff_local?: string | null
+          kickoff_locked?: boolean
           last_synced_at?: string | null
           lifecycle_status?: string
           matchday?: number | null
@@ -550,6 +557,7 @@ export type Database = {
           sportmonks_id?: number | null
           stadium?: string
           stadium_id?: string | null
+          stadium_locked?: boolean
           starting_price?: number | null
           ticket_release_date?: string | null
           ticket_sources?: Json
@@ -572,7 +580,9 @@ export type Database = {
           data_source?: string | null
           date?: string
           featured?: boolean
+          fifa_match_number?: number | null
           fixture_confidence?: string
+          fixture_origin?: string
           group_code?: string | null
           home_logo?: string | null
           home_short?: string
@@ -583,6 +593,7 @@ export type Database = {
           import_batch_id?: string | null
           import_source?: string | null
           kickoff_local?: string | null
+          kickoff_locked?: boolean
           last_synced_at?: string | null
           lifecycle_status?: string
           matchday?: number | null
@@ -594,6 +605,7 @@ export type Database = {
           sportmonks_id?: number | null
           stadium?: string
           stadium_id?: string | null
+          stadium_locked?: boolean
           starting_price?: number | null
           ticket_release_date?: string | null
           ticket_sources?: Json

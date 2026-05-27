@@ -56,8 +56,10 @@ function useOverviewKpis() {
   return useQuery({
     queryKey: ["wc-overview-kpis"],
     queryFn: async () => {
-      const [matchesRes, ticketedRes, publishedRes, withPricesRes, withImagesRes, slotsRes] = await Promise.all([
+      const [matchesRes, officialRes, generatedRes, ticketedRes, publishedRes, withPricesRes, withImagesRes, slotsRes] = await Promise.all([
         supabase.from("matches").select("id", { count: "exact", head: true }).eq("competition", "FIFA World Cup 2026"),
+        supabase.from("matches").select("id", { count: "exact", head: true }).eq("competition", "FIFA World Cup 2026").eq("fixture_origin", "official_import"),
+        supabase.from("matches").select("id", { count: "exact", head: true }).eq("competition", "FIFA World Cup 2026").eq("fixture_origin", "generated"),
         supabase.from("wc_ticket_coverage" as never).select("match_id", { count: "exact", head: true }).not("match_id", "is", null),
         supabase.from("matches").select("id", { count: "exact", head: true }).eq("competition", "FIFA World Cup 2026").eq("publication_status", "published"),
         supabase.from("wc_ticket_coverage" as never).select("id", { count: "exact", head: true }).not("starting_price", "is", null),
@@ -68,6 +70,8 @@ function useOverviewKpis() {
       const coverageTotalRes = await supabase.from("wc_ticket_coverage" as never).select("id", { count: "exact", head: true });
       return {
         imported,
+        official: officialRes.count ?? 0,
+        generated: generatedRes.count ?? 0,
         ticketed: ticketedRes.count ?? 0,
         published: publishedRes.count ?? 0,
         coverage_total: coverageTotalRes.count ?? 0,
@@ -103,19 +107,65 @@ function Kpi({ label, value, sub }: { label: string; value: React.ReactNode; sub
   );
 }
 
+function OfficialFixturesPanel() {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState<null | "import" | "dry" | "purge">(null);
+  const [report, setReport] = useState<any>(null);
+  const run = async (action: "import" | "dry" | "purge") => {
+    setBusy(action);
+    try {
+      let res: any;
+      if (action === "import") {
+        const { data, error } = await supabase.functions.invoke("wc-import-official", { body: {} });
+        if (error) throw error;
+        res = data;
+        toast({ title: "Official fixtures imported", description: `Official in DB: ${data.official_in_db}/${data.target} · generated remaining: ${data.generated_in_db}` });
+      } else {
+        const { data, error } = await supabase.functions.invoke("wc-purge-generated", { body: { dry_run: action === "dry" } });
+        if (error) throw error;
+        res = data;
+        toast({ title: action === "dry" ? "Purge preview" : "Generated fixtures purged", description: action === "dry" ? `${data.would_delete} row(s) would be deleted` : `Deleted ${data.deleted} row(s) · ${data.coverage_detached} coverage row(s) detached` });
+      }
+      setReport(res);
+      qc.invalidateQueries({ queryKey: ["wc-overview-kpis"] });
+      qc.invalidateQueries({ queryKey: ["wc2026-matches"] });
+    } catch (e: any) {
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
+    } finally { setBusy(null); }
+  };
+  return (
+    <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50/40 p-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-sm font-bold text-slate-900">Official FIFA 2026 fixtures — source of truth</p>
+          <p className="text-xs text-slate-600 mt-0.5">Imports the canonical 104-fixture schedule. Date / stadium / city / phase become immutable. Groups & providers only enrich.</p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={() => run("import")} disabled={!!busy} className="px-3 py-1.5 text-xs font-bold uppercase rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50">{busy === "import" ? "Importing…" : "Import official schedule"}</button>
+          <button onClick={() => run("dry")} disabled={!!busy} className="px-3 py-1.5 text-xs font-bold uppercase rounded border border-slate-300 hover:bg-slate-50 disabled:opacity-50">{busy === "dry" ? "Checking…" : "Preview purge"}</button>
+          <button onClick={() => { if (confirm("Delete all non-official WC fixtures? Coverage rows will be detached.")) run("purge"); }} disabled={!!busy} className="px-3 py-1.5 text-xs font-bold uppercase rounded bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50">{busy === "purge" ? "Purging…" : "Purge generated"}</button>
+        </div>
+      </div>
+      {report && <pre className="mt-3 text-[10px] font-mono bg-white border border-slate-200 p-2 rounded overflow-auto max-h-40">{JSON.stringify(report, null, 2)}</pre>}
+    </div>
+  );
+}
+
 function OverviewTab() {
   const { data, isLoading } = useOverviewKpis();
   if (isLoading) return <div className="text-sm text-slate-500 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin"/>Loading…</div>;
   const k = data!;
   return (
     <div className="space-y-4">
+      <OfficialFixturesPanel />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Kpi label="Imported" value={`${k.imported}/104`} sub="WC fixtures in DB" />
+        <Kpi label="Official" value={`${k.official}/104`} sub="Canonical FIFA rows" />
+        <Kpi label="Generated" value={k.generated} sub={k.generated === 0 ? "✓ none — clean" : "⚠ to be purged"} />
         <Kpi label="Ticketed" value={`${k.ticketed}/${k.imported}`} sub="With provider link" />
         <Kpi label="Published" value={`${k.published}/${k.imported}`} sub="Live on site" />
-        <Kpi label="Slots confirmed" value={`${k.slots_confirmed}/48`} sub="Group teams set" />
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Kpi label="Slots confirmed" value={`${k.slots_confirmed}/48`} sub="Group teams set" />
         <Kpi label="Coverage rows" value={k.coverage_total} />
         <Kpi label="With prices" value={k.with_prices} />
         <Kpi label="With images" value={k.with_images} />
@@ -175,6 +225,9 @@ function GroupsTab() {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        <strong>Groups enrich team labels only.</strong> Stadium, date, kickoff, city and fixture ordering come from the official import and are locked.
+      </div>
       <div className="flex items-center justify-between gap-3 flex-wrap rounded-xl border border-slate-200 bg-white p-3">
         <div className="text-xs text-slate-500">Edit unlocked slots. <strong>Preview</strong> shows impact. <strong>Apply</strong> propagates to fixtures. <strong>Revert</strong> empties the slot back to placeholder.</div>
         <div className="flex gap-2">
