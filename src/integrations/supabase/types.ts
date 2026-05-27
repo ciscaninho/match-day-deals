@@ -675,6 +675,59 @@ export type Database = {
         }
         Relationships: []
       }
+      stadium_aliases: {
+        Row: {
+          auto_resolved: boolean
+          canonical_stadium_id: string
+          confidence: string
+          created_at: string
+          id: string
+          manually_verified: boolean
+          notes: string | null
+          provider: string
+          provider_name: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          auto_resolved?: boolean
+          canonical_stadium_id: string
+          confidence?: string
+          created_at?: string
+          id?: string
+          manually_verified?: boolean
+          notes?: string | null
+          provider?: string
+          provider_name: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          auto_resolved?: boolean
+          canonical_stadium_id?: string
+          confidence?: string
+          created_at?: string
+          id?: string
+          manually_verified?: boolean
+          notes?: string | null
+          provider?: string
+          provider_name?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stadium_aliases_canonical_stadium_id_fkey"
+            columns: ["canonical_stadium_id"]
+            isOneToOne: false
+            referencedRelation: "stadiums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stadium_enrichment_proposals: {
         Row: {
           created_at: string

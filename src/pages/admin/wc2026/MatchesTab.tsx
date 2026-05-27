@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Link2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 type HealthState = "healthy" | "missing_tickets" | "missing_price" | "unlinked" | "draft" | "published";
 
@@ -104,13 +105,91 @@ function useMatches() {
   });
 }
 
+type HostStadium = { id: string; slug: string; stadium_name: string; city: string | null; country: string | null; aliases: string[] | null };
+type AliasRow = { id: string; provider_name: string; provider: string; canonical_stadium_id: string; confidence: string; manually_verified: boolean };
+
+function fold(s: string | null | undefined) {
+  return (s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function useHostsAndAliases() {
+  return useQuery({
+    queryKey: ["wc-hosts-aliases"],
+    queryFn: async () => {
+      const [hosts, aliases] = await Promise.all([
+        supabase.from("stadiums").select("id,slug,stadium_name,city,country,aliases").eq("is_world_cup_host", true).is("archived_at", null).order("stadium_name"),
+        supabase.from("stadium_aliases" as never).select("id,provider_name,provider,canonical_stadium_id,confidence,manually_verified"),
+      ]);
+      return {
+        hosts: (hosts.data ?? []) as HostStadium[],
+        aliases: (aliases.data ?? []) as unknown as AliasRow[],
+      };
+    },
+    staleTime: 60_000,
+  });
+}
+
 export default function MatchesTab() {
   const { data, isLoading } = useMatches();
+  const { data: ha } = useHostsAndAliases();
+  const qc = useQueryClient();
   const [filters, setFilters] = useState<Filters>(() => loadFilters());
+  const [resolverFor, setResolverFor] = useState<Row | null>(null);
 
   useEffect(() => {
     try { localStorage.setItem(FILTER_KEY, JSON.stringify(filters)); } catch {}
   }, [filters]);
+
+  const hosts = ha?.hosts ?? [];
+  const aliases = ha?.aliases ?? [];
+  const hostByName = useMemo(() => {
+    const m = new Map<string, HostStadium>();
+    for (const h of hosts) {
+      m.set(fold(h.stadium_name), h);
+      for (const a of (h.aliases ?? [])) m.set(fold(a), h);
+    }
+    return m;
+  }, [hosts]);
+  const aliasByName = useMemo(() => {
+    const m = new Map<string, AliasRow>();
+    for (const a of aliases) m.set(fold(a.provider_name), a);
+    return m;
+  }, [aliases]);
+
+  const resolve = (text: string | null) => {
+    const f = fold(text);
+    const direct = hostByName.get(f);
+    if (direct) return { host: direct, via: "name" as const, alias: null as AliasRow | null };
+    const alias = aliasByName.get(f);
+    if (alias) {
+      const h = hosts.find(x => x.id === alias.canonical_stadium_id) ?? null;
+      return { host: h, via: "alias" as const, alias };
+    }
+    return { host: null as HostStadium | null, via: "none" as const, alias: null };
+  };
+
+  const upsertAlias = useMutation({
+    mutationFn: async (args: { provider_name: string; canonical_stadium_id: string; provider?: string; verified?: boolean }) => {
+      const { error } = await supabase.from("stadium_aliases" as never).upsert({
+        provider_name: args.provider_name,
+        provider: args.provider ?? "manual",
+        canonical_stadium_id: args.canonical_stadium_id,
+        confidence: "high",
+        auto_resolved: false,
+        manually_verified: args.verified ?? true,
+        verified_at: new Date().toISOString(),
+      } as never, { onConflict: "provider_name,provider" } as never);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Alias saved", description: "Provider stadium mapped to canonical host." });
+      qc.invalidateQueries({ queryKey: ["wc-hosts-aliases"] });
+      qc.invalidateQueries({ queryKey: ["wc-audit-fixtures"] });
+      setResolverFor(null);
+    },
+    onError: (e: any) => toast({ title: "Failed", description: e.message, variant: "destructive" }),
+  });
+
 
   const enriched = useMemo(() => (data ?? []).map(r => ({ ...r, health: computeHealth(r) })), [data]);
   const counts = useMemo(() => {
@@ -184,6 +263,7 @@ export default function MatchesTab() {
                 <th className="text-left px-3 py-2">Date</th>
                 <th className="text-left px-3 py-2">Match</th>
                 <th className="text-left px-3 py-2">Venue</th>
+                <th className="text-left px-3 py-2">Resolver</th>
                 <th className="text-left px-3 py-2">Group</th>
                 <th className="text-left px-3 py-2">Origin</th>
                 <th className="text-left px-3 py-2">Health</th>
@@ -196,6 +276,7 @@ export default function MatchesTab() {
                 const date = r.date ? new Date(r.date) : null;
                 const valid = date && !isNaN(date.getTime());
                 const isOfficial = r.fixture_origin === "official_import";
+                const res = resolve(r.stadium);
                 return (
                   <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50/60">
                     <td className="px-3 py-2 text-xs whitespace-nowrap text-slate-700">
@@ -211,6 +292,29 @@ export default function MatchesTab() {
                       </div>
                     </td>
                     <td className="px-3 py-2 text-xs text-slate-700">{r.stadium}<div className="text-[10px] text-slate-400">{r.city}</div></td>
+                    <td className="px-3 py-2">
+                      {res.host ? (
+                        <button onClick={() => setResolverFor(r)} className="text-left group">
+                          <div className="text-xs font-semibold text-slate-900 group-hover:underline flex items-center gap-1">
+                            <Link2 className="w-3 h-3 text-emerald-600" />{res.host.stadium_name}
+                          </div>
+                          <div className="text-[10px] flex gap-1 mt-0.5">
+                            <span className={`px-1.5 py-0.5 rounded border ${res.via === "name" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-blue-50 border-blue-200 text-blue-700"}`}>
+                              {res.via}
+                            </span>
+                            {res.alias?.manually_verified && (
+                              <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-0.5">
+                                <CheckCircle2 className="w-2.5 h-2.5" />verified
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      ) : (
+                        <button onClick={() => setResolverFor(r)} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-red-200 bg-red-50 text-red-700 text-[10px] font-bold hover:bg-red-100">
+                          <AlertTriangle className="w-3 h-3" />Unresolved · link
+                        </button>
+                      )}
+                    </td>
                     <td className="px-3 py-2 text-xs">{r.group_code ?? <span className="text-slate-400">—</span>}</td>
                     <td className="px-3 py-2">
                       {isOfficial
@@ -236,10 +340,82 @@ export default function MatchesTab() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-3 py-8 text-center text-sm text-slate-400">No matches match the current filters.</td></tr>
+                <tr><td colSpan={9} className="px-3 py-8 text-center text-sm text-slate-400">No matches match the current filters.</td></tr>
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {resolverFor && (
+        <ResolverDrawer
+          match={resolverFor}
+          hosts={hosts}
+          currentAlias={aliasByName.get(fold(resolverFor.stadium)) ?? null}
+          onClose={() => setResolverFor(null)}
+          onSave={(args) => upsertAlias.mutate(args)}
+          saving={upsertAlias.isPending}
+        />
+      )}
+    </div>
+  );
+}
+
+function ResolverDrawer({ match, hosts, currentAlias, onClose, onSave, saving }: {
+  match: Row;
+  hosts: HostStadium[];
+  currentAlias: AliasRow | null;
+  onClose: () => void;
+  onSave: (args: { provider_name: string; canonical_stadium_id: string; provider?: string; verified?: boolean }) => void;
+  saving: boolean;
+}) {
+  const [stadiumId, setStadiumId] = useState<string>(currentAlias?.canonical_stadium_id ?? "");
+  const [verified, setVerified] = useState(true);
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4" onClick={e => e.stopPropagation()}>
+        <div>
+          <h3 className="text-base font-extrabold text-slate-900">Stadium Alias Resolver</h3>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Map the provider stadium naming to the canonical internal stadium. This does NOT modify the
+            locked fixture — it only updates the resolution layer used by coverage, images and public UI.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <div className="text-[10px] font-bold uppercase text-slate-500">Provider stadium</div>
+            <div className="font-semibold text-slate-900 mt-1">{match.stadium}</div>
+            <div className="text-slate-400">{match.city}</div>
+          </div>
+          <div>
+            <div className="text-[10px] font-bold uppercase text-slate-500">Fixture</div>
+            <div className="font-semibold text-slate-900 mt-1">{match.home_team} vs {match.away_team}</div>
+            <div className="text-slate-400">{match.phase ?? "group"}{match.fifa_match_number ? ` · #${match.fifa_match_number}` : ""}</div>
+          </div>
+        </div>
+        <div>
+          <label className="text-[10px] font-bold uppercase text-slate-500">Canonical internal stadium</label>
+          <select value={stadiumId} onChange={e => setStadiumId(e.target.value)} className="w-full mt-1 px-2 py-2 text-sm rounded border border-slate-200">
+            <option value="">— Select host stadium —</option>
+            {hosts.map(h => (
+              <option key={h.id} value={h.id}>{h.stadium_name} · {h.city}, {h.country}</option>
+            ))}
+          </select>
+        </div>
+        <label className="flex items-center gap-2 text-xs text-slate-700">
+          <input type="checkbox" checked={verified} onChange={e => setVerified(e.target.checked)} />
+          Mark as manually verified
+        </label>
+        <div className="flex justify-end gap-2 pt-2">
+          <button onClick={onClose} className="px-3 py-1.5 rounded text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
+          <button
+            disabled={!stadiumId || saving}
+            onClick={() => onSave({ provider_name: match.stadium, canonical_stadium_id: stadiumId, provider: "ticombo", verified })}
+            className="px-3 py-1.5 rounded text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60 inline-flex items-center gap-1.5"
+          >
+            {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Link2 className="w-3 h-3" />}
+            Save alias mapping
+          </button>
         </div>
       </div>
     </div>
