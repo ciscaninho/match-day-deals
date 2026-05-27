@@ -56,6 +56,61 @@ type Extracted = {
   ticket_url?: string;
 };
 
+type FailureCode =
+  | "firecrawl_parse_failed"
+  | "provider_event_id_missing"
+  | "generic_title_detected"
+  | "no_event_name"
+  | "no_kickoff"
+  | "bad_kickoff_iso"
+  | "kickoff_outside_tolerance"
+  | "stadium_alias_unresolved"
+  | "no_match_candidate"
+  | "invalid_price"
+  | "no_visible_ticket_price"
+  | "db_insert_failed"
+  | "db_update_failed"
+  | "unknown";
+
+type BatchLog = {
+  ok: boolean;
+  url: string;
+  scrape_url: string;
+  extraction?: Record<string, unknown>;
+  provider_event_id?: string | null;
+  title?: string | null;
+  stadium?: string | null;
+  kickoff?: string | null;
+  price_eur?: number | null;
+  image_url?: string | null;
+  matched_fixture_id?: string | null;
+  match_confidence?: string | null;
+  stadium_confidence?: string | null;
+  archived_generic_rows?: number;
+  final_action?: "inserted" | "updated" | "rejected";
+  rejection_code?: FailureCode | null;
+  rejection_reason?: string | null;
+  upsert_result?: "inserted" | "updated";
+  error?: string;
+};
+
+const normalizeFailure = (message: string): { code: FailureCode; reason: string } => {
+  if (message.startsWith("firecrawl ")) return { code: "firecrawl_parse_failed", reason: message };
+  if (message === "no_event_id") return { code: "provider_event_id_missing", reason: message };
+  if (message.startsWith("generic_title:")) return { code: "generic_title_detected", reason: message.slice("generic_title:".length) || message };
+  if (message === "no_event_name") return { code: "no_event_name", reason: message };
+  if (message === "no_kickoff") return { code: "no_kickoff", reason: message };
+  if (message.startsWith("bad_kickoff_iso")) return { code: "bad_kickoff_iso", reason: message };
+  if (message.startsWith("stadium_unresolved:")) return { code: "stadium_alias_unresolved", reason: message.slice("stadium_unresolved:".length) || message };
+  if (message === "kickoff_outside_tolerance") return { code: "kickoff_outside_tolerance", reason: message };
+  if (message === "no_match_candidate") return { code: "no_match_candidate", reason: message };
+  if (message === "invalid_price") return { code: "invalid_price", reason: message };
+  if (message === "no_visible_ticket_price") return { code: "no_visible_ticket_price", reason: message };
+  if (message.startsWith("db_insert:")) return { code: "db_insert_failed", reason: message.slice("db_insert:".length) || message };
+  if (message.startsWith("db_update:")) return { code: "db_update_failed", reason: message.slice("db_update:".length) || message };
+  return { code: "unknown", reason: message };
+};
+
 // Force the Ticombo page into "1 Ticket" mode using known query params so the
 // price list and the structured payload reflect a single seat.
 const forceQty1 = (url: string): string => {
@@ -172,6 +227,8 @@ const validateAndUpsert = async (
     .gte("date", new Date(kickoff.getTime() - windowMs).toISOString())
     .lte("date", new Date(kickoff.getTime() + windowMs).toISOString());
 
+  if (!(candidates ?? []).length) throw new Error("kickoff_outside_tolerance");
+
   let match_id: string | null = null;
   let link_confidence: "exact" | "high" | "medium" | "low" = "low";
   for (const c of (candidates ?? []) as Array<{ id: string; date: string; home_team: string; away_team: string; group_code: string | null }>) {
@@ -184,12 +241,16 @@ const validateAndUpsert = async (
     else if (!match_id && diffMin <= 12 * 60) { match_id = c.id; link_confidence = "medium"; }
   }
 
+  if (!match_id) throw new Error("no_match_candidate");
+
   // Quantity-aware price: prefer the structured value; fall back to markdown min.
   const mdMin = minPriceFromMarkdown(markdown);
   let single = ex.lowest_single_ticket_price ?? null;
   if (single == null || !Number.isFinite(single) || single <= 0) single = mdMin;
   // Sanity: if structured value is suspiciously high vs markdown min, prefer markdown.
   if (single != null && mdMin != null && mdMin > 0 && single > mdMin * 1.25) single = mdMin;
+  if (single == null) throw new Error("no_visible_ticket_price");
+  if (!Number.isFinite(single) || single <= 0) throw new Error("invalid_price");
 
   const event_slug = `ticombo-${provider_event_id.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const row = {
@@ -265,6 +326,11 @@ const validateAndUpsert = async (
   }
 
   return {
+    provider_event_id,
+    title: event_name,
+    stadium: s.stadium_name,
+    kickoff: kickoff.toISOString(),
+    image_url: ex.image_url ?? null,
     match_id,
     link_confidence,
     stadium_confidence,
@@ -290,15 +356,15 @@ Deno.serve(async (req) => {
       .limit(limit);
 
     const queue = (pending ?? []) as Array<{ id: string; url: string; attempts: number }>;
-    const results: Array<Record<string, unknown>> = [];
+    const results: BatchLog[] = [];
     let ok = 0, failed = 0;
 
     for (const q of queue) {
       const scrapeUrl = forceQty1(q.url);
-      const log: Record<string, unknown> = { url: q.url, scrape_url: scrapeUrl };
+      const log: BatchLog = { ok: false, url: q.url, scrape_url: scrapeUrl, final_action: "rejected" };
       try {
         const { data: ex, markdown } = await fcScrape(scrapeUrl);
-        log.extracted = {
+        log.extraction = {
           provider_event_id: ex.provider_event_id ?? extractIdFromUrl(q.url),
           title: ex.event_name,
           kickoff: ex.kickoff_iso,
@@ -307,9 +373,26 @@ Deno.serve(async (req) => {
           group_code: ex.group_code,
           price_payload: ex.lowest_single_ticket_price,
           md_min_price: minPriceFromMarkdown(markdown),
+          image_url: ex.image_url ?? null,
         };
         const meta = await validateAndUpsert(admin, q.url, ex, markdown);
-        Object.assign(log, meta, { ok: true });
+        Object.assign(log, {
+          ok: true,
+          provider_event_id: meta.provider_event_id,
+          title: meta.title,
+          stadium: meta.stadium,
+          kickoff: meta.kickoff,
+          price_eur: meta.price_eur,
+          image_url: meta.image_url,
+          matched_fixture_id: meta.match_id,
+          match_confidence: meta.link_confidence,
+          stadium_confidence: meta.stadium_confidence,
+          archived_generic_rows: meta.archived_generic,
+          upsert_result: meta.upsertResult,
+          final_action: meta.upsertResult,
+          rejection_code: null,
+          rejection_reason: null,
+        });
         await admin.from("wc_ticombo_discovery_queue").update({
           status: "done", processed_at: new Date().toISOString(), attempts: q.attempts + 1, result: log,
         }).eq("id", q.id);
@@ -317,7 +400,19 @@ Deno.serve(async (req) => {
         ok++;
       } catch (e) {
         const msg = String((e as Error).message ?? e).slice(0, 800);
+        const failure = normalizeFailure(msg);
+        const extraction = log.extraction ?? {};
         log.ok = false;
+        log.provider_event_id = typeof extraction.provider_event_id === "string" ? extraction.provider_event_id : null;
+        log.title = typeof extraction.title === "string" ? extraction.title : null;
+        log.stadium = typeof extraction.stadium === "string" ? extraction.stadium : null;
+        log.kickoff = typeof extraction.kickoff === "string" ? extraction.kickoff : null;
+        log.price_eur = typeof extraction.md_min_price === "number"
+          ? extraction.md_min_price
+          : (typeof extraction.price_payload === "number" ? extraction.price_payload : null);
+        log.image_url = typeof extraction.image_url === "string" ? extraction.image_url : null;
+        log.rejection_code = failure.code;
+        log.rejection_reason = failure.reason;
         log.error = msg;
         await admin.from("wc_ticombo_discovery_queue").update({
           status: q.attempts + 1 >= 3 ? "failed" : "pending",
