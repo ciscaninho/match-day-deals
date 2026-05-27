@@ -1,16 +1,17 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2, Plus, CalendarPlus } from "lucide-react";
+import { Search, MapPin, Image as ImageIcon, AlertTriangle, CheckCircle2, Plus, Trophy, ExternalLink } from "lucide-react";
 import { StadiumDrawer, type StadiumDrawerRow } from "@/components/admin/StadiumDrawer";
 import { FootballFilterBar, useFootballFilters } from "@/components/admin/FootballFilterBar";
 import { PublicationStatusControl } from "@/components/admin/PublicationStatusControl";
 import { StadiumCreateDialog } from "@/components/admin/StadiumCreateDialog";
-import { WorldCupImportDialog } from "@/components/admin/WorldCupImportDialog";
 import { matchesQuery } from "@/lib/normalize";
+
 
 type StadiumRow = StadiumDrawerRow & { thumbnail_image_url: string | null; archived_at?: string | null; archived_into_slug?: string | null; publication_status?: string | null; aliases?: string[] | null };
 
@@ -25,28 +26,43 @@ export const AdminStadiumsPage = () => {
   const { t } = useLanguage();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
-  const [view, setView] = useState<"active" | "archived" | "worldcup">("active");
+  const [view, setView] = useState<"active" | "archived">("active");
   const [selected, setSelected] = useState<StadiumRow | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
   const filters = useFootballFilters();
 
   const { data = [], isLoading } = useQuery({
-    queryKey: ["admin-stadiums-v2"],
+    queryKey: ["admin-stadiums-v3"],
     queryFn: async () => {
+      // World Cup host stadiums are managed exclusively in
+      // /admin/world-cup-2026/stadiums and are excluded from this list.
       const { data } = await supabase
         .from("stadiums")
         .select("slug,stadium_name,city,country,league,capacity,latitude,longitude,hero_image_url,thumbnail_image_url,clubs,description,archived_at,archived_into_slug,publication_status,aliases,is_world_cup_host,enrichment_status")
+        .or("is_world_cup_host.is.null,is_world_cup_host.eq.false")
         .order("stadium_name")
         .limit(2000);
       return (data || []) as StadiumRow[];
     },
   });
 
+  // Separate query for WC host count so we can show the deep-link card.
+  const { data: wcHostCount = 0 } = useQuery({
+    queryKey: ["admin-stadiums-wc-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("stadiums")
+        .select("slug", { count: "exact", head: true })
+        .is("archived_at", null)
+        .eq("is_world_cup_host", true);
+      return count ?? 0;
+    },
+  });
+
   const active = useMemo(() => data.filter((s) => !s.archived_at), [data]);
   const archived = useMemo(() => data.filter((s) => !!s.archived_at), [data]);
-  const worldCup = useMemo(() => data.filter((s) => !s.archived_at && (s as any).is_world_cup_host), [data]);
-  const baseList = view === "archived" ? archived : view === "worldcup" ? worldCup : active;
+  const baseList = view === "archived" ? archived : active;
+
 
   // Apply hierarchical filters first
   const hierarchyFiltered = useMemo(() => filters.apply(baseList), [filters, baseList]);
@@ -80,26 +96,35 @@ export const AdminStadiumsPage = () => {
         <div className="flex items-end justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-xl font-extrabold text-[#2C3E50]">{t("admin.nav.stadiums")}</h1>
-            <p className="text-xs text-muted-foreground">{active.length} active · {archived.length} archived · {worldCup.length} World Cup · {filtered.length} {t("admin.shown")}</p>
+            <p className="text-xs text-muted-foreground">{active.length} active · {archived.length} archived · {filtered.length} {t("admin.shown")}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Button onClick={() => setCreateOpen(true)} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
               <Plus className="w-4 h-4 mr-1" /> {t("admin.create.stadium.cta") || "Create stadium"}
             </Button>
-            {view === "worldcup" && (
-              <Button onClick={() => setImportOpen(true)} size="sm" variant="outline" className="border-emerald-300 text-emerald-700 hover:bg-emerald-50">
-                <CalendarPlus className="w-4 h-4 mr-1" /> {t("admin.wcimport.cta") || "Import WC schedule"}
-              </Button>
-            )}
             {viewButton("active", "Active", active.length)}
             {viewButton("archived", "Archived", archived.length)}
-            {viewButton("worldcup", "🏆 World Cup", worldCup.length)}
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.search.placeholder")} className="pl-9" />
             </div>
           </div>
         </div>
+
+        {/* World Cup deep-link — WC host stadiums are managed in a dedicated hub */}
+        <Link
+          to="/admin/world-cup-2026/stadiums"
+          className="flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 hover:bg-emerald-100 transition"
+        >
+          <div className="flex items-center gap-2 text-sm text-emerald-900">
+            <Trophy className="w-4 h-4" />
+            <span className="font-bold">🏆 {wcHostCount} World Cup host stadiums</span>
+            <span className="text-emerald-700">— managed in the World Cup hub</span>
+          </div>
+          <span className="text-xs font-bold uppercase text-emerald-700 flex items-center gap-1">Open hub <ExternalLink className="w-3 h-3" /></span>
+        </Link>
+
+
 
         <FootballFilterBar
           rows={baseList}
