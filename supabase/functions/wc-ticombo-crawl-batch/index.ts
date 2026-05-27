@@ -227,6 +227,8 @@ const validateAndUpsert = async (
     .gte("date", new Date(kickoff.getTime() - windowMs).toISOString())
     .lte("date", new Date(kickoff.getTime() + windowMs).toISOString());
 
+  if (!(candidates ?? []).length) throw new Error("kickoff_outside_tolerance");
+
   let match_id: string | null = null;
   let link_confidence: "exact" | "high" | "medium" | "low" = "low";
   for (const c of (candidates ?? []) as Array<{ id: string; date: string; home_team: string; away_team: string; group_code: string | null }>) {
@@ -239,12 +241,16 @@ const validateAndUpsert = async (
     else if (!match_id && diffMin <= 12 * 60) { match_id = c.id; link_confidence = "medium"; }
   }
 
+  if (!match_id) throw new Error("no_match_candidate");
+
   // Quantity-aware price: prefer the structured value; fall back to markdown min.
   const mdMin = minPriceFromMarkdown(markdown);
   let single = ex.lowest_single_ticket_price ?? null;
   if (single == null || !Number.isFinite(single) || single <= 0) single = mdMin;
   // Sanity: if structured value is suspiciously high vs markdown min, prefer markdown.
   if (single != null && mdMin != null && mdMin > 0 && single > mdMin * 1.25) single = mdMin;
+  if (single == null) throw new Error("no_visible_ticket_price");
+  if (!Number.isFinite(single) || single <= 0) throw new Error("invalid_price");
 
   const event_slug = `ticombo-${provider_event_id.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const row = {
@@ -320,6 +326,11 @@ const validateAndUpsert = async (
   }
 
   return {
+    provider_event_id,
+    title: event_name,
+    stadium: s.stadium_name,
+    kickoff: kickoff.toISOString(),
+    image_url: ex.image_url ?? null,
     match_id,
     link_confidence,
     stadium_confidence,
