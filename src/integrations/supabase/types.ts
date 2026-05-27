@@ -1961,6 +1961,8 @@ export type Database = {
       wc_ticket_coverage: {
         Row: {
           active: boolean
+          archived_at: string | null
+          archived_reason: string | null
           away_label: string | null
           city: string | null
           country: string | null
@@ -1972,6 +1974,7 @@ export type Database = {
           event_slug: string | null
           event_status: string | null
           event_time: string | null
+          extraction_source: string | null
           home_label: string | null
           id: string
           image_url: string | null
@@ -1992,6 +1995,9 @@ export type Database = {
           provider: string
           provider_event_id: string | null
           provider_logo: string | null
+          quality_reasons: string[]
+          quality_score: string
+          stadium_confidence: string
           stadium_name: string
           stadium_slug: string
           starting_price: number | null
@@ -2004,6 +2010,8 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          archived_at?: string | null
+          archived_reason?: string | null
           away_label?: string | null
           city?: string | null
           country?: string | null
@@ -2015,6 +2023,7 @@ export type Database = {
           event_slug?: string | null
           event_status?: string | null
           event_time?: string | null
+          extraction_source?: string | null
           home_label?: string | null
           id?: string
           image_url?: string | null
@@ -2035,6 +2044,9 @@ export type Database = {
           provider: string
           provider_event_id?: string | null
           provider_logo?: string | null
+          quality_reasons?: string[]
+          quality_score?: string
+          stadium_confidence?: string
           stadium_name: string
           stadium_slug: string
           starting_price?: number | null
@@ -2047,6 +2059,8 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          archived_at?: string | null
+          archived_reason?: string | null
           away_label?: string | null
           city?: string | null
           country?: string | null
@@ -2058,6 +2072,7 @@ export type Database = {
           event_slug?: string | null
           event_status?: string | null
           event_time?: string | null
+          extraction_source?: string | null
           home_label?: string | null
           id?: string
           image_url?: string | null
@@ -2078,6 +2093,9 @@ export type Database = {
           provider?: string
           provider_event_id?: string | null
           provider_logo?: string | null
+          quality_reasons?: string[]
+          quality_score?: string
+          stadium_confidence?: string
           stadium_name?: string
           stadium_slug?: string
           starting_price?: number | null
