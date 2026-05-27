@@ -105,13 +105,91 @@ function useMatches() {
   });
 }
 
+type HostStadium = { id: string; slug: string; stadium_name: string; city: string | null; country: string | null; aliases: string[] | null };
+type AliasRow = { id: string; provider_name: string; provider: string; canonical_stadium_id: string; confidence: string; manually_verified: boolean };
+
+function fold(s: string | null | undefined) {
+  return (s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function useHostsAndAliases() {
+  return useQuery({
+    queryKey: ["wc-hosts-aliases"],
+    queryFn: async () => {
+      const [hosts, aliases] = await Promise.all([
+        supabase.from("stadiums").select("id,slug,stadium_name,city,country,aliases").eq("is_world_cup_host", true).is("archived_at", null).order("stadium_name"),
+        supabase.from("stadium_aliases" as never).select("id,provider_name,provider,canonical_stadium_id,confidence,manually_verified"),
+      ]);
+      return {
+        hosts: (hosts.data ?? []) as HostStadium[],
+        aliases: (aliases.data ?? []) as unknown as AliasRow[],
+      };
+    },
+    staleTime: 60_000,
+  });
+}
+
 export default function MatchesTab() {
   const { data, isLoading } = useMatches();
+  const { data: ha } = useHostsAndAliases();
+  const qc = useQueryClient();
   const [filters, setFilters] = useState<Filters>(() => loadFilters());
+  const [resolverFor, setResolverFor] = useState<Row | null>(null);
 
   useEffect(() => {
     try { localStorage.setItem(FILTER_KEY, JSON.stringify(filters)); } catch {}
   }, [filters]);
+
+  const hosts = ha?.hosts ?? [];
+  const aliases = ha?.aliases ?? [];
+  const hostByName = useMemo(() => {
+    const m = new Map<string, HostStadium>();
+    for (const h of hosts) {
+      m.set(fold(h.stadium_name), h);
+      for (const a of (h.aliases ?? [])) m.set(fold(a), h);
+    }
+    return m;
+  }, [hosts]);
+  const aliasByName = useMemo(() => {
+    const m = new Map<string, AliasRow>();
+    for (const a of aliases) m.set(fold(a.provider_name), a);
+    return m;
+  }, [aliases]);
+
+  const resolve = (text: string | null) => {
+    const f = fold(text);
+    const direct = hostByName.get(f);
+    if (direct) return { host: direct, via: "name" as const, alias: null as AliasRow | null };
+    const alias = aliasByName.get(f);
+    if (alias) {
+      const h = hosts.find(x => x.id === alias.canonical_stadium_id) ?? null;
+      return { host: h, via: "alias" as const, alias };
+    }
+    return { host: null as HostStadium | null, via: "none" as const, alias: null };
+  };
+
+  const upsertAlias = useMutation({
+    mutationFn: async (args: { provider_name: string; canonical_stadium_id: string; provider?: string; verified?: boolean }) => {
+      const { error } = await supabase.from("stadium_aliases" as never).upsert({
+        provider_name: args.provider_name,
+        provider: args.provider ?? "manual",
+        canonical_stadium_id: args.canonical_stadium_id,
+        confidence: "high",
+        auto_resolved: false,
+        manually_verified: args.verified ?? true,
+        verified_at: new Date().toISOString(),
+      } as never, { onConflict: "provider_name,provider" } as never);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Alias saved", description: "Provider stadium mapped to canonical host." });
+      qc.invalidateQueries({ queryKey: ["wc-hosts-aliases"] });
+      qc.invalidateQueries({ queryKey: ["wc-audit-fixtures"] });
+      setResolverFor(null);
+    },
+    onError: (e: any) => toast({ title: "Failed", description: e.message, variant: "destructive" }),
+  });
+
 
   const enriched = useMemo(() => (data ?? []).map(r => ({ ...r, health: computeHealth(r) })), [data]);
   const counts = useMemo(() => {
