@@ -180,12 +180,12 @@ export default function CoverageTab() {
 
       <TicomboQueuePanel busy={busy} runFn={runFn} />
 
-      {lastRun && (
+      {(lastRun || (recentRuns?.length ?? 0) > 0) && (
         <details className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs" open>
           <summary className="cursor-pointer font-bold uppercase text-slate-700">
-            {t("admin.coverage.last_run.title")}: <code className="font-mono">{lastRun.name}</code>
+            {t("admin.coverage.last_run.title")}: <code className="font-mono">{lastRun?.name ?? t("admin.coverage.last_run.recent_batch")}</code>
           </summary>
-          <LastRunDetail payload={lastRun.payload} recentRuns={recentRuns ?? []} />
+          <LastRunDetail payload={lastRun?.payload} recentRuns={recentRuns ?? []} />
         </details>
       )}
 
