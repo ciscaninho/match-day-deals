@@ -146,7 +146,7 @@ function OfficialFixturesPanel() {
           <button onClick={() => { if (confirm("Delete all non-official WC fixtures? Coverage rows will be detached.")) run("purge"); }} disabled={!!busy} className="px-3 py-1.5 text-xs font-bold uppercase rounded bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50">{busy === "purge" ? "Purging…" : "Purge generated"}</button>
         </div>
       </div>
-      {report && <pre className="mt-3 text-[10px] font-mono bg-white border border-slate-200 p-2 rounded overflow-auto max-h-40">{JSON.stringify(report, null, 2)}</pre>}
+      {report && <pre className="mt-3 text-[11px] leading-relaxed font-mono bg-slate-900 text-emerald-100 border border-slate-700 p-3 rounded overflow-auto max-h-60">{JSON.stringify(report, null, 2)}</pre>}
     </div>
   );
 }
