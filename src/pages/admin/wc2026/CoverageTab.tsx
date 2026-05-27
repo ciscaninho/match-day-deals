@@ -239,6 +239,42 @@ export default function CoverageTab() {
   );
 }
 
+function LastRunDetail({ payload }: { payload: unknown }) {
+  if (!payload || typeof payload !== "object") return <pre className="mt-2 text-[11px]">{String(payload)}</pre>;
+  const p = payload as { error?: string; processed?: number; succeeded?: number; failed?: number; still_pending?: number; results?: Array<Record<string, unknown>> };
+  if (p.error) return <div className="mt-2 text-red-700 font-mono break-all">{p.error}</div>;
+  return (
+    <div className="mt-2 space-y-2">
+      <div className="font-mono text-[11px] text-slate-700">
+        processed {p.processed ?? "?"} · ok {p.succeeded ?? 0} · failed {p.failed ?? 0} · still pending {p.still_pending ?? "?"}
+      </div>
+      {Array.isArray(p.results) && (
+        <div className="max-h-72 overflow-auto rounded border border-slate-200 bg-white">
+          <table className="w-full text-[11px]">
+            <thead className="bg-slate-100 text-slate-600">
+              <tr><th className="px-2 py-1 text-left">status</th><th className="px-2 py-1 text-left">event</th><th className="px-2 py-1 text-left">price €</th><th className="px-2 py-1 text-left">match</th><th className="px-2 py-1 text-left">notes</th></tr>
+            </thead>
+            <tbody>
+              {p.results.map((r, i) => {
+                const ex = (r.extracted ?? {}) as { title?: string; price_payload?: number; md_min_price?: number };
+                return (
+                  <tr key={i} className={r.ok ? "" : "bg-red-50"}>
+                    <td className="px-2 py-1 font-mono">{r.ok ? "ok" : "fail"}</td>
+                    <td className="px-2 py-1"><div className="truncate max-w-[260px]" title={String(ex.title ?? r.url)}>{ex.title ?? String(r.url)}</div><a href={String(r.url)} target="_blank" rel="noreferrer" className="text-indigo-600 underline text-[10px] truncate block max-w-[260px]">{String(r.url)}</a></td>
+                    <td className="px-2 py-1 font-mono">{String((r.price_eur ?? ex.price_payload ?? ex.md_min_price) ?? "—")}</td>
+                    <td className="px-2 py-1 font-mono">{r.match_id ? `${String(r.link_confidence ?? "")} · ${String(r.match_id).slice(0, 8)}` : "—"}</td>
+                    <td className="px-2 py-1 text-slate-600">{r.ok ? `${String(r.upsertResult ?? "")} · archived ${String(r.archived_generic ?? 0)}` : <span className="text-red-700 font-mono">{String(r.error ?? "")}</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TicomboQueuePanel({ busy, runFn }: { busy: string | null; runFn: (name: string, payload?: Record<string, unknown>) => Promise<void> }) {
   const { data, refetch } = useQuery({
     queryKey: ["wc-ticombo-queue-stats"],
