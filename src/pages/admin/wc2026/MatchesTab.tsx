@@ -292,6 +292,29 @@ export default function MatchesTab() {
                       </div>
                     </td>
                     <td className="px-3 py-2 text-xs text-slate-700">{r.stadium}<div className="text-[10px] text-slate-400">{r.city}</div></td>
+                    <td className="px-3 py-2">
+                      {res.host ? (
+                        <button onClick={() => setResolverFor(r)} className="text-left group">
+                          <div className="text-xs font-semibold text-slate-900 group-hover:underline flex items-center gap-1">
+                            <Link2 className="w-3 h-3 text-emerald-600" />{res.host.stadium_name}
+                          </div>
+                          <div className="text-[10px] flex gap-1 mt-0.5">
+                            <span className={`px-1.5 py-0.5 rounded border ${res.via === "name" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-blue-50 border-blue-200 text-blue-700"}`}>
+                              {res.via}
+                            </span>
+                            {res.alias?.manually_verified && (
+                              <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-0.5">
+                                <CheckCircle2 className="w-2.5 h-2.5" />verified
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      ) : (
+                        <button onClick={() => setResolverFor(r)} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-red-200 bg-red-50 text-red-700 text-[10px] font-bold hover:bg-red-100">
+                          <AlertTriangle className="w-3 h-3" />Unresolved · link
+                        </button>
+                      )}
+                    </td>
                     <td className="px-3 py-2 text-xs">{r.group_code ?? <span className="text-slate-400">—</span>}</td>
                     <td className="px-3 py-2">
                       {isOfficial
