@@ -263,6 +263,7 @@ export default function MatchesTab() {
                 <th className="text-left px-3 py-2">Date</th>
                 <th className="text-left px-3 py-2">Match</th>
                 <th className="text-left px-3 py-2">Venue</th>
+                <th className="text-left px-3 py-2">Resolver</th>
                 <th className="text-left px-3 py-2">Group</th>
                 <th className="text-left px-3 py-2">Origin</th>
                 <th className="text-left px-3 py-2">Health</th>
@@ -275,6 +276,7 @@ export default function MatchesTab() {
                 const date = r.date ? new Date(r.date) : null;
                 const valid = date && !isNaN(date.getTime());
                 const isOfficial = r.fixture_origin === "official_import";
+                const res = resolve(r.stadium);
                 return (
                   <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50/60">
                     <td className="px-3 py-2 text-xs whitespace-nowrap text-slate-700">
