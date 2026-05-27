@@ -56,8 +56,10 @@ function useOverviewKpis() {
   return useQuery({
     queryKey: ["wc-overview-kpis"],
     queryFn: async () => {
-      const [matchesRes, ticketedRes, publishedRes, withPricesRes, withImagesRes, slotsRes] = await Promise.all([
+      const [matchesRes, officialRes, generatedRes, ticketedRes, publishedRes, withPricesRes, withImagesRes, slotsRes] = await Promise.all([
         supabase.from("matches").select("id", { count: "exact", head: true }).eq("competition", "FIFA World Cup 2026"),
+        supabase.from("matches").select("id", { count: "exact", head: true }).eq("competition", "FIFA World Cup 2026").eq("fixture_origin", "official_import"),
+        supabase.from("matches").select("id", { count: "exact", head: true }).eq("competition", "FIFA World Cup 2026").eq("fixture_origin", "generated"),
         supabase.from("wc_ticket_coverage" as never).select("match_id", { count: "exact", head: true }).not("match_id", "is", null),
         supabase.from("matches").select("id", { count: "exact", head: true }).eq("competition", "FIFA World Cup 2026").eq("publication_status", "published"),
         supabase.from("wc_ticket_coverage" as never).select("id", { count: "exact", head: true }).not("starting_price", "is", null),
@@ -68,6 +70,8 @@ function useOverviewKpis() {
       const coverageTotalRes = await supabase.from("wc_ticket_coverage" as never).select("id", { count: "exact", head: true });
       return {
         imported,
+        official: officialRes.count ?? 0,
+        generated: generatedRes.count ?? 0,
         ticketed: ticketedRes.count ?? 0,
         published: publishedRes.count ?? 0,
         coverage_total: coverageTotalRes.count ?? 0,
