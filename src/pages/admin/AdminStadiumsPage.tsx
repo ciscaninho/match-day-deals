@@ -210,9 +210,9 @@ export const AdminStadiumsPage = () => {
       <StadiumCreateDialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreated={() => qc.invalidateQueries({ queryKey: ["admin-stadiums-v2"] })}
+        onCreated={() => qc.invalidateQueries({ queryKey: ["admin-stadiums-v3"] })}
       />
-      <WorldCupImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
+
     </div>
   );
 };
