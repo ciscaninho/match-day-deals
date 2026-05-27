@@ -358,3 +358,52 @@ date · stadium · stadium_id · provider_event_id (on the coverage row)
 - Changes to `wc-ticket-sync` extraction.
 - New affiliate networks.
 - Bracket auto-resolution of winner-of/runner-up-of slots (post-draw work).
+
+## §L — World Cup isolation (mandatory)
+
+WC2026 becomes its own operational domain. Zero leakage into generic flows.
+
+### Filter rules
+
+- **Matches**: every generic query excludes `competition = 'FIFA World Cup 2026'`.
+  - Public `/matches`, `useMatches`, `Index`
+  - Admin `/admin/matches`, `/admin/match-review`
+  - Admin overview KPIs (already separates WC counters; ensure base totals also exclude)
+- **Stadiums**: every generic query excludes `is_world_cup_host = true`.
+  - Public `/stadiums`, `useStadium` (list & filters), `WorldMap`
+  - Admin `/admin/stadiums` default views (`active` / `archived`); WC-only tab removed in favour of the hub route
+- **Stadium detail**: WC host slugs render a redirect notice → `/world-cup-2026/stadiums/:slug`.
+- **Admin row badge**: when a WC row would otherwise be visible (search hit, deep link), show a disabled card with "Open in World Cup Hub →" linking to `/admin/world-cup-2026?focus=<id>`. No inline edit.
+
+### New routes
+
+- `/world-cup-2026/stadiums` — public list of 16 hosts (host city, country, capacity, matches assigned, tickets available, lowest price, coverage %, official links).
+- `/admin/world-cup-2026` adds a **Stadiums** tab (between Groups and Coverage) with the same columns plus edit drawer that reuses `StadiumDrawer`.
+
+### Sidebar / navigation
+
+`/admin` sidebar collapses single "World Cup 2026" entry into a group:
+- Overview · Matches · Groups · Stadiums · Coverage · Resolver · Analytics
+
+Generic Matches and Stadiums entries stay; their contents shrink because WC rows are now filtered out.
+
+### Groups tab upgrade
+
+- Visual board A→L with team chip (flag + short code), status pill (`confirmed` / `qualified` / `placeholder` / `host`), and per-slot inline stats: matches count, ticket coverage %.
+- Admin override remains the only write path (no auto-promotion from `placeholder` → `qualified`).
+
+### Public consumption contract
+
+`useWorldCupTicketCoverage` (live mode) must AND-require:
+- `match_id` present, fixture exists with `competition='FIFA World Cup 2026'`
+- stadium exists with `is_world_cup_host=true`
+- coverage row `active=true` and `is_available != false`
+
+No fallback to generic matches or non-host stadiums under any condition.
+
+### Acceptance
+
+- `select count(*) from matches where competition='FIFA World Cup 2026'` visible in `/matches` = 0.
+- `select count(*) from stadiums where is_world_cup_host` visible in `/stadiums` = 0.
+- All WC content reachable only via `/world-cup-2026/*` (public) and `/admin/world-cup-2026` (admin).
+- Admin search for a WC team/stadium returns the deep-link card, never an editable row.
