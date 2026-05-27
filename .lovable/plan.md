@@ -282,6 +282,60 @@ Image coverage  %
 Unique stadium  %
 ```
 
+## J. Sandbox mode — Preview vs Live
+
+Global toggle in the admin hub header: **Preview** / **Live**. Stored in `localStorage` (`wc2026.viewMode`) and surfaced via a `useWcViewMode()` hook so admin tabs and the public renderer can read the same value.
+
+### Preview (admin only)
+- Gated by `useAuth().isAdmin`. Non-admins never see the toggle and are forced into `live`.
+- Shows fixtures with `publication_status IN ('draft','published')` and `home_team_status='projected'` / slot-token rows.
+- Shows `wc_ticket_coverage` rows regardless of `status` (`pending`, `review`, `active`) and regardless of `match_id IS NULL`.
+- A persistent **"Preview mode — draft content visible"** banner renders at the top of every admin tab and the public page when an admin flips the toggle on the public route.
+
+### Live (public + admins by default)
+- Fixtures filtered to `publication_status='published'` AND `lifecycle_status != 'archived'`.
+- Coverage filtered to `status='active'` AND `match_id IS NOT NULL` AND `event_slug IS NOT NULL` AND `is_available != false` (matches §F).
+- The unauthenticated public path **always** runs in Live mode — the toggle is hidden and the hook returns `live` regardless of `localStorage`.
+
+No draft content can leak publicly: the filter is enforced both client-side in `useWorldCupTicketCoverage` (publishable filter) and via the existing `publication_status='published'` predicate on `matches`. If `viewMode === 'preview'` is requested by a non-admin session, the hook ignores it.
+
+## K. Match immutability
+
+Once a `matches` row has a linked provider event (any `wc_ticket_coverage` row with `match_id = matches.id` AND `provider_event_id IS NOT NULL`), the following columns are **frozen** against automated writes:
+
+```
+date · stadium · stadium_id · provider_event_id (on the coverage row)
+```
+
+### Sync contract
+- `wc-ticket-sync` may continue to write: `starting_price`, `currency`, `price_source`, `price_confidence`, `price_checked_at`, `image_url`, `is_available`, `is_limited`, `last_sync_at`, `last_sync_status`.
+- `wc-ticket-sync` must **never** rewrite `match_id`, `provider_event_id`, `event_date`, `stadium_slug`, or `stadium_name` on a coverage row that already has a `match_id`. Existing values are read-only from sync's perspective.
+- `wc-groups-apply` only touches team fields (`home_team`, `away_team`, `home_short`, `away_short`, `home_team_status`, `away_team_status`) — never date / stadium.
+
+### Manual override path
+- Admins can still edit any frozen field via the Coverage tab's "Manual edit" action, which already writes to `manual_overrides` (added in a prior migration). Setting an override marks the column locked from any future sync pass.
+- A new "Unlink" action on a coverage row clears `match_id` and `provider_event_id`, returning the row to the Resolver pool. This is the only path that "remaps" a fixture.
+
+### Enforcement
+- Frontend: Coverage tab disables sync-driven columns when `match_id IS NOT NULL` and shows a lock icon with tooltip "Linked — sync cannot remap. Use Unlink to change.".
+- Edge function: `wc-ticket-sync` reads `match_id` before writing; if set, the write payload is reduced to the enrichment-only field list above. The function logs `frozen_skip` per row in its summary so the Analytics tab can surface how often immutability triggered.
+
+## File delta — additions for §J / §K
+
+**New**
+- `src/hooks/useWcViewMode.ts` — admin-aware Preview/Live state with banner trigger.
+- `src/components/website/wc2026/PreviewModeBanner.tsx` — sticky banner shown only when an admin opts into Preview on the public route.
+
+**Edited**
+- `src/components/admin/wc2026/*` — read `useWcViewMode()` to broaden/narrow queries; header hosts the Preview/Live toggle.
+- `src/components/website/WorldCupTicketsSection.tsx` — render banner when `viewMode === 'preview'` AND `isAdmin`; otherwise force live filter.
+- `src/hooks/useWorldCupTicketCoverage.ts` — accept `{ viewMode }`; in `live`, enforce `status='active'` AND `match_id IS NOT NULL` AND `event_slug IS NOT NULL` AND `is_available != false`. Non-admin callers always resolve to `live`.
+- `supabase/functions/wc-ticket-sync/index.ts` — gate writes on `match_id`: if present, restrict to the enrichment-only field allow-list (`starting_price`, `currency`, `price_source`, `price_confidence`, `price_checked_at`, `image_url`, `is_available`, `is_limited`, `last_sync_at`, `last_sync_status`). Add `frozen_skip` counter to the run summary.
+
+**Out of scope (still)**
+- New DB columns for §J/§K — `manual_overrides` already exists; sync immutability is enforced in code, not by triggers.
+
+
 ## File delta vs base plan
 
 **New**
