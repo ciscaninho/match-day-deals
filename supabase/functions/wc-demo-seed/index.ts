@@ -45,17 +45,17 @@ Deno.serve(async (req) => {
     // SEED
     const summary: Record<string, unknown> = {};
 
-    // 1) Draft fixture with home placeholder = A2
+    // Draft fixture — NOT in any real group (group_code null) to avoid duplicating round-robin
     const fixture = {
       id: DEMO_FIXTURE_ID,
       slug: DEMO_FIXTURE_ID,
       competition: "FIFA World Cup 2026",
-      home_team: "A2",
-      away_team: "Mexico",
-      home_short: "A2",
-      away_short: "MEX",
+      home_team: "Demo Home",
+      away_team: "Demo Away",
+      home_short: "DEM",
+      away_short: "DMO",
       home_team_status: "projected",
-      away_team_status: "confirmed",
+      away_team_status: "projected",
       fixture_confidence: "projected",
       country: "Mexico",
       city: "Mexico City",
@@ -64,9 +64,9 @@ Deno.serve(async (req) => {
       ticket_status: "not_released",
       ticket_sources: [],
       publication_status: "draft",
-      group_code: "A",
-      phase: "group",
-      matchday: 1,
+      group_code: null,
+      phase: "demo",
+      matchday: null,
     };
     const { error: fxErr } = await admin.from("matches").upsert(fixture as never, { onConflict: "id" });
     summary.draft_fixture = fxErr ? `error:${fxErr.message}` : "ok";
