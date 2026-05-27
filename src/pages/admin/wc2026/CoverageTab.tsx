@@ -110,9 +110,11 @@ const QUALITY_COLORS: Record<string, string> = {
 };
 
 export default function CoverageTab() {
+  const { t } = useLanguage();
   const qc = useQueryClient();
   const [filter, setFilter] = useState<FilterKey>("all");
   const { data, isLoading } = useCoverage(filter === "archived");
+  const { data: recentRuns } = useRecentCrawlDiagnostics();
   const [busy, setBusy] = useState<string | null>(null);
   const [showIngest, setShowIngest] = useState(false);
   const [lastRun, setLastRun] = useState<{ name: string; payload: unknown } | null>(null);
@@ -149,13 +151,14 @@ export default function CoverageTab() {
       setLastRun({ name, payload: res });
       const r = res as { succeeded?: number; failed?: number; processed?: number } | null;
       toast({ title: name, description: r && typeof r === "object" && "processed" in r
-        ? `processed ${r.processed} · ok ${r.succeeded} · failed ${r.failed}`
-        : "ok" });
+        ? t("admin.coverage.last_run.toast_summary", { processed: r.processed ?? 0, ok: r.succeeded ?? 0, failed: r.failed ?? 0 })
+        : t("admin.coverage.common.ok") });
       qc.invalidateQueries({ queryKey: ["wc2026-coverage"] });
+      qc.invalidateQueries({ queryKey: ["wc2026-crawl-diagnostics"] });
     } catch (e) {
       const msg = String((e as Error).message ?? e);
       setLastRun({ name, payload: { error: msg } });
-      toast({ title: `${name} failed`, description: msg, variant: "destructive" });
+      toast({ title: t("admin.coverage.last_run.failed_title", { name }), description: msg, variant: "destructive" });
     } finally {
       setBusy(null);
     }
@@ -180,9 +183,9 @@ export default function CoverageTab() {
       {lastRun && (
         <details className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs" open>
           <summary className="cursor-pointer font-bold uppercase text-slate-700">
-            Last run: <code className="font-mono">{lastRun.name}</code>
+            {t("admin.coverage.last_run.title")}: <code className="font-mono">{lastRun.name}</code>
           </summary>
-          <LastRunDetail payload={lastRun.payload} />
+          <LastRunDetail payload={lastRun.payload} recentRuns={recentRuns ?? []} />
         </details>
       )}
 
