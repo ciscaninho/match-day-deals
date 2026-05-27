@@ -102,6 +102,7 @@ type BatchLog = {
 
 const normalizeFailure = (message: string): { code: FailureCode; reason: string } => {
   if (message.startsWith("firecrawl ")) return { code: "firecrawl_parse_failed", reason: message };
+  if (message.startsWith("non_single_fixture_page")) return { code: "non_single_fixture_page", reason: message };
   if (message === "no_event_id") return { code: "provider_event_id_missing", reason: message };
   if (message.startsWith("generic_title:")) return { code: "generic_title_detected", reason: message.slice("generic_title:".length) || message };
   if (message === "no_event_name") return { code: "no_event_name", reason: message };
