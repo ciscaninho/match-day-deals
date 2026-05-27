@@ -340,10 +340,82 @@ export default function MatchesTab() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-3 py-8 text-center text-sm text-slate-400">No matches match the current filters.</td></tr>
+                <tr><td colSpan={9} className="px-3 py-8 text-center text-sm text-slate-400">No matches match the current filters.</td></tr>
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {resolverFor && (
+        <ResolverDrawer
+          match={resolverFor}
+          hosts={hosts}
+          currentAlias={aliasByName.get(fold(resolverFor.stadium)) ?? null}
+          onClose={() => setResolverFor(null)}
+          onSave={(args) => upsertAlias.mutate(args)}
+          saving={upsertAlias.isPending}
+        />
+      )}
+    </div>
+  );
+}
+
+function ResolverDrawer({ match, hosts, currentAlias, onClose, onSave, saving }: {
+  match: Row;
+  hosts: HostStadium[];
+  currentAlias: AliasRow | null;
+  onClose: () => void;
+  onSave: (args: { provider_name: string; canonical_stadium_id: string; provider?: string; verified?: boolean }) => void;
+  saving: boolean;
+}) {
+  const [stadiumId, setStadiumId] = useState<string>(currentAlias?.canonical_stadium_id ?? "");
+  const [verified, setVerified] = useState(true);
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4" onClick={e => e.stopPropagation()}>
+        <div>
+          <h3 className="text-base font-extrabold text-slate-900">Stadium Alias Resolver</h3>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Map the provider stadium naming to the canonical internal stadium. This does NOT modify the
+            locked fixture — it only updates the resolution layer used by coverage, images and public UI.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <div className="text-[10px] font-bold uppercase text-slate-500">Provider stadium</div>
+            <div className="font-semibold text-slate-900 mt-1">{match.stadium}</div>
+            <div className="text-slate-400">{match.city}</div>
+          </div>
+          <div>
+            <div className="text-[10px] font-bold uppercase text-slate-500">Fixture</div>
+            <div className="font-semibold text-slate-900 mt-1">{match.home_team} vs {match.away_team}</div>
+            <div className="text-slate-400">{match.phase ?? "group"}{match.fifa_match_number ? ` · #${match.fifa_match_number}` : ""}</div>
+          </div>
+        </div>
+        <div>
+          <label className="text-[10px] font-bold uppercase text-slate-500">Canonical internal stadium</label>
+          <select value={stadiumId} onChange={e => setStadiumId(e.target.value)} className="w-full mt-1 px-2 py-2 text-sm rounded border border-slate-200">
+            <option value="">— Select host stadium —</option>
+            {hosts.map(h => (
+              <option key={h.id} value={h.id}>{h.stadium_name} · {h.city}, {h.country}</option>
+            ))}
+          </select>
+        </div>
+        <label className="flex items-center gap-2 text-xs text-slate-700">
+          <input type="checkbox" checked={verified} onChange={e => setVerified(e.target.checked)} />
+          Mark as manually verified
+        </label>
+        <div className="flex justify-end gap-2 pt-2">
+          <button onClick={onClose} className="px-3 py-1.5 rounded text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
+          <button
+            disabled={!stadiumId || saving}
+            onClick={() => onSave({ provider_name: match.stadium, canonical_stadium_id: stadiumId, provider: "ticombo", verified })}
+            className="px-3 py-1.5 rounded text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60 inline-flex items-center gap-1.5"
+          >
+            {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Link2 className="w-3 h-3" />}
+            Save alias mapping
+          </button>
         </div>
       </div>
     </div>
