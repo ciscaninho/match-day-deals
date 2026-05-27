@@ -71,7 +71,7 @@ function useMatches() {
     queryFn: async () => {
       const { data: matches, error } = await supabase
         .from("matches")
-        .select("id,home_team,away_team,home_team_status,away_team_status,date,stadium,city,group_code,phase,publication_status,ticket_status,starting_price")
+        .select("id,home_team,away_team,home_team_status,away_team_status,date,stadium,city,group_code,phase,publication_status,ticket_status,starting_price,fixture_origin,fifa_match_number")
         .eq("competition", "FIFA World Cup 2026")
         .order("date");
       if (error) throw error;
