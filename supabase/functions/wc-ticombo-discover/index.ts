@@ -115,6 +115,27 @@ Deno.serve(async (req) => {
       }
     }
 
+    // 3. retroactively purge pending/failed queue rows that no longer pass the
+    // hardened single-fixture filter (stadium bundles, packages, follow-team, etc.)
+    const { data: stale } = await admin
+      .from("wc_ticombo_discovery_queue")
+      .select("id, url")
+      .in("status", ["pending", "failed"]);
+    const toPurge = (stale ?? []).filter((r: { url: string }) => !isEventUrl(r.url));
+    let purged = 0;
+    if (toPurge.length) {
+      const { error } = await admin
+        .from("wc_ticombo_discovery_queue")
+        .update({
+          status: "failed",
+          last_error: "non_single_fixture_page",
+          processed_at: new Date().toISOString(),
+          result: { rejection_code: "non_single_fixture_page", rejection_reason: "URL rejected by hardened discovery filter (stadium bundle / package / follow-team / multi-match)." },
+        })
+        .in("id", toPurge.map((r: { id: string }) => r.id));
+      if (!error) purged = toPurge.length;
+    }
+
     const { count: pending } = await admin
       .from("wc_ticombo_discovery_queue")
       .select("id", { count: "exact", head: true })
@@ -125,6 +146,7 @@ Deno.serve(async (req) => {
       root,
       discovered: candidates.length,
       newly_queued: inserted,
+      purged_non_single_fixture: purged,
       pending_total: pending ?? null,
       sample: candidates.slice(0, 10),
       raw_map_count: mapped.length,
