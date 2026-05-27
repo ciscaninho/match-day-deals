@@ -1,6 +1,7 @@
 // Crawl a batch of pending Ticombo event URLs, extract structured event data
-// via Firecrawl, then validate + upsert into wc_ticket_coverage and link to
-// the canonical FIFA fixture. Stadium-only fallback is rejected.
+// (forcing quantity = 1 for the price), validate, upsert into wc_ticket_coverage,
+// link to the canonical FIFA fixture, and archive any low-quality generic
+// duplicates for the same match.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -16,17 +17,21 @@ const fold = (s: string) =>
 const EVENT_SCHEMA = {
   type: "object",
   properties: {
-    provider_event_id: { type: "string", description: "The numeric Ticombo event id (from URL or page metadata)" },
-    event_name: { type: "string", description: "Full event title, e.g. 'Mexico vs Canada — FIFA World Cup 2026'" },
+    provider_event_id: { type: "string", description: "Numeric Ticombo event id (from URL or page)" },
+    event_name: { type: "string" },
     home_team: { type: "string" },
     away_team: { type: "string" },
-    group_code: { type: "string", description: "Single letter A..L if it's a group stage match, else empty" },
-    phase: { type: "string", description: "group_stage | round_of_32 | round_of_16 | quarter_final | semi_final | third_place | final | opening_match" },
+    group_code: { type: "string", description: "Single letter A..L for group stage, else empty" },
+    phase: { type: "string" },
     stadium_name: { type: "string" },
     city: { type: "string" },
     country: { type: "string" },
-    kickoff_iso: { type: "string", description: "ISO 8601 kickoff datetime with timezone if available" },
-    starting_price_eur: { type: "number" },
+    kickoff_iso: { type: "string" },
+    lowest_single_ticket_price: {
+      type: "number",
+      description:
+        "The LOWEST visible price for ONE single ticket (quantity = 1), in EUR, after the '1 Ticket' filter is applied. Read the minimum offer in the price list, NOT category averages, NOT bundles of 2+ seats. Must reflect what the customer pays for exactly one seat including the displayed fees.",
+    },
     currency: { type: "string" },
     image_url: { type: "string" },
     ticket_url: { type: "string" },
@@ -45,27 +50,48 @@ type Extracted = {
   city?: string;
   country?: string;
   kickoff_iso?: string;
-  starting_price_eur?: number;
+  lowest_single_ticket_price?: number;
   currency?: string;
   image_url?: string;
   ticket_url?: string;
 };
 
-const fcScrape = async (url: string): Promise<{ data: Extracted; markdown?: string }> => {
+// Force the Ticombo page into "1 Ticket" mode using known query params so the
+// price list and the structured payload reflect a single seat.
+const forceQty1 = (url: string): string => {
+  try {
+    const u = new URL(url);
+    u.searchParams.set("q", "1");
+    u.searchParams.set("quantity", "1");
+    u.searchParams.set("tickets", "1");
+    return u.toString();
+  } catch { return url; }
+};
+
+const fcScrape = async (url: string) => {
   const r = await fetch("https://api.firecrawl.dev/v2/scrape", {
     method: "POST",
     headers: { Authorization: `Bearer ${FIRECRAWL_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       url,
-      formats: ["markdown", { type: "json", schema: EVENT_SCHEMA, prompt: "Extract real event data from this Ticombo event page. Use only what is shown on the page; do not invent." }],
+      formats: [
+        "markdown",
+        {
+          type: "json",
+          schema: EVENT_SCHEMA,
+          prompt:
+            "Extract real event data from this Ticombo event page. The page MUST be read as if the '1 Ticket' filter is active. For lowest_single_ticket_price, return the minimum visible price for ONE seat (not bundles, not category averages, not 2-ticket defaults). Do not invent values; if unsure leave blank.",
+        },
+      ],
       onlyMainContent: true,
-      waitFor: 3000,
+      waitFor: 4000,
     }),
   });
   const j = await r.json();
   if (!r.ok) throw new Error(j.error ?? `firecrawl ${r.status}`);
   const data = (j.json ?? j.data?.json ?? {}) as Extracted;
-  return { data, markdown: j.markdown ?? j.data?.markdown };
+  const markdown = (j.markdown ?? j.data?.markdown ?? "") as string;
+  return { data, markdown };
 };
 
 const extractIdFromUrl = (url: string): string | null => {
@@ -73,28 +99,52 @@ const extractIdFromUrl = (url: string): string | null => {
   return m ? m[1] : null;
 };
 
-const validateAndUpsert = async (admin: ReturnType<typeof createClient>, url: string, ex: Extracted) => {
+// Fallback: scan the page markdown for the smallest € amount in plausible
+// single-ticket range (filters out aggregate "€1,097 – 98,345" headers).
+const minPriceFromMarkdown = (md: string): number | null => {
+  if (!md) return null;
+  const re = /€\s?([0-9][0-9.,]{1,7})/g;
+  let m: RegExpExecArray | null;
+  const nums: number[] = [];
+  while ((m = re.exec(md)) !== null) {
+    const n = Number(m[1].replace(/[.,](?=\d{3}\b)/g, "").replace(",", "."));
+    if (Number.isFinite(n) && n >= 20 && n <= 50000) nums.push(n);
+  }
+  if (!nums.length) return null;
+  return Math.min(...nums);
+};
+
+const validateAndUpsert = async (
+  admin: ReturnType<typeof createClient>,
+  url: string,
+  ex: Extracted,
+  markdown: string,
+) => {
   const provider_event_id = ex.provider_event_id?.trim() || extractIdFromUrl(url);
   if (!provider_event_id) throw new Error("no_event_id");
   const event_name = (ex.event_name ?? "").trim();
   if (!event_name) throw new Error("no_event_name");
-  if (GENERIC_RE.test(event_name)) throw new Error("generic_title");
+  if (GENERIC_RE.test(event_name)) throw new Error(`generic_title:${event_name}`);
   if (!ex.kickoff_iso) throw new Error("no_kickoff");
   if (!ex.stadium_name) throw new Error("no_stadium");
 
   const kickoff = new Date(ex.kickoff_iso);
-  if (isNaN(kickoff.getTime())) throw new Error("bad_kickoff_iso");
+  if (isNaN(kickoff.getTime())) throw new Error(`bad_kickoff_iso:${ex.kickoff_iso}`);
 
-  // Resolve stadium via stadiums + stadium_aliases
+  // Resolve stadium
   const folded = fold(ex.stadium_name);
   const { data: stadia } = await admin
     .from("stadiums")
     .select("id, slug, stadium_name, city, country, aliases")
     .eq("is_world_cup_host", true);
-  let stadium = (stadia ?? []).find((s: { stadium_name: string; slug: string }) => fold(s.stadium_name) === folded || fold(s.slug) === folded);
+  let stadium = (stadia ?? []).find(
+    (s: { stadium_name: string; slug: string }) => fold(s.stadium_name) === folded || fold(s.slug) === folded,
+  );
   let stadium_confidence: "verified" | "alias_match" | "low" = stadium ? "verified" : "low";
   if (!stadium) {
-    stadium = (stadia ?? []).find((s: { aliases: string[] | null }) => (s.aliases ?? []).some((a) => fold(a) === folded));
+    stadium = (stadia ?? []).find((s: { aliases: string[] | null }) =>
+      (s.aliases ?? []).some((a) => fold(a) === folded),
+    );
     if (stadium) stadium_confidence = "alias_match";
   }
   if (!stadium) {
@@ -111,7 +161,7 @@ const validateAndUpsert = async (admin: ReturnType<typeof createClient>, url: st
   if (!stadium) throw new Error(`stadium_unresolved:${ex.stadium_name}`);
   const s = stadium as { id: string; slug: string; stadium_name: string; city: string | null; country: string | null };
 
-  // Find candidate FIFA fixture (no stadium-only fallback)
+  // Resolve canonical FIFA match
   const windowMs = 6 * 3600 * 1000;
   const { data: candidates } = await admin
     .from("matches")
@@ -134,6 +184,13 @@ const validateAndUpsert = async (admin: ReturnType<typeof createClient>, url: st
     else if (!match_id && diffMin <= 12 * 60) { match_id = c.id; link_confidence = "medium"; }
   }
 
+  // Quantity-aware price: prefer the structured value; fall back to markdown min.
+  const mdMin = minPriceFromMarkdown(markdown);
+  let single = ex.lowest_single_ticket_price ?? null;
+  if (single == null || !Number.isFinite(single) || single <= 0) single = mdMin;
+  // Sanity: if structured value is suspiciously high vs markdown min, prefer markdown.
+  if (single != null && mdMin != null && mdMin > 0 && single > mdMin * 1.25) single = mdMin;
+
   const event_slug = `ticombo-${provider_event_id.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const row = {
     provider: "ticombo",
@@ -149,7 +206,9 @@ const validateAndUpsert = async (admin: ReturnType<typeof createClient>, url: st
     stadium_name: s.stadium_name,
     city: s.city,
     country: s.country,
-    starting_price: ex.starting_price_eur ?? null,
+    starting_price: single,
+    lowest_single_ticket_price: single,
+    quantity_basis: 1,
     currency: ex.currency ?? "EUR",
     image_url: ex.image_url ?? null,
     match_id,
@@ -172,12 +231,47 @@ const validateAndUpsert = async (admin: ReturnType<typeof createClient>, url: st
     .eq("provider_event_id", provider_event_id)
     .maybeSingle();
 
+  let upsertResult: "inserted" | "updated";
   if (existing) {
-    await admin.from("wc_ticket_coverage").update(row).eq("id", (existing as { id: string }).id);
+    const { error } = await admin.from("wc_ticket_coverage").update(row).eq("id", (existing as { id: string }).id);
+    if (error) throw new Error(`db_update:${error.message}`);
+    upsertResult = "updated";
   } else {
-    await admin.from("wc_ticket_coverage").insert(row);
+    const { error } = await admin.from("wc_ticket_coverage").insert(row);
+    if (error) throw new Error(`db_insert:${error.message}`);
+    upsertResult = "inserted";
   }
-  return { match_id, link_confidence, stadium_confidence };
+
+  // Generic-row replacement: if we now have a clean direct-event row for a
+  // canonical match, archive any other low-quality generic rows pointing to it.
+  let archived_generic = 0;
+  if (match_id) {
+    const { data: dupes } = await admin
+      .from("wc_ticket_coverage")
+      .select("id, quality_score, extraction_source, provider_event_id, archived_at")
+      .eq("match_id", match_id)
+      .neq("provider_event_id", provider_event_id)
+      .is("archived_at", null);
+    const stale = (dupes ?? []).filter((d: { quality_score: string | null; extraction_source: string | null }) =>
+      d.quality_score !== "high" || (d.extraction_source ?? "") !== "direct_event_page"
+    );
+    if (stale.length) {
+      const { error } = await admin
+        .from("wc_ticket_coverage")
+        .update({ archived_at: new Date().toISOString(), archived_reason: `superseded_by_direct_event:${provider_event_id}`, active: false })
+        .in("id", stale.map((d: { id: string }) => d.id));
+      if (!error) archived_generic = stale.length;
+    }
+  }
+
+  return {
+    match_id,
+    link_confidence,
+    stadium_confidence,
+    price_eur: single,
+    upsertResult,
+    archived_generic,
+  };
 };
 
 Deno.serve(async (req) => {
@@ -196,27 +290,43 @@ Deno.serve(async (req) => {
       .limit(limit);
 
     const queue = (pending ?? []) as Array<{ id: string; url: string; attempts: number }>;
-    const results: Array<{ url: string; ok: boolean; error?: string; meta?: unknown }> = [];
+    const results: Array<Record<string, unknown>> = [];
     let ok = 0, failed = 0;
 
     for (const q of queue) {
+      const scrapeUrl = forceQty1(q.url);
+      const log: Record<string, unknown> = { url: q.url, scrape_url: scrapeUrl };
       try {
-        const { data: ex } = await fcScrape(q.url);
-        const meta = await validateAndUpsert(admin, q.url, ex);
+        const { data: ex, markdown } = await fcScrape(scrapeUrl);
+        log.extracted = {
+          provider_event_id: ex.provider_event_id ?? extractIdFromUrl(q.url),
+          title: ex.event_name,
+          kickoff: ex.kickoff_iso,
+          stadium: ex.stadium_name,
+          teams: [ex.home_team, ex.away_team],
+          group_code: ex.group_code,
+          price_payload: ex.lowest_single_ticket_price,
+          md_min_price: minPriceFromMarkdown(markdown),
+        };
+        const meta = await validateAndUpsert(admin, q.url, ex, markdown);
+        Object.assign(log, meta, { ok: true });
         await admin.from("wc_ticombo_discovery_queue").update({
-          status: "done", processed_at: new Date().toISOString(), attempts: q.attempts + 1, result: meta,
+          status: "done", processed_at: new Date().toISOString(), attempts: q.attempts + 1, result: log,
         }).eq("id", q.id);
-        results.push({ url: q.url, ok: true, meta });
+        results.push(log);
         ok++;
       } catch (e) {
-        const msg = String((e as Error).message ?? e).slice(0, 500);
+        const msg = String((e as Error).message ?? e).slice(0, 800);
+        log.ok = false;
+        log.error = msg;
         await admin.from("wc_ticombo_discovery_queue").update({
           status: q.attempts + 1 >= 3 ? "failed" : "pending",
           attempts: q.attempts + 1,
           last_error: msg,
           processed_at: new Date().toISOString(),
+          result: log,
         }).eq("id", q.id);
-        results.push({ url: q.url, ok: false, error: msg });
+        results.push(log);
         failed++;
       }
     }
@@ -226,9 +336,14 @@ Deno.serve(async (req) => {
       .select("id", { count: "exact", head: true })
       .eq("status", "pending");
 
-    return new Response(JSON.stringify({ ok: true, processed: queue.length, succeeded: ok, failed, still_pending: still_pending ?? 0, results }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({
+      ok: true,
+      processed: queue.length,
+      succeeded: ok,
+      failed,
+      still_pending: still_pending ?? 0,
+      results,
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     return new Response(JSON.stringify({ ok: false, error: String((e as Error).message ?? e) }), {
       status: 400,
