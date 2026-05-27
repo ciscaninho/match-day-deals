@@ -59,6 +59,7 @@ export default function CoverageTab() {
   const { data, isLoading } = useCoverage(filter === "archived");
   const [busy, setBusy] = useState<string | null>(null);
   const [showIngest, setShowIngest] = useState(false);
+  const [lastRun, setLastRun] = useState<{ name: string; payload: unknown } | null>(null);
 
   const counts = useMemo(() => {
     const c = { all: 0, high: 0, medium: 0, low: 0, archived: 0, unlinked: 0, generic_title: 0, no_event_id: 0, stadium_fallback: 0 };
@@ -89,10 +90,16 @@ export default function CoverageTab() {
     try {
       const { data: res, error } = await supabase.functions.invoke(name, { body: payload ?? {} });
       if (error) throw error;
-      toast({ title: name, description: JSON.stringify(res) });
+      setLastRun({ name, payload: res });
+      const r = res as { succeeded?: number; failed?: number; processed?: number } | null;
+      toast({ title: name, description: r && typeof r === "object" && "processed" in r
+        ? `processed ${r.processed} · ok ${r.succeeded} · failed ${r.failed}`
+        : "ok" });
       qc.invalidateQueries({ queryKey: ["wc2026-coverage"] });
     } catch (e) {
-      toast({ title: `${name} failed`, description: String((e as Error).message ?? e), variant: "destructive" });
+      const msg = String((e as Error).message ?? e);
+      setLastRun({ name, payload: { error: msg } });
+      toast({ title: `${name} failed`, description: msg, variant: "destructive" });
     } finally {
       setBusy(null);
     }
@@ -113,6 +120,15 @@ export default function CoverageTab() {
       </div>
 
       <TicomboQueuePanel busy={busy} runFn={runFn} />
+
+      {lastRun && (
+        <details className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs" open>
+          <summary className="cursor-pointer font-bold uppercase text-slate-700">
+            Last run: <code className="font-mono">{lastRun.name}</code>
+          </summary>
+          <LastRunDetail payload={lastRun.payload} />
+        </details>
+      )}
 
       {/* Quality KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
@@ -219,6 +235,42 @@ export default function CoverageTab() {
       </div>
 
       {showIngest && <IngestDialog onClose={() => setShowIngest(false)} onDone={() => { setShowIngest(false); qc.invalidateQueries({ queryKey: ["wc2026-coverage"] }); }} />}
+    </div>
+  );
+}
+
+function LastRunDetail({ payload }: { payload: unknown }) {
+  if (!payload || typeof payload !== "object") return <pre className="mt-2 text-[11px]">{String(payload)}</pre>;
+  const p = payload as { error?: string; processed?: number; succeeded?: number; failed?: number; still_pending?: number; results?: Array<Record<string, unknown>> };
+  if (p.error) return <div className="mt-2 text-red-700 font-mono break-all">{p.error}</div>;
+  return (
+    <div className="mt-2 space-y-2">
+      <div className="font-mono text-[11px] text-slate-700">
+        processed {p.processed ?? "?"} · ok {p.succeeded ?? 0} · failed {p.failed ?? 0} · still pending {p.still_pending ?? "?"}
+      </div>
+      {Array.isArray(p.results) && (
+        <div className="max-h-72 overflow-auto rounded border border-slate-200 bg-white">
+          <table className="w-full text-[11px]">
+            <thead className="bg-slate-100 text-slate-600">
+              <tr><th className="px-2 py-1 text-left">status</th><th className="px-2 py-1 text-left">event</th><th className="px-2 py-1 text-left">price €</th><th className="px-2 py-1 text-left">match</th><th className="px-2 py-1 text-left">notes</th></tr>
+            </thead>
+            <tbody>
+              {p.results.map((r, i) => {
+                const ex = (r.extracted ?? {}) as { title?: string; price_payload?: number; md_min_price?: number };
+                return (
+                  <tr key={i} className={r.ok ? "" : "bg-red-50"}>
+                    <td className="px-2 py-1 font-mono">{r.ok ? "ok" : "fail"}</td>
+                    <td className="px-2 py-1"><div className="truncate max-w-[260px]" title={String(ex.title ?? r.url)}>{ex.title ?? String(r.url)}</div><a href={String(r.url)} target="_blank" rel="noreferrer" className="text-indigo-600 underline text-[10px] truncate block max-w-[260px]">{String(r.url)}</a></td>
+                    <td className="px-2 py-1 font-mono">{String((r.price_eur ?? ex.price_payload ?? ex.md_min_price) ?? "—")}</td>
+                    <td className="px-2 py-1 font-mono">{r.match_id ? `${String(r.link_confidence ?? "")} · ${String(r.match_id).slice(0, 8)}` : "—"}</td>
+                    <td className="px-2 py-1 text-slate-600">{r.ok ? `${String(r.upsertResult ?? "")} · archived ${String(r.archived_generic ?? 0)}` : <span className="text-red-700 font-mono">{String(r.error ?? "")}</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
