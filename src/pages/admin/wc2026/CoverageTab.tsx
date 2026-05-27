@@ -90,10 +90,16 @@ export default function CoverageTab() {
     try {
       const { data: res, error } = await supabase.functions.invoke(name, { body: payload ?? {} });
       if (error) throw error;
-      toast({ title: name, description: JSON.stringify(res) });
+      setLastRun({ name, payload: res });
+      const r = res as { succeeded?: number; failed?: number; processed?: number } | null;
+      toast({ title: name, description: r && typeof r === "object" && "processed" in r
+        ? `processed ${r.processed} · ok ${r.succeeded} · failed ${r.failed}`
+        : "ok" });
       qc.invalidateQueries({ queryKey: ["wc2026-coverage"] });
     } catch (e) {
-      toast({ title: `${name} failed`, description: String((e as Error).message ?? e), variant: "destructive" });
+      const msg = String((e as Error).message ?? e);
+      setLastRun({ name, payload: { error: msg } });
+      toast({ title: `${name} failed`, description: msg, variant: "destructive" });
     } finally {
       setBusy(null);
     }
