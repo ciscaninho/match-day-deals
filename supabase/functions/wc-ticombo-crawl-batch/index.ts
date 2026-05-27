@@ -58,6 +58,7 @@ type Extracted = {
 
 type FailureCode =
   | "firecrawl_parse_failed"
+  | "non_single_fixture_page"
   | "provider_event_id_missing"
   | "generic_title_detected"
   | "no_event_name"
@@ -71,6 +72,11 @@ type FailureCode =
   | "db_insert_failed"
   | "db_update_failed"
   | "unknown";
+
+// URL/title patterns that indicate a multi-match / bundle / package / follow-team product.
+const NON_SINGLE_URL_RE = /(all-|matches-world-cup|stadium-\d|-stadium-tickets|package|follow-|group-matches|hospitality|venue-series|vip-experience|bundle|series-pass)/i;
+const SINGLE_FIXTURE_URL_RE = /\/football-tickets\/match-/i;
+const TITLE_VS_RE = /\bvs\.?\b|\s—\s|\s-\s/i;
 
 type BatchLog = {
   ok: boolean;
