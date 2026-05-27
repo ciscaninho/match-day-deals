@@ -2108,6 +2108,39 @@ export type Database = {
         }
         Relationships: []
       }
+      wc_ticombo_discovery_queue: {
+        Row: {
+          attempts: number
+          discovered_at: string
+          id: string
+          last_error: string | null
+          processed_at: string | null
+          result: Json
+          status: string
+          url: string
+        }
+        Insert: {
+          attempts?: number
+          discovered_at?: string
+          id?: string
+          last_error?: string | null
+          processed_at?: string | null
+          result?: Json
+          status?: string
+          url: string
+        }
+        Update: {
+          attempts?: number
+          discovered_at?: string
+          id?: string
+          last_error?: string | null
+          processed_at?: string | null
+          result?: Json
+          status?: string
+          url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
