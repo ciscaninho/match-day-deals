@@ -116,7 +116,18 @@ const StadiumDetailPage = () => {
 
   return (
     <WebsiteLayout>
+      {isWcRoute && (
+        <div className="bg-emerald-50 border-b border-emerald-200">
+          <div className="max-w-5xl mx-auto px-5 py-2 text-xs">
+            <Link to="/world-cup-2026/stadiums" className="inline-flex items-center gap-1.5 text-emerald-800 font-bold hover:text-emerald-900">
+              <ArrowLeft className="w-3.5 h-3.5" /> View all World Cup host stadiums
+            </Link>
+          </div>
+        </div>
+      )}
       <StadiumHero stadium={stadium} />
+
+
 
       <div className="bg-[#0b1220] text-white">
         <section className="max-w-5xl mx-auto px-5 pt-6 pb-2 flex items-center justify-between gap-3 flex-wrap">
