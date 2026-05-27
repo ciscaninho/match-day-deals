@@ -1,19 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWcViewMode } from "@/hooks/useWcViewMode";
 import { toast } from "@/hooks/use-toast";
 import { Lock, RotateCcw, Eye, Globe, Database, Loader2 } from "lucide-react";
+import MatchesTab from "./wc2026/MatchesTab";
+import CoverageTab from "./wc2026/CoverageTab";
+import ResolverTab from "./wc2026/ResolverTab";
 
 type TabId = "overview" | "matches" | "groups" | "coverage" | "resolver" | "analytics";
 const TABS: { id: TabId; label: string }[] = [
-  { id: "overview", label: "Overview" },
   { id: "matches", label: "Matches" },
+  { id: "overview", label: "Overview" },
   { id: "groups", label: "Groups" },
   { id: "coverage", label: "Coverage" },
   { id: "resolver", label: "Resolver" },
   { id: "analytics", label: "Analytics" },
 ];
+const TAB_KEY = "wc2026.activeTab.v1";
 
 interface Slot {
   id: string;
