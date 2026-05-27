@@ -19,6 +19,8 @@ interface Row {
   publication_status: string;
   ticket_status: string;
   starting_price: number | null;
+  fixture_origin: string;
+  fifa_match_number: number | null;
   coverage_count: number;
   linked_count: number;
   has_price: boolean;
