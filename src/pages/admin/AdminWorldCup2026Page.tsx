@@ -225,6 +225,9 @@ function GroupsTab() {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        <strong>Groups enrich team labels only.</strong> Stadium, date, kickoff, city and fixture ordering come from the official import and are locked.
+      </div>
       <div className="flex items-center justify-between gap-3 flex-wrap rounded-xl border border-slate-200 bg-white p-3">
         <div className="text-xs text-slate-500">Edit unlocked slots. <strong>Preview</strong> shows impact. <strong>Apply</strong> propagates to fixtures. <strong>Revert</strong> empties the slot back to placeholder.</div>
         <div className="flex gap-2">
