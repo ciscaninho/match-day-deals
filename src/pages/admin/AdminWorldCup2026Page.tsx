@@ -9,8 +9,9 @@ import MatchesTab from "./wc2026/MatchesTab";
 import CoverageTab from "./wc2026/CoverageTab";
 import ResolverTab from "./wc2026/ResolverTab";
 import StadiumsTab from "./wc2026/StadiumsTab";
+import AuditTab from "./wc2026/AuditTab";
 
-type TabId = "overview" | "matches" | "groups" | "stadiums" | "coverage" | "resolver" | "analytics";
+type TabId = "overview" | "matches" | "groups" | "stadiums" | "coverage" | "resolver" | "audit" | "analytics";
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "matches", label: "Matches" },
@@ -18,6 +19,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "stadiums", label: "Stadiums" },
   { id: "coverage", label: "Coverage" },
   { id: "resolver", label: "Resolver" },
+  { id: "audit", label: "Audit" },
   { id: "analytics", label: "Analytics" },
 ];
 const TAB_KEY = "wc2026.activeTab.v1";
