@@ -59,6 +59,7 @@ export default function CoverageTab() {
   const { data, isLoading } = useCoverage(filter === "archived");
   const [busy, setBusy] = useState<string | null>(null);
   const [showIngest, setShowIngest] = useState(false);
+  const [lastRun, setLastRun] = useState<{ name: string; payload: unknown } | null>(null);
 
   const counts = useMemo(() => {
     const c = { all: 0, high: 0, medium: 0, low: 0, archived: 0, unlinked: 0, generic_title: 0, no_event_id: 0, stadium_fallback: 0 };
