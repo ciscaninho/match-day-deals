@@ -446,6 +446,7 @@ export default function AdminWorldCup2026Page() {
       {tab === "stadiums" && <StadiumsTab />}
       {tab === "coverage" && <CoverageTab />}
       {tab === "resolver" && <ResolverTab />}
+      {tab === "audit" && <AuditTab />}
       {tab === "analytics" && <Placeholder label="CTR, conversions, image quality" />}
     </div>
   );
