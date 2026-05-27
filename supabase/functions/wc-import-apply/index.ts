@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     const toInsert = proposed
       .filter((p) => p.status === "ready")
       .filter((p) => !acceptSet || acceptSet.has(p.row.slug))
-      .map((p) => ({
+      .map((p, idx) => ({
         id: `wc_${p.row.slug}`,
         slug: p.row.slug,
         competition: "FIFA World Cup 2026",
@@ -99,6 +99,12 @@ Deno.serve(async (req) => {
         verified: false,
         import_source: p.row.import_source || "fifa_seed",
         import_batch_id: batch.id,
+        // Pivot: every imported row is canonical. Date / stadium / city / phase
+        // are locked by the wc_lock_official_fixture_fields trigger.
+        fixture_origin: "official_import",
+        kickoff_locked: true,
+        stadium_locked: true,
+        fifa_match_number: typeof p.row.fifaMatchNumber === "number" ? p.row.fifaMatchNumber : (idx + 1),
       }));
 
     let inserted = 0;
