@@ -1985,6 +1985,7 @@ export type Database = {
           last_price_check: string | null
           last_sync_at: string | null
           last_sync_status: string | null
+          lowest_single_ticket_price: number | null
           manual_overrides: Json
           match_id: string | null
           notes: string | null
@@ -1997,6 +1998,7 @@ export type Database = {
           provider_logo: string | null
           quality_reasons: string[]
           quality_score: string
+          quantity_basis: number | null
           stadium_confidence: string
           stadium_name: string
           stadium_slug: string
@@ -2034,6 +2036,7 @@ export type Database = {
           last_price_check?: string | null
           last_sync_at?: string | null
           last_sync_status?: string | null
+          lowest_single_ticket_price?: number | null
           manual_overrides?: Json
           match_id?: string | null
           notes?: string | null
@@ -2046,6 +2049,7 @@ export type Database = {
           provider_logo?: string | null
           quality_reasons?: string[]
           quality_score?: string
+          quantity_basis?: number | null
           stadium_confidence?: string
           stadium_name: string
           stadium_slug: string
@@ -2083,6 +2087,7 @@ export type Database = {
           last_price_check?: string | null
           last_sync_at?: string | null
           last_sync_status?: string | null
+          lowest_single_ticket_price?: number | null
           manual_overrides?: Json
           match_id?: string | null
           notes?: string | null
@@ -2095,6 +2100,7 @@ export type Database = {
           provider_logo?: string | null
           quality_reasons?: string[]
           quality_score?: string
+          quantity_basis?: number | null
           stadium_confidence?: string
           stadium_name?: string
           stadium_slug?: string
