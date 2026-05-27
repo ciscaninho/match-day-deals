@@ -127,9 +127,11 @@ function OverviewTab() {
 function GroupsTab() {
   const qc = useQueryClient();
   const { data: slots, isLoading } = useSlots();
-  const [drafts, setDrafts] = useState<Record<string, string>>({}); // key: `${group}${pos}` -> new team name
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState<any | null>(null);
   const [applying, setApplying] = useState(false);
+  const [resyncBusy, setResyncBusy] = useState<null | "validate" | "resync">(null);
+  const [resyncReport, setResyncReport] = useState<any | null>(null);
 
   const applyMut = useMutation({
     mutationFn: async (input: { group_code: string; slot_position: number; team_name: string | null; preview: boolean }) => {
@@ -138,6 +140,27 @@ function GroupsTab() {
       return data;
     },
   });
+
+  const runResync = async (dryRun: boolean) => {
+    setResyncBusy(dryRun ? "validate" : "resync");
+    try {
+      const { data, error } = await supabase.functions.invoke("wc-groups-resync", { body: { dry_run: dryRun, delete_duplicates: true } });
+      if (error) throw error;
+      setResyncReport(data);
+      const invalid = data?.invalid_groups ?? [];
+      toast({
+        title: dryRun ? "Validation complete" : "Resync complete",
+        description: `${data?.fixtures_updated ?? 0} fixture(s) updated · ${data?.duplicates_deleted ?? 0} duplicate(s) removed · ${invalid.length === 0 ? "all groups valid" : `invalid: ${invalid.join(", ")}`}`,
+        variant: invalid.length === 0 ? undefined : "destructive",
+      });
+      qc.invalidateQueries({ queryKey: ["wc-group-slots"] });
+      qc.invalidateQueries({ queryKey: ["wc-overview-kpis"] });
+    } catch (e: any) {
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
+    } finally { setResyncBusy(null); }
+  };
+
+
 
   if (isLoading) return <div className="text-sm text-slate-500 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin"/>Loading slots…</div>;
 
