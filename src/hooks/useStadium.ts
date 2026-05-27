@@ -68,7 +68,14 @@ export const useStadiums = (league?: string) => {
     queryKey: ["stadiums", league ?? "all"],
     staleTime: 10 * 60 * 1000,
     queryFn: async (): Promise<Stadium[]> => {
-      let q = supabase.from("stadiums").select("*").is("archived_at", null).order("popularity_score", { ascending: false });
+      // World Cup host stadiums are managed via /world-cup-2026/stadiums and
+      // MUST NOT appear in the generic stadium directory.
+      let q = supabase
+        .from("stadiums")
+        .select("*")
+        .is("archived_at", null)
+        .or("is_world_cup_host.is.null,is_world_cup_host.eq.false")
+        .order("popularity_score", { ascending: false });
       if (league) q = q.eq("league", league);
       const { data, error } = await q;
       if (error) throw error;
@@ -76,3 +83,4 @@ export const useStadiums = (league?: string) => {
     },
   });
 };
+

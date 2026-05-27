@@ -1,23 +1,28 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWcViewMode } from "@/hooks/useWcViewMode";
 import { toast } from "@/hooks/use-toast";
-import { Lock, RotateCcw, Eye, Globe, Database, Loader2 } from "lucide-react";
+import { Lock, RotateCcw, Eye, Globe, Database, Loader2, ChevronRight } from "lucide-react";
 import MatchesTab from "./wc2026/MatchesTab";
 import CoverageTab from "./wc2026/CoverageTab";
 import ResolverTab from "./wc2026/ResolverTab";
+import StadiumsTab from "./wc2026/StadiumsTab";
 
-type TabId = "overview" | "matches" | "groups" | "coverage" | "resolver" | "analytics";
+type TabId = "overview" | "matches" | "groups" | "stadiums" | "coverage" | "resolver" | "analytics";
 const TABS: { id: TabId; label: string }[] = [
-  { id: "matches", label: "Matches" },
   { id: "overview", label: "Overview" },
+  { id: "matches", label: "Matches" },
   { id: "groups", label: "Groups" },
+  { id: "stadiums", label: "Stadiums" },
   { id: "coverage", label: "Coverage" },
   { id: "resolver", label: "Resolver" },
   { id: "analytics", label: "Analytics" },
 ];
 const TAB_KEY = "wc2026.activeTab.v1";
+const DEFAULT_TAB: TabId = "matches";
+
 
 interface Slot {
   id: string;
@@ -278,17 +283,40 @@ function Placeholder({ label }: { label: string }) {
 }
 
 export default function AdminWorldCup2026Page() {
-  const [tab, setTab] = useState<TabId>(() => {
+  const navigate = useNavigate();
+  const { tab: tabParam } = useParams<{ tab?: string }>();
+
+  // Resolve active tab: URL param > localStorage > default. URL is source of truth.
+  const fromUrl = TABS.find((t) => t.id === tabParam)?.id;
+  const tab: TabId = fromUrl ?? (() => {
     try {
       const saved = localStorage.getItem(TAB_KEY) as TabId | null;
-      if (saved && TABS.some(t => t.id === saved)) return saved;
+      if (saved && TABS.some((t) => t.id === saved)) return saved;
     } catch {}
-    return "matches";
-  });
+    return DEFAULT_TAB;
+  })();
+
+  // If we landed on /admin/world-cup-2026 with no param, redirect to last visited / default.
+  useEffect(() => {
+    if (!tabParam) navigate(`/admin/world-cup-2026/${tab}`, { replace: true });
+  }, [tabParam, tab, navigate]);
+
+  // Persist last visited.
   useEffect(() => { try { localStorage.setItem(TAB_KEY, tab); } catch {} }, [tab]);
+
+  const setTab = (next: TabId) => navigate(`/admin/world-cup-2026/${next}`);
+  const activeLabel = TABS.find((t) => t.id === tab)?.label ?? "";
 
   return (
     <div className="space-y-5">
+      <div className="flex items-center gap-1 text-xs text-slate-500">
+        <Link to="/admin" className="hover:text-slate-900">Admin</Link>
+        <ChevronRight className="w-3 h-3" />
+        <Link to="/admin/world-cup-2026" className="hover:text-slate-900">World Cup 2026</Link>
+        <ChevronRight className="w-3 h-3" />
+        <span className="font-semibold text-slate-900">{activeLabel}</span>
+      </div>
+
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">FIFA World Cup 2026</p>
@@ -311,9 +339,11 @@ export default function AdminWorldCup2026Page() {
       {tab === "matches" && <MatchesTab />}
       {tab === "overview" && <OverviewTab />}
       {tab === "groups" && <GroupsTab />}
+      {tab === "stadiums" && <StadiumsTab />}
       {tab === "coverage" && <CoverageTab />}
       {tab === "resolver" && <ResolverTab />}
       {tab === "analytics" && <Placeholder label="CTR, conversions, image quality" />}
     </div>
   );
 }
+

@@ -68,6 +68,10 @@ const mapRow = (row: MatchRow): Match => {
   };
 };
 
+// World Cup 2026 fixtures are managed exclusively via /world-cup-2026 and
+// /admin/world-cup-2026. They MUST NOT leak into the generic matches list.
+export const WC_COMPETITION = "FIFA World Cup 2026";
+
 export const useMatches = () => {
   return useQuery({
     queryKey: ["matches"],
@@ -75,14 +79,12 @@ export const useMatches = () => {
       const { data, error } = await supabase
         .from("matches")
         .select("*")
+        .neq("competition", WC_COMPETITION)
         .order("date", { ascending: true });
       if (error) {
         console.error("Erreur Supabase:", error);
         throw error;
       }
-      // Public surfaces only show upcoming/live fixtures. Completed and
-      // archived matches are excluded unless surfaced via a dedicated
-      // historical section. TBD/placeholder fixtures are also hidden.
       return (data as MatchRow[])
         .filter(isPublishReadyMatchRow)
         .map(mapRow)
@@ -93,6 +95,7 @@ export const useMatches = () => {
     refetchOnWindowFocus: true,
   });
 };
+
 
 export const useMatch = (id: string | undefined) => {
   return useQuery({

@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, Building2, Users, Star, Flame, ShieldCheck, Crown, Ticket, ChevronRight } from "lucide-react";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
@@ -45,18 +45,22 @@ const ScoreBar = ({ label, score }: { label: string; score: number | null }) => 
 
 const StadiumDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
   const { t } = useLanguage();
   const { data: matches = [] } = useMatches();
+
+  // Detect if we're on the World Cup-owned route. WC host stadiums must always
+  // render under /world-cup-2026/stadiums/:slug — generic /stadiums/:slug
+  // redirects there (preserving query + hash). Non-WC stadiums work as-is.
+  const isWcRoute = location.pathname.startsWith("/world-cup-2026/stadiums");
 
   const { data: stadium, isLoading } = useQuery({
     queryKey: ["stadium-by-slug", slug],
     enabled: !!slug,
-    queryFn: async (): Promise<Stadium | null> => {
+    queryFn: async (): Promise<(Stadium & { is_world_cup_host?: boolean | null }) | null> => {
       const { data, error } = await supabase.from("stadiums").select("*").eq("slug", slug!).is("archived_at", null).maybeSingle();
       if (error) throw error;
-      const row = data as (Stadium & { archived_into_slug?: string | null }) | null;
-      // If the URL points to an archived stadium, redirect logic could go here; for now return null.
-      return row;
+      return data as (Stadium & { archived_into_slug?: string | null; is_world_cup_host?: boolean | null }) | null;
     },
   });
 
@@ -65,6 +69,17 @@ const StadiumDetailPage = () => {
     description: stadium?.description ?? "Premium football stadium intelligence guide.",
     noindex: true,
   });
+
+  // WC host stadiums hit on /stadiums/:slug → redirect to canonical WC URL,
+  // preserving query string and hash.
+  if (stadium?.is_world_cup_host && !isWcRoute) {
+    return (
+      <Navigate
+        to={`/world-cup-2026/stadiums/${slug}${location.search}${location.hash}`}
+        replace
+      />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -79,13 +94,18 @@ const StadiumDetailPage = () => {
       <WebsiteLayout>
         <div className="max-w-4xl mx-auto px-5 py-20 text-center">
           <h1 className="text-2xl font-extrabold text-[#2C3E50]">Stadium not found</h1>
-          <Link to="/stadiums" className="mt-4 inline-flex items-center gap-2 text-[#2ECC71] font-bold">
-            <ArrowLeft className="w-4 h-4" /> {t("stadium.back_to_stadiums")}
+          <Link
+            to={isWcRoute ? "/world-cup-2026/stadiums" : "/stadiums"}
+            className="mt-4 inline-flex items-center gap-2 text-[#2ECC71] font-bold"
+          >
+            <ArrowLeft className="w-4 h-4" />{" "}
+            {isWcRoute ? t("wc.back_to_host_stadiums") || "View all World Cup host stadiums" : t("stadium.back_to_stadiums")}
           </Link>
         </div>
       </WebsiteLayout>
     );
   }
+
 
   const upcoming = matches
     .filter((m) => stadium.stadium_name && m.stadium?.toLowerCase().includes(stadium.stadium_name.toLowerCase()))
@@ -96,7 +116,18 @@ const StadiumDetailPage = () => {
 
   return (
     <WebsiteLayout>
+      {isWcRoute && (
+        <div className="bg-emerald-50 border-b border-emerald-200">
+          <div className="max-w-5xl mx-auto px-5 py-2 text-xs">
+            <Link to="/world-cup-2026/stadiums" className="inline-flex items-center gap-1.5 text-emerald-800 font-bold hover:text-emerald-900">
+              <ArrowLeft className="w-3.5 h-3.5" /> View all World Cup host stadiums
+            </Link>
+          </div>
+        </div>
+      )}
       <StadiumHero stadium={stadium} />
+
+
 
       <div className="bg-[#0b1220] text-white">
         <section className="max-w-5xl mx-auto px-5 pt-6 pb-2 flex items-center justify-between gap-3 flex-wrap">

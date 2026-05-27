@@ -120,15 +120,18 @@ const AdminMatchReviewPage = () => {
     queryKey: ["admin-match-review"],
     queryFn: async () => {
       const since = new Date(Date.now() - 14 * 24 * 3600 * 1000).toISOString();
+      // World Cup 2026 fixtures are reviewed exclusively in /admin/world-cup-2026.
       const { data } = await supabase
         .from("matches")
         .select("id,home_team,away_team,competition,date,stadium,city,country,ticket_status,verified,home_logo,away_logo,data_source,fixture_confidence,home_team_status,away_team_status,phase,group_code")
+        .neq("competition", "FIFA World Cup 2026")
         .gte("date", since)
         .order("date", { ascending: true })
         .limit(800);
       return (data || []) as MatchRow[];
     },
   });
+
 
   const { data: clubs = [] } = useQuery({
     queryKey: ["admin-match-review-clubs"],
