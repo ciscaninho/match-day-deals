@@ -1,19 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWcViewMode } from "@/hooks/useWcViewMode";
 import { toast } from "@/hooks/use-toast";
 import { Lock, RotateCcw, Eye, Globe, Database, Loader2 } from "lucide-react";
+import MatchesTab from "./wc2026/MatchesTab";
+import CoverageTab from "./wc2026/CoverageTab";
+import ResolverTab from "./wc2026/ResolverTab";
 
 type TabId = "overview" | "matches" | "groups" | "coverage" | "resolver" | "analytics";
 const TABS: { id: TabId; label: string }[] = [
-  { id: "overview", label: "Overview" },
   { id: "matches", label: "Matches" },
+  { id: "overview", label: "Overview" },
   { id: "groups", label: "Groups" },
   { id: "coverage", label: "Coverage" },
   { id: "resolver", label: "Resolver" },
   { id: "analytics", label: "Analytics" },
 ];
+const TAB_KEY = "wc2026.activeTab.v1";
 
 interface Slot {
   id: string;
@@ -274,7 +278,15 @@ function Placeholder({ label }: { label: string }) {
 }
 
 export default function AdminWorldCup2026Page() {
-  const [tab, setTab] = useState<TabId>("overview");
+  const [tab, setTab] = useState<TabId>(() => {
+    try {
+      const saved = localStorage.getItem(TAB_KEY) as TabId | null;
+      if (saved && TABS.some(t => t.id === saved)) return saved;
+    } catch {}
+    return "matches";
+  });
+  useEffect(() => { try { localStorage.setItem(TAB_KEY, tab); } catch {} }, [tab]);
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -296,11 +308,11 @@ export default function AdminWorldCup2026Page() {
         ))}
       </div>
 
+      {tab === "matches" && <MatchesTab />}
       {tab === "overview" && <OverviewTab />}
       {tab === "groups" && <GroupsTab />}
-      {tab === "matches" && <Placeholder label="Matches table + bracket" />}
-      {tab === "coverage" && <Placeholder label="Coverage rows with blockers" />}
-      {tab === "resolver" && <Placeholder label="Unmatched ↔ candidate resolver" />}
+      {tab === "coverage" && <CoverageTab />}
+      {tab === "resolver" && <ResolverTab />}
       {tab === "analytics" && <Placeholder label="CTR, conversions, image quality" />}
     </div>
   );
