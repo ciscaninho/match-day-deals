@@ -371,7 +371,7 @@ function SeedPanel() {
           <button onClick={() => run("reset")} disabled={!!busy} className="px-3 py-1.5 text-xs font-bold uppercase rounded border border-slate-300 hover:bg-slate-50 disabled:opacity-50">{busy === "reset" ? "Resetting…" : "Reset demo data"}</button>
         </div>
       </div>
-      {result && <pre className="mt-3 text-[10px] font-mono bg-slate-50 p-2 rounded overflow-auto max-h-40">{JSON.stringify(result, null, 2)}</pre>}
+      {result && <pre className="mt-3 text-[11px] leading-relaxed font-mono bg-slate-900 text-emerald-100 border border-slate-700 p-3 rounded overflow-auto max-h-60">{JSON.stringify(result, null, 2)}</pre>}
     </div>
   );
 }

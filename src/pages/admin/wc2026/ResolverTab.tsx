@@ -148,8 +148,8 @@ export default function ResolverTab() {
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
           <p className="text-sm font-bold text-emerald-900 mb-2">Link result</p>
           <div className="grid grid-cols-2 gap-3 text-xs">
-            <div><p className="font-bold text-emerald-900 mb-1">Before</p><pre className="bg-white p-2 rounded">{JSON.stringify(lastResult.before, null, 2)}</pre></div>
-            <div><p className="font-bold text-emerald-900 mb-1">After</p><pre className="bg-white p-2 rounded">{JSON.stringify(lastResult.after, null, 2)}</pre></div>
+            <div><p className="font-bold text-emerald-900 mb-1">Before</p><pre className="text-[11px] leading-relaxed font-mono bg-slate-900 text-emerald-100 border border-slate-700 p-3 rounded overflow-auto max-h-60">{JSON.stringify(lastResult.before, null, 2)}</pre></div>
+            <div><p className="font-bold text-emerald-900 mb-1">After</p><pre className="text-[11px] leading-relaxed font-mono bg-slate-900 text-emerald-100 border border-slate-700 p-3 rounded overflow-auto max-h-60">{JSON.stringify(lastResult.after, null, 2)}</pre></div>
           </div>
         </div>
       )}
