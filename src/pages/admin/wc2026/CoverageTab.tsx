@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, AlertCircle, CheckCircle2, Link2, ExternalLink, ShieldCheck, Trash2, PlusCircle, RefreshCw, Radar, Download, Rocket } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Coverage {
   id: string;
@@ -29,6 +30,43 @@ interface Coverage {
   archived_reason: string | null;
 }
 
+type CrawlBatchResult = {
+  ok?: boolean;
+  url?: string;
+  scrape_url?: string;
+  extraction?: Record<string, unknown>;
+  extracted?: Record<string, unknown>;
+  provider_event_id?: string | null;
+  title?: string | null;
+  stadium?: string | null;
+  kickoff?: string | null;
+  price_eur?: number | null;
+  image_url?: string | null;
+  matched_fixture_id?: string | null;
+  match_id?: string | null;
+  match_confidence?: string | null;
+  link_confidence?: string | null;
+  stadium_confidence?: string | null;
+  archived_generic_rows?: number;
+  archived_generic?: number;
+  final_action?: "inserted" | "updated" | "rejected";
+  upsert_result?: "inserted" | "updated";
+  upsertResult?: "inserted" | "updated";
+  rejection_code?: string | null;
+  rejection_reason?: string | null;
+  error?: string;
+};
+
+type QueueRun = {
+  id: string;
+  url: string;
+  status: string;
+  attempts: number;
+  last_error: string | null;
+  processed_at: string | null;
+  result: CrawlBatchResult | null;
+};
+
 function useCoverage(includeArchived: boolean) {
   return useQuery({
     queryKey: ["wc2026-coverage", includeArchived],
@@ -42,6 +80,24 @@ function useCoverage(includeArchived: boolean) {
       if (error) throw error;
       return (data ?? []) as unknown as Coverage[];
     },
+  });
+}
+
+function useRecentCrawlDiagnostics() {
+  return useQuery({
+    queryKey: ["wc2026-crawl-diagnostics"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wc_ticombo_discovery_queue" as never)
+        .select("id,url,status,attempts,last_error,processed_at,result")
+        .not("processed_at", "is", null)
+        .order("processed_at", { ascending: false })
+        .limit(25);
+      if (error) throw error;
+      return (data ?? []) as unknown as QueueRun[];
+    },
+    staleTime: 10_000,
+    refetchInterval: 10_000,
   });
 }
 
