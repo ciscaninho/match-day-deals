@@ -298,38 +298,103 @@ export default function CoverageTab() {
   );
 }
 
-function LastRunDetail({ payload }: { payload: unknown }) {
-  if (!payload || typeof payload !== "object") return <pre className="mt-2 text-[11px]">{String(payload)}</pre>;
-  const p = payload as { error?: string; processed?: number; succeeded?: number; failed?: number; still_pending?: number; results?: Array<Record<string, unknown>> };
+function LastRunDetail({ payload, recentRuns }: { payload: unknown; recentRuns: QueueRun[] }) {
+  const { t } = useLanguage();
+  if (payload != null && typeof payload !== "object") return <pre className="mt-2 text-[11px]">{String(payload)}</pre>;
+
+  const p = (payload ?? {}) as { error?: string; processed?: number; succeeded?: number; failed?: number; still_pending?: number; results?: CrawlBatchResult[] };
   if (p.error) return <div className="mt-2 text-red-700 font-mono break-all">{p.error}</div>;
+
+  const rows: CrawlBatchResult[] = Array.isArray(p.results) && p.results.length
+    ? p.results
+    : recentRuns.map((run) => ({
+        ...(run.result ?? {}),
+        url: run.result?.url ?? run.url,
+        error: run.result?.error ?? run.last_error ?? undefined,
+        final_action: run.result?.final_action ?? (run.status === "done" ? (run.result?.upsert_result ?? run.result?.upsertResult ?? "updated") : "rejected"),
+      }));
+
   return (
     <div className="mt-2 space-y-2">
       <div className="font-mono text-[11px] text-slate-700">
-        processed {p.processed ?? "?"} · ok {p.succeeded ?? 0} · failed {p.failed ?? 0} · still pending {p.still_pending ?? "?"}
+        {t("admin.coverage.last_run.summary", {
+          processed: p.processed ?? rows.length,
+          ok: p.succeeded ?? rows.filter((row) => row.ok).length,
+          failed: p.failed ?? rows.filter((row) => !row.ok).length,
+          pending: p.still_pending ?? 0,
+        })}
       </div>
-      {Array.isArray(p.results) && (
-        <div className="max-h-72 overflow-auto rounded border border-slate-200 bg-white">
-          <table className="w-full text-[11px]">
-            <thead className="bg-slate-100 text-slate-600">
-              <tr><th className="px-2 py-1 text-left">status</th><th className="px-2 py-1 text-left">event</th><th className="px-2 py-1 text-left">price €</th><th className="px-2 py-1 text-left">match</th><th className="px-2 py-1 text-left">notes</th></tr>
-            </thead>
-            <tbody>
-              {p.results.map((r, i) => {
-                const ex = (r.extracted ?? {}) as { title?: string; price_payload?: number; md_min_price?: number };
-                return (
-                  <tr key={i} className={r.ok ? "" : "bg-red-50"}>
-                    <td className="px-2 py-1 font-mono">{r.ok ? "ok" : "fail"}</td>
-                    <td className="px-2 py-1"><div className="truncate max-w-[260px]" title={String(ex.title ?? r.url)}>{ex.title ?? String(r.url)}</div><a href={String(r.url)} target="_blank" rel="noreferrer" className="text-indigo-600 underline text-[10px] truncate block max-w-[260px]">{String(r.url)}</a></td>
-                    <td className="px-2 py-1 font-mono">{String((r.price_eur ?? ex.price_payload ?? ex.md_min_price) ?? "—")}</td>
-                    <td className="px-2 py-1 font-mono">{r.match_id ? `${String(r.link_confidence ?? "")} · ${String(r.match_id).slice(0, 8)}` : "—"}</td>
-                    <td className="px-2 py-1 text-slate-600">{r.ok ? `${String(r.upsertResult ?? "")} · archived ${String(r.archived_generic ?? 0)}` : <span className="text-red-700 font-mono">{String(r.error ?? "")}</span>}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <div className="max-h-[32rem] overflow-auto rounded border border-slate-200 bg-white">
+        <table className="w-full text-[11px] align-top">
+          <thead className="bg-slate-100 text-slate-600">
+            <tr>
+              <th className="px-2 py-1 text-left">{t("admin.coverage.last_run.col.source_url")}</th>
+              <th className="px-2 py-1 text-left">{t("admin.coverage.last_run.col.provider_event_id")}</th>
+              <th className="px-2 py-1 text-left">{t("admin.coverage.last_run.col.title")}</th>
+              <th className="px-2 py-1 text-left">{t("admin.coverage.last_run.col.stadium")}</th>
+              <th className="px-2 py-1 text-left">{t("admin.coverage.last_run.col.kickoff")}</th>
+              <th className="px-2 py-1 text-left">{t("admin.coverage.last_run.col.price")}</th>
+              <th className="px-2 py-1 text-left">{t("admin.coverage.last_run.col.image")}</th>
+              <th className="px-2 py-1 text-left">{t("admin.coverage.last_run.col.fixture")}</th>
+              <th className="px-2 py-1 text-left">{t("admin.coverage.last_run.col.confidence")}</th>
+              <th className="px-2 py-1 text-left">{t("admin.coverage.last_run.col.final_action")}</th>
+              <th className="px-2 py-1 text-left">{t("admin.coverage.last_run.col.rejection")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, index) => {
+              const extraction = (row.extraction ?? row.extracted ?? {}) as Record<string, unknown>;
+              const providerEventId = row.provider_event_id ?? (typeof extraction.provider_event_id === "string" ? extraction.provider_event_id : null);
+              const title = row.title ?? (typeof extraction.title === "string" ? extraction.title : null);
+              const stadium = row.stadium ?? (typeof extraction.stadium === "string" ? extraction.stadium : null);
+              const kickoff = row.kickoff ?? (typeof extraction.kickoff === "string" ? extraction.kickoff : null);
+              const price = row.price_eur ?? (typeof extraction.md_min_price === "number" ? extraction.md_min_price : typeof extraction.price_payload === "number" ? extraction.price_payload : null);
+              const fixtureId = row.matched_fixture_id ?? row.match_id ?? null;
+              const matchConfidence = row.match_confidence ?? row.link_confidence ?? null;
+              const action = row.final_action ?? row.upsert_result ?? row.upsertResult ?? (row.ok ? "updated" : "rejected");
+              const rejection = row.rejection_code ?? row.error ?? row.rejection_reason ?? null;
+              const rejectionReason = row.rejection_reason ?? row.error ?? null;
+              const archivedCount = row.archived_generic_rows ?? row.archived_generic ?? 0;
+
+              return (
+                <tr key={`${row.url ?? "row"}-${index}`} className={row.ok ? "border-t border-slate-100" : "border-t border-red-100 bg-red-50/60"}>
+                  <td className="px-2 py-1.5 max-w-[260px] align-top">
+                    <div className="font-mono text-slate-700 break-all">{row.url ?? t("admin.coverage.last_run.none")}</div>
+                    <div className="mt-1 font-mono text-[10px] text-slate-400">{row.ok ? t("admin.coverage.last_run.status.ok") : t("admin.coverage.last_run.status.fail")}</div>
+                  </td>
+                  <td className="px-2 py-1.5 font-mono align-top">{providerEventId || t("admin.coverage.last_run.none")}</td>
+                  <td className="px-2 py-1.5 align-top max-w-[220px]"><div className="break-words">{title || t("admin.coverage.last_run.none")}</div></td>
+                  <td className="px-2 py-1.5 align-top max-w-[180px]"><div className="break-words">{stadium || t("admin.coverage.last_run.none")}</div></td>
+                  <td className="px-2 py-1.5 font-mono align-top">{kickoff || t("admin.coverage.last_run.none")}</td>
+                  <td className="px-2 py-1.5 font-mono align-top">{price != null ? `€${Number(price).toFixed(0)}` : t("admin.coverage.last_run.none")}</td>
+                  <td className="px-2 py-1.5 align-top">{row.image_url ? <a href={row.image_url} target="_blank" rel="noreferrer" className="text-indigo-600 underline">{t("admin.coverage.last_run.image.open")}</a> : t("admin.coverage.last_run.none")}</td>
+                  <td className="px-2 py-1.5 font-mono align-top">{fixtureId ? String(fixtureId).slice(0, 8) : t("admin.coverage.last_run.none")}</td>
+                  <td className="px-2 py-1.5 font-mono align-top">{matchConfidence || t("admin.coverage.last_run.none")}</td>
+                  <td className="px-2 py-1.5 align-top">
+                    <div className="font-semibold text-slate-900">{t(`admin.coverage.last_run.action.${action}`)}</div>
+                    {archivedCount > 0 && <div className="text-[10px] text-slate-500">{t("admin.coverage.last_run.archived_generic", { count: archivedCount })}</div>}
+                  </td>
+                  <td className="px-2 py-1.5 align-top">
+                    {rejection ? (
+                      <div className="space-y-1">
+                        <div className="font-mono text-red-700 break-all">{rejection}</div>
+                        {rejectionReason && rejectionReason !== rejection && <div className="text-red-600 break-words">{rejectionReason}</div>}
+                      </div>
+                    ) : (
+                      <span className="text-slate-400">{t("admin.coverage.last_run.none")}</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={11} className="px-3 py-8 text-center text-slate-400">{t("admin.coverage.last_run.no_rows")}</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
