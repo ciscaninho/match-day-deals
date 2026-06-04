@@ -133,8 +133,8 @@ async function firecrawlScrapeTitle(url: string, apiKey: string): Promise<{ titl
         url,
         formats: ["markdown"],
         onlyMainContent: false,
-        waitFor: 1200,
-        timeout: 25000,
+        waitFor: 0,
+        timeout: 12000,
       }),
     });
     if (!r.ok) return { title: null, ok: false, err: `http_${r.status}` };
@@ -220,12 +220,23 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const apply = !!body?.apply;
 
-    // ---- 1. Discover URLs ----
+    // ---- 1. Fetch fixtures FIRST (needed for date pre-filter) ----
+    const { data: fixtures, error: fxErr } = await supabase
+      .from("matches")
+      .select("id,home_team,away_team,date,group_code,phase,fifa_match_number,ticombo_url,home_team_status,away_team_status,stadium,city")
+      .eq("competition", "FIFA World Cup 2026")
+      .is("archived_at", null)
+      .order("date");
+    if (fxErr) throw fxErr;
+    const fxRows = (fixtures ?? []) as Fixture[];
+    const fixtureDates = new Set(fxRows.map((f) => f.date.slice(0, 10)));
+
+    // ---- 2. Discover URLs via Firecrawl map ----
     const map = await firecrawlMap("https://www.ticombo.com", "world-cup", firecrawlKey);
     const all = new Set(map.links);
 
     const candidates: string[] = [];
-    const rejections: Record<string, number> = { not_ticombo: 0, no_match_prefix: 0, blacklist: 0, no_uuid: 0 };
+    const rejections: Record<string, number> = { not_ticombo: 0, no_match_prefix: 0, blacklist: 0, no_uuid: 0, date_not_in_fixtures: 0 };
     for (const raw of all) {
       let u: URL;
       try { u = new URL(raw); } catch { continue; }
@@ -236,7 +247,10 @@ Deno.serve(async (req) => {
       if (!/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/?$/i.test(u.pathname)) {
         rejections.no_uuid++; continue;
       }
-      candidates.push(`${u.origin}${u.pathname.replace(/\/$/, "")}`);
+      const cleaned = `${u.origin}${u.pathname.replace(/\/$/, "")}`;
+      const d = dateFromSlug(cleaned);
+      if (d && !fixtureDates.has(d)) { rejections.date_not_in_fixtures++; continue; }
+      candidates.push(cleaned);
     }
 
     // Dedupe by UUID
@@ -247,8 +261,8 @@ Deno.serve(async (req) => {
     }
     const uniqueUrls = [...byUuid.values()];
 
-    // ---- 2. Scrape each event page in parallel (titles only) ----
-    const scrapes: EventScrape[] = await runWithConcurrency(uniqueUrls, 8, async (url) => {
+    // ---- 3. Scrape each event page in parallel (titles only) ----
+    const scrapes: EventScrape[] = await runWithConcurrency(uniqueUrls, 16, async (url) => {
       const res = await firecrawlScrapeTitle(url, firecrawlKey);
       const teams = res.title ? parseTitleTeams(res.title) : null;
       return {
@@ -263,15 +277,6 @@ Deno.serve(async (req) => {
       };
     });
 
-    // ---- 3. Fetch fixtures ----
-    const { data: fixtures, error: fxErr } = await supabase
-      .from("matches")
-      .select("id,home_team,away_team,date,group_code,phase,fifa_match_number,ticombo_url,home_team_status,away_team_status,stadium,city")
-      .eq("competition", "FIFA World Cup 2026")
-      .is("archived_at", null)
-      .order("date");
-    if (fxErr) throw fxErr;
-    const fxRows = (fixtures ?? []) as Fixture[];
 
     // ---- 4. Verify each event against fixtures ----
     const proposalsByMatch = new Map<string, Proposal>();
