@@ -75,6 +75,7 @@ const WorldCup2026Page = () => {
   );
 
   const [slide, setSlide] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(12);
   useEffect(() => {
     if (heroSlides.length < 2) return;
     const id = setInterval(() => setSlide((i) => (i + 1) % heroSlides.length), 6000);
