@@ -14,7 +14,8 @@ const DEFAULT_ROOT =
 // We only accept pages that look like ONE specific match (Team A vs Team B at one stadium on one date).
 // We REJECT stadium bundles, city packages, multi-match offers, hospitality, "follow team" products, etc.
 const EVENT_PATH_RE = /\/(en|de|fr|es|it|pt|nl)\/(event|events|tickets|football-tickets)\/[A-Za-z0-9._-]+/i;
-const EVENT_ID_RE = /-(e?\d{5,})(?:[/?#]|$)/i;
+// Accept either a legacy numeric id OR a trailing UUID (new Ticombo schema).
+const EVENT_ID_RE = /(?:-(e?\d{5,})(?:[/?#]|$))|\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/?(?:[?#]|$)/i;
 const SINGLE_FIXTURE_PATH_RE = /\/football-tickets\/match-/i;
 
 // Hard blacklist of slug fragments that indicate non-single-fixture products.
@@ -50,14 +51,11 @@ const isEventUrl = (u: string): boolean => {
     if (BAD_PATH_RE.test(path) && !SINGLE_FIXTURE_PATH_RE.test(path)) return false;
     if (hasBlacklistedFragment(path)) return false;
 
-    // Strong accept: explicit single-fixture path pattern
+    // Strong accept: explicit single-fixture path pattern (new schema has no -vs- in slug)
     if (SINGLE_FIXTURE_PATH_RE.test(path)) return true;
 
-    // Weaker accept: generic /event/<id> or /tickets/<slug>-eXXXXX page with a numeric id,
-    // but only if the slug clearly looks like a single fixture ("-vs-" between two teams).
-    if (EVENT_PATH_RE.test(path) && EVENT_ID_RE.test(p)) {
-      if (/-vs-/i.test(path)) return true;
-    }
+    // Weaker accept: generic /event/<id> or /tickets/<slug>-eXXXXX or trailing UUID
+    if (EVENT_PATH_RE.test(path) && EVENT_ID_RE.test(p)) return true;
     return false;
   } catch { return false; }
 };

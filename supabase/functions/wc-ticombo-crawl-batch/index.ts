@@ -157,6 +157,9 @@ const fcScrape = async (url: string) => {
 };
 
 const extractIdFromUrl = (url: string): string | null => {
+  // Prefer trailing UUID (new Ticombo schema); fall back to legacy numeric id.
+  const uuid = url.match(/\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?(?:[?#]|$)/i);
+  if (uuid) return uuid[1].toLowerCase();
   const m = url.match(/-e?(\d{5,})(?:[/?#]|$)/i) ?? url.match(/\/(\d{6,})(?:[/?#]|$)/);
   return m ? m[1] : null;
 };
