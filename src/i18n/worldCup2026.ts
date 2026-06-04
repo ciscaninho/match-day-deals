@@ -295,6 +295,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Хозяин",
     role_opening: "Открытие",
     role_final: "Финал",
+    view_tickets: "Смотреть билеты",
+    from_label: "От",
+    load_more: "Ещё матчи",
+    status_available: "Доступны",
+    status_selling_fast: "Быстро раскупают",
+    status_sold_out: "Распроданы",
   },
 };
 
