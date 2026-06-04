@@ -145,6 +145,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Austragungsort",
     role_opening: "Eröffnung",
     role_final: "Finale",
+    view_tickets: "Tickets ansehen",
+    from_label: "Ab",
+    load_more: "Weitere Spiele",
+    status_available: "Verfügbar",
+    status_selling_fast: "Schnell ausverkauft",
+    status_sold_out: "Ausverkauft",
   },
   it: {
     nav_label: "Mondiali 2026",
