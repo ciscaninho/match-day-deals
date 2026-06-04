@@ -14,7 +14,8 @@ const DEFAULT_ROOT =
 // We only accept pages that look like ONE specific match (Team A vs Team B at one stadium on one date).
 // We REJECT stadium bundles, city packages, multi-match offers, hospitality, "follow team" products, etc.
 const EVENT_PATH_RE = /\/(en|de|fr|es|it|pt|nl)\/(event|events|tickets|football-tickets)\/[A-Za-z0-9._-]+/i;
-const EVENT_ID_RE = /-(e?\d{5,})(?:[/?#]|$)/i;
+// Accept either a legacy numeric id OR a trailing UUID (new Ticombo schema).
+const EVENT_ID_RE = /(?:-(e?\d{5,})(?:[/?#]|$))|\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/?(?:[?#]|$)/i;
 const SINGLE_FIXTURE_PATH_RE = /\/football-tickets\/match-/i;
 
 // Hard blacklist of slug fragments that indicate non-single-fixture products.
