@@ -402,20 +402,21 @@ const WorldCup2026Page = () => {
           </div>
         </section>
 
-        {/* UPCOMING MATCHES */}
+        {/* CONFIRMED MATCHES */}
         <section className="bg-[#0a1220] py-16 sm:py-20 border-t border-white/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <h2 className="font-display text-2xl sm:text-4xl text-white mb-8">{copy.matches_title}</h2>
-            {matches.length === 0 ? (
+            <h2 className="font-display text-2xl sm:text-4xl text-white mb-2">{copy.confirmed_section_title}</h2>
+            <p className="text-white/60 font-body mb-8 max-w-2xl">{copy.confirmed_section_subtitle}</p>
+            {confirmedMatches.length === 0 ? (
               <p className="text-white/60 font-body">{copy.matches_empty}</p>
             ) : (
               <>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {matches.slice(0, visibleCount).map((m) => (
+                  {confirmedMatches.slice(0, visibleCount).map((m) => (
                     <WorldCupMatchCard key={m.id} match={m} copy={copy} locale={locale} />
                   ))}
                 </div>
-                {visibleCount < matches.length && (
+                {visibleCount < confirmedMatches.length && (
                   <div className="mt-10 flex justify-center">
                     <button
                       onClick={() => setVisibleCount((c) => c + 12)}
@@ -430,6 +431,56 @@ const WorldCup2026Page = () => {
             )}
           </div>
         </section>
+
+        {/* KNOCKOUT STAGE (TEAMS TBD) */}
+        {knockoutMatches.length > 0 && (
+          <section className="bg-[#0a1220] py-16 sm:py-20 border-t border-white/5">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
+              <h2 className="font-display text-2xl sm:text-4xl text-white mb-2">{copy.knockout_section_title}</h2>
+              <p className="text-white/60 font-body mb-8 max-w-2xl">{copy.knockout_section_subtitle}</p>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {knockoutMatches.map((m) => {
+                  const d = new Date(m.date);
+                  const dateStr = d.toLocaleDateString(locale, { day: "numeric", month: "short" });
+                  const timeStr = d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+                  return (
+                    <article
+                      key={m.id}
+                      className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 flex flex-col gap-3"
+                    >
+                      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2ECC71]">
+                        {phaseLabel(m.phase ?? null)}
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-display text-base text-white/85 truncate">{copy.team_tbd}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 shrink-0">vs</span>
+                        <span className="font-display text-base text-white/85 truncate text-right">{copy.team_tbd}</span>
+                      </div>
+                      <div className="space-y-1.5 text-xs text-white/70">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                          <span>{dateStr}</span>
+                          <Clock className="w-3.5 h-3.5 text-white/40 shrink-0 ml-1" />
+                          <span>{timeStr}</span>
+                        </div>
+                        {m.stadium && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                            <span className="truncate">
+                              {m.stadium}
+                              {m.city ? ` · ${m.city}` : ""}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
+
 
         {/* TICKETS + TRAVEL */}
         <section className="bg-gradient-to-b from-[#0a1220] to-[#0F1A2E] py-16 sm:py-24">
