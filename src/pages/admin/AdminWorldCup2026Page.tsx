@@ -10,14 +10,16 @@ import CoverageTab from "./wc2026/CoverageTab";
 import ResolverTab from "./wc2026/ResolverTab";
 import StadiumsTab from "./wc2026/StadiumsTab";
 import AuditTab from "./wc2026/AuditTab";
+import TicomboUrlsTab from "./wc2026/TicomboUrlsTab";
 
-type TabId = "overview" | "matches" | "groups" | "stadiums" | "coverage" | "resolver" | "audit" | "analytics";
+type TabId = "overview" | "matches" | "groups" | "stadiums" | "coverage" | "ticombo_urls" | "resolver" | "audit" | "analytics";
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "matches", label: "Matches" },
   { id: "groups", label: "Groups" },
   { id: "stadiums", label: "Stadiums" },
   { id: "coverage", label: "Coverage" },
+  { id: "ticombo_urls", label: "Ticombo URLs" },
   { id: "resolver", label: "Resolver" },
   { id: "audit", label: "Audit" },
   { id: "analytics", label: "Analytics" },
