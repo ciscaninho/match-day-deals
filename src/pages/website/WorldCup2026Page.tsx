@@ -378,7 +378,7 @@ const WorldCup2026Page = () => {
             ) : (
               <>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {matches.slice(0, visibleCount).map((m: any) => (
+                  {matches.slice(0, visibleCount).map((m) => (
                     <WorldCupMatchCard key={m.id} match={m} copy={copy} locale={locale} />
                   ))}
                 </div>
