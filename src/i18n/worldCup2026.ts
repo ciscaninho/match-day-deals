@@ -23,6 +23,12 @@ export type WorldCup2026Copy = {
   role_main: string;
   role_opening: string;
   role_final: string;
+  view_tickets: string;
+  from_label: string;
+  load_more: string;
+  status_available: string;
+  status_selling_fast: string;
+  status_sold_out: string;
 };
 
 const COPY: Record<Locale, WorldCup2026Copy> = {
