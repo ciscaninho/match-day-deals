@@ -13,6 +13,7 @@ import { WorldCupTicketsSection } from "@/components/website/WorldCupTicketsSect
 import { transformAffiliateUrl } from "@/lib/affiliate";
 import { trackAffiliateClick } from "@/lib/affiliateTracking";
 import type { Locale } from "@/i18n/translations";
+import type { Database } from "@/integrations/supabase/types";
 
 
 type Host = {
@@ -43,14 +44,36 @@ function useWorldCupHosts() {
   });
 }
 
+type WorldCupMatchRow = Pick<
+  Database["public"]["Tables"]["matches"]["Row"],
+  | "id"
+  | "home_team"
+  | "away_team"
+  | "home_logo"
+  | "away_logo"
+  | "competition"
+  | "date"
+  | "stadium"
+  | "city"
+  | "country"
+  | "ticket_status"
+  | "starting_price"
+  | "fixture_confidence"
+  | "home_team_status"
+  | "away_team_status"
+  | "home_team_projected"
+  | "away_team_projected"
+  | "ticombo_url"
+>;
+
 function useWorldCupMatches() {
-  return useQuery({
+  return useQuery<WorldCupMatchRow[]>({
     queryKey: ["wc2026-matches"],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase
         .from("matches")
-        .select("id,home_team,away_team,home_logo,away_logo,competition,date,stadium,city,country,ticket_status,starting_price,fixture_confidence,home_team_status,away_team_status,home_team_projected,away_team_projected,ticombo_url" as any)
+        .select("id,home_team,away_team,home_logo,away_logo,competition,date,stadium,city,country,ticket_status,starting_price,fixture_confidence,home_team_status,away_team_status,home_team_projected,away_team_projected,ticombo_url")
         .or("competition.ilike.%world cup%,competition.ilike.%fifa%,competition.ilike.%coupe du monde%,competition.ilike.%mundial%")
         .gte("date", new Date().toISOString())
         .is("archived_at", null)
@@ -59,7 +82,7 @@ function useWorldCupMatches() {
         .not("away_team_status", "in", "(tbd,projected)")
         .order("date")
         .limit(32);
-      return data ?? [];
+      return (data as WorldCupMatchRow[] | null) ?? [];
     },
   });
 }
@@ -79,7 +102,7 @@ const statusStyles: Record<StatusKey, string> = {
   sold_out: "bg-red-500/15 text-red-300 border-red-500/30",
 };
 
-function WorldCupMatchCard({ match, copy, locale }: { match: any; copy: WorldCup2026Copy; locale: Locale }) {
+function WorldCupMatchCard({ match, copy, locale }: { match: WorldCupMatchRow; copy: WorldCup2026Copy; locale: Locale }) {
   const navigate = useNavigate();
   const ticombo: string | null = match.ticombo_url ?? null;
   const status = statusFromRow(match.ticket_status);
@@ -355,7 +378,7 @@ const WorldCup2026Page = () => {
             ) : (
               <>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {matches.slice(0, visibleCount).map((m: any) => (
+                  {matches.slice(0, visibleCount).map((m) => (
                     <WorldCupMatchCard key={m.id} match={m} copy={copy} locale={locale} />
                   ))}
                 </div>
