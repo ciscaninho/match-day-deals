@@ -175,6 +175,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Sede",
     role_opening: "Inaugurazione",
     role_final: "Finale",
+    view_tickets: "Vedi biglietti",
+    from_label: "Da",
+    load_more: "Carica altre partite",
+    status_available: "Disponibile",
+    status_selling_fast: "Ultimi posti",
+    status_sold_out: "Esaurito",
   },
   pt: {
     nav_label: "Copa do Mundo 2026",
