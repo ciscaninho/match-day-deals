@@ -514,6 +514,7 @@ export type Database = {
           ticket_release_date: string | null
           ticket_sources: Json
           ticket_status: string
+          ticombo_url: string | null
           updated_at: string
           verified: boolean
         }
@@ -562,6 +563,7 @@ export type Database = {
           ticket_release_date?: string | null
           ticket_sources?: Json
           ticket_status?: string
+          ticombo_url?: string | null
           updated_at?: string
           verified?: boolean
         }
@@ -610,6 +612,7 @@ export type Database = {
           ticket_release_date?: string | null
           ticket_sources?: Json
           ticket_status?: string
+          ticombo_url?: string | null
           updated_at?: string
           verified?: boolean
         }
