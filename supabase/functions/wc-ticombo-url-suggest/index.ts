@@ -202,16 +202,22 @@ async function firecrawlScrape(url: string, apiKey: string): Promise<{ links: st
   }
 }
 
-async function firecrawlMap(url: string, apiKey: string): Promise<{ links: string[]; ok: boolean; err?: string }> {
+async function firecrawlMap(rootUrl: string, search: string | null, apiKey: string): Promise<{ links: string[]; ok: boolean; err?: string }> {
   try {
+    const body: Record<string, unknown> = { url: rootUrl, limit: 5000, includeSubdomains: false };
+    if (search) body.search = search;
     const r = await fetch("https://api.firecrawl.dev/v2/map", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ url, limit: 5000, includeSubdomains: false, search: "match-" }),
+      body: JSON.stringify(body),
     });
     if (!r.ok) return { links: [], ok: false, err: `http_${r.status}` };
     const j = await r.json();
-    const links: string[] = (j?.links ?? j?.data?.links ?? []) as string[];
+    const raw = (j?.links ?? j?.data?.links ?? []) as unknown[];
+    // Map endpoint can return list[str] OR list[{url, title}]
+    const links: string[] = raw
+      .map((x) => (typeof x === "string" ? x : (x as { url?: string })?.url ?? ""))
+      .filter((u): u is string => !!u);
     return { links, ok: true };
   } catch (e) {
     return { links: [], ok: false, err: String((e as Error).message ?? e) };
