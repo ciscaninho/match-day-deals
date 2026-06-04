@@ -1,15 +1,21 @@
-// Suggests matches.ticombo_url for FIFA World Cup 2026 fixtures.
-// Crawls multiple Ticombo WC2026 index pages (date/team/city/venue groupings,
-// plus group-stage and knockout indexes), parses the NEW slug schema
-//   match-<N>-group-<X>-football-world-cup-2026-<YYMMDDHHMM>/<uuid>
-//   match-104-final-w101-vs-w102-football-world-cup-2026-<YYMMDDHHMM>/<uuid>
-// and matches each event to a canonical fixture by:
-//   1. fifa_match_number (when DB column populated)  — strongest signal
-//   2. kickoff date + group_code                     — group stage primary
-//   3. kickoff date + phase                          — knockout primary
-//   4. kickoff date alone                            — weak fallback
-//   5. team-name overlap                             — tiebreaker only
-// Returns proposals + a diagnostic report. Never writes.
+// Verified Ticombo mapping pipeline.
+//
+// Strategy (after fifa_match_number was proven unreliable):
+//   1. Firecrawl-map ticombo.com for all /football-tickets/match-*/<uuid> URLs.
+//   2. For each unique event URL, scrape the page and extract the real <title>.
+//   3. Parse "<HOME> vs <AWAY>" from the title.
+//   4. Match against the DB by:
+//        a. Both teams identified in title (with alias map)  AND
+//        b. Same UTC kickoff date  (±1 day tolerance)
+//      → high confidence.
+//      One team + same date → medium (rejected from auto-apply).
+//      Anything else → low (rejected).
+//   5. Only "high" proposals are emitted as verified mappings.
+//
+// Optional body: { apply: true } — writes matches.ticombo_url for all verified.
+//
+// Returns: stats, proposals, verification breakdown, sample rejected events.
+
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -18,79 +24,145 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const TICOMBO_ROOTS = [
-  "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=group-date&key=bab812da-41b7-42b7-aabe-cb3908cbc347",
-  "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=team",
-  "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=city",
-  "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=venue",
-  "https://www.ticombo.com/en/sports-tickets/football-tickets/group-stage-matches-world-cup-2026",
-  "https://www.ticombo.com/en/sports-tickets/football-tickets/knockout-stage-matches-world-cup-2026",
-  "https://www.ticombo.com/en/sports-tickets/football-tickets/final-world-cup-2026",
-];
-
-// Pattern: /match-<...>/<uuid>  — strict trailing UUID
-const MATCH_PATH_RE = /\/en\/sports-tickets\/football-tickets\/match-[a-z0-9-]+\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
-
-// Hard rejects
 const BLACKLIST_FRAGMENTS = [
   "all-matches", "stadium-", "-stadium-tickets", "package", "follow-",
   "hospitality", "venue-series", "vip-experience", "bundle", "series-pass",
 ];
 
-type ParsedSlug = {
-  url: string;
-  uuid: string;
-  match_number: number | null;
-  group_code: string | null;
-  phase: string | null;
-  date: string | null; // YYYY-MM-DD
-  raw_slug: string;
+// Map DB team name → list of acceptable lowercase tokens/phrases that may appear in Ticombo title.
+const TEAM_ALIASES: Record<string, string[]> = {
+  "USA": ["usa", "united states", "u.s.a", "united-states"],
+  "South Korea": ["south korea", "korea republic", "republic of korea", "korea"],
+  "North Korea": ["north korea", "dpr korea", "korea dpr"],
+  "Cape Verde": ["cape verde", "cabo verde"],
+  "Czech Republic": ["czech republic", "czechia"],
+  "Czechia": ["czech republic", "czechia"],
+  "Ivory Coast": ["ivory coast", "cote d'ivoire", "côte d'ivoire", "cote divoire"],
+  "Côte d'Ivoire": ["ivory coast", "cote d'ivoire", "côte d'ivoire"],
+  "Bosnia and Herzegovina": ["bosnia", "bosnia and herzegovina", "bosnia-herzegovina", "herzegovina"],
+  "DR Congo": ["dr congo", "congo dr", "democratic republic of congo", "drc"],
+  "Trinidad and Tobago": ["trinidad", "trinidad and tobago"],
+  "New Zealand": ["new zealand"],
+  "Saudi Arabia": ["saudi arabia", "saudi"],
+  "South Africa": ["south africa"],
+  "Costa Rica": ["costa rica"],
+  "United Arab Emirates": ["uae", "united arab emirates"],
+  "Curaçao": ["curacao", "curaçao"],
+  "Jamaica": ["jamaica"],
+  "Wales": ["wales"],
 };
 
-// Slug examples:
-//   match-7-group-c-football-world-cup-2026-2606132359/<uuid>
-//   match-104-final-w101-vs-w102-football-world-cup-2026-2607192359/<uuid>
-//   match-89-round-of-16-...-football-world-cup-2026-<...>/<uuid>
-function parseSlug(url: string): ParsedSlug | null {
-  const m = url.match(/\/match-([a-z0-9-]+)\/([0-9a-f-]{36})/i);
+const stripDiacritics = (s: string) =>
+  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+const normalize = (s: string) =>
+  stripDiacritics(s).toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+
+function teamTokens(dbName: string): string[] {
+  const alias = TEAM_ALIASES[dbName];
+  if (alias) return alias.map(normalize);
+  return [normalize(dbName)];
+}
+
+function titleMentionsTeam(normalizedTitle: string, dbName: string): boolean {
+  const tokens = teamTokens(dbName);
+  return tokens.some((t) => t.length > 1 && normalizedTitle.includes(t));
+}
+
+// Parse "<HOME> vs <AWAY>" out of a Ticombo title. Strip trailing brand fragments.
+function parseTitleTeams(rawTitle: string): { home: string; away: string } | null {
+  if (!rawTitle) return null;
+  // Clean common suffixes.
+  let t = rawTitle.replace(/\s*[|•·–-]\s*(FIFA|Ticombo|World Cup|Football|Tickets).*$/i, "");
+  t = t.replace(/\s*Tickets\b.*$/i, "");
+  t = t.trim();
+  const m = t.match(/^(.+?)\s+(?:vs?\.?|v|—)\s+(.+?)$/i);
   if (!m) return null;
-  const slug = m[1].toLowerCase();
-  const uuid = m[2].toLowerCase();
+  return { home: m[1].trim(), away: m[2].trim() };
+}
 
-  const numMatch = slug.match(/^(\d{1,3})-/);
-  const match_number = numMatch ? Number(numMatch[1]) : null;
+type EventScrape = {
+  url: string;
+  uuid: string;
+  date_from_slug: string | null; // YYYY-MM-DD
+  title: string | null;
+  home_label: string | null;
+  away_label: string | null;
+  scrape_ok: boolean;
+  err?: string;
+};
 
-  const groupMatch = slug.match(/-group-([a-l])(?:-|$)/i);
-  const group_code = groupMatch ? groupMatch[1].toUpperCase() : null;
+function uuidFromUrl(url: string): string | null {
+  const m = url.match(/\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/i);
+  return m ? m[1].toLowerCase() : null;
+}
 
-  let phase: string | null = null;
-  if (group_code) phase = "group";
-  else if (/-final(?:-|$)/.test(slug) && !/semi-final|quarter-final|third-place/.test(slug)) phase = "final";
-  else if (/semi-final|-sf-/.test(slug)) phase = "sf";
-  else if (/quarter-final|-qf-/.test(slug)) phase = "qf";
-  else if (/round-of-16|-r16-/.test(slug)) phase = "r16";
-  else if (/round-of-32|-r32-/.test(slug)) phase = "r32";
-  else if (/third-place|3rd-place/.test(slug)) phase = "3p";
-  // Fall back from match_number when slug is ambiguous
-  if (!phase && match_number != null) {
-    if (match_number <= 72) phase = "group";
-    else if (match_number <= 88) phase = "r32";
-    else if (match_number <= 96) phase = "r16";
-    else if (match_number <= 100) phase = "qf";
-    else if (match_number <= 102) phase = "sf";
-    else if (match_number === 103) phase = "3p";
-    else if (match_number === 104) phase = "final";
+function dateFromSlug(url: string): string | null {
+  const m = url.match(/-(\d{2})(\d{2})(\d{2})\d{4}\/[0-9a-f-]{36}\/?$/);
+  if (!m) return null;
+  return `20${m[1]}-${m[2]}-${m[3]}`;
+}
+
+async function firecrawlMap(rootUrl: string, search: string | null, apiKey: string) {
+  try {
+    const body: Record<string, unknown> = { url: rootUrl, limit: 5000, includeSubdomains: false };
+    if (search) body.search = search;
+    const r = await fetch("https://api.firecrawl.dev/v2/map", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) return { links: [] as string[], ok: false, err: `http_${r.status}` };
+    const j = await r.json();
+    const raw = (j?.links ?? j?.data?.links ?? []) as unknown[];
+    const links: string[] = raw
+      .map((x) => (typeof x === "string" ? x : (x as { url?: string })?.url ?? ""))
+      .filter((u): u is string => !!u);
+    return { links, ok: true };
+  } catch (e) {
+    return { links: [] as string[], ok: false, err: String((e as Error).message ?? e) };
   }
+}
 
-  // Packed datetime YYMMDDHHMM (we use the YMD only — HHMM is a sort placeholder)
-  const dateMatch = slug.match(/-(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(?:\/|$)/);
-  let date: string | null = null;
-  if (dateMatch) {
-    const [, yy, mo, dd] = dateMatch;
-    date = `20${yy}-${mo}-${dd}`;
+async function firecrawlScrapeTitle(url: string, apiKey: string): Promise<{ title: string | null; ok: boolean; err?: string }> {
+  try {
+    const r = await fetch("https://api.firecrawl.dev/v2/scrape", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        url,
+        formats: ["markdown"],
+        onlyMainContent: false,
+        waitFor: 1200,
+        timeout: 25000,
+      }),
+    });
+    if (!r.ok) return { title: null, ok: false, err: `http_${r.status}` };
+    const j = await r.json();
+    const meta = (j?.data?.metadata ?? j?.metadata ?? {}) as Record<string, unknown>;
+    const title =
+      (meta.ogTitle as string) ||
+      (meta["og:title"] as string) ||
+      (meta.title as string) ||
+      null;
+    return { title: title ?? null, ok: true };
+  } catch (e) {
+    return { title: null, ok: false, err: String((e as Error).message ?? e) };
   }
+}
 
-  return { url, uuid, match_number, group_code, phase, date, raw_slug: slug };
+async function runWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let i = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const idx = i++;
+      if (idx >= items.length) return;
+      out[idx] = await fn(items[idx]);
+    }
+  });
+  await Promise.all(workers);
+  return out;
 }
 
 type Fixture = {
@@ -100,9 +172,12 @@ type Fixture = {
   date: string;
   group_code: string | null;
   phase: string | null;
-  matchday: number | null;
   fifa_match_number: number | null;
   ticombo_url: string | null;
+  home_team_status: string;
+  away_team_status: string;
+  stadium: string | null;
+  city: string | null;
 };
 
 type Proposal = {
@@ -110,126 +185,26 @@ type Proposal = {
   home_team: string;
   away_team: string;
   kickoff: string;
-  group_code: string | null;
-  phase: string | null;
-  fifa_match_number: number | null;
+  stadium: string | null;
+  city: string | null;
   current_url: string | null;
   suggested_url: string;
-  provider_event_id: string; // uuid
-  ticombo_match_number: number | null;
+  provider_event_id: string;
+  ticombo_title: string;
+  ticombo_home_label: string | null;
+  ticombo_away_label: string | null;
   ticombo_date: string | null;
-  ticombo_phase: string | null;
-  ticombo_group: string | null;
   confidence: "high" | "medium" | "low";
   score: number;
   reasons: string[];
+  event_date: string | null;
 };
-
-const normalize = (s: string): string =>
-  s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-
-function scoreFixture(fx: Fixture, ev: ParsedSlug): { score: number; reasons: string[] } {
-  const reasons: string[] = [];
-  let score = 0;
-
-  // 1. fifa_match_number — strongest signal when available on both sides
-  if (fx.fifa_match_number != null && ev.match_number != null && fx.fifa_match_number === ev.match_number) {
-    score += 1000;
-    reasons.push("fifa_match_number_exact");
-  }
-
-  const fxDateYMD = fx.date.slice(0, 10);
-  const dateOk = ev.date && ev.date === fxDateYMD;
-
-  // 2. date + group_code  — primary for group stage
-  if (dateOk && ev.group_code && fx.group_code && ev.group_code === fx.group_code) {
-    score += 500;
-    reasons.push("date_plus_group");
-  }
-  // 3. date + phase  — primary for knockout
-  else if (dateOk && ev.phase && fx.phase && ev.phase === fx.phase) {
-    score += 400;
-    reasons.push("date_plus_phase");
-  }
-  // 4. date alone
-  else if (dateOk) {
-    score += 100;
-    reasons.push("date_only");
-  }
-
-  // Light penalty for date mismatch when match_number didn't fire
-  if (!dateOk && ev.date && score < 1000) {
-    score -= 50;
-    reasons.push("date_mismatch");
-  }
-
-  // 5. Team-name tiebreaker (only meaningful for slugs that include teams)
-  if (fx.home_team && fx.away_team) {
-    const fxH = normalize(fx.home_team);
-    const fxA = normalize(fx.away_team);
-    const slug = ev.raw_slug;
-    if (fxH && slug.includes(fxH)) { score += 10; reasons.push("home_in_slug"); }
-    if (fxA && slug.includes(fxA)) { score += 10; reasons.push("away_in_slug"); }
-  }
-
-  return { score, reasons };
-}
-
-function classifyConfidence(score: number, reasons: string[]): "high" | "medium" | "low" {
-  if (reasons.includes("fifa_match_number_exact")) return "high";
-  if (reasons.includes("date_plus_group")) return "high";
-  if (reasons.includes("date_plus_phase") && (reasons.includes("home_in_slug") || reasons.includes("away_in_slug"))) return "high";
-  if (reasons.includes("date_plus_phase")) return "medium";
-  if (reasons.includes("date_only")) return "low";
-  return "low";
-}
-
-async function firecrawlScrape(url: string, apiKey: string): Promise<{ links: string[]; markdown: string; ok: boolean; err?: string }> {
-  try {
-    const r = await fetch("https://api.firecrawl.dev/v2/scrape", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ url, formats: ["links", "markdown"], onlyMainContent: false, waitFor: 3000 }),
-    });
-    if (!r.ok) return { links: [], markdown: "", ok: false, err: `http_${r.status}` };
-    const j = await r.json();
-    const links: string[] = (j?.data?.links ?? j?.links ?? []) as string[];
-    const markdown: string = (j?.data?.markdown ?? j?.markdown ?? "") as string;
-    return { links, markdown, ok: true };
-  } catch (e) {
-    return { links: [], markdown: "", ok: false, err: String((e as Error).message ?? e) };
-  }
-}
-
-async function firecrawlMap(rootUrl: string, search: string | null, apiKey: string): Promise<{ links: string[]; ok: boolean; err?: string }> {
-  try {
-    const body: Record<string, unknown> = { url: rootUrl, limit: 5000, includeSubdomains: false };
-    if (search) body.search = search;
-    const r = await fetch("https://api.firecrawl.dev/v2/map", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify(body),
-    });
-    if (!r.ok) return { links: [], ok: false, err: `http_${r.status}` };
-    const j = await r.json();
-    const raw = (j?.links ?? j?.data?.links ?? []) as unknown[];
-    // Map endpoint can return list[str] OR list[{url, title}]
-    const links: string[] = raw
-      .map((x) => (typeof x === "string" ? x : (x as { url?: string })?.url ?? ""))
-      .filter((u): u is string => !!u);
-    return { links, ok: true };
-  } catch (e) {
-    return { links: [], ok: false, err: String((e as Error).message ?? e) };
-  }
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // Admin gate
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const token = authHeader.replace(/^Bearer\s+/i, "");
@@ -240,138 +215,178 @@ Deno.serve(async (req) => {
     if (!roleRow) return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
-    if (!firecrawlKey) {
-      return new Response(JSON.stringify({ error: "missing_firecrawl_key" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    if (!firecrawlKey) return new Response(JSON.stringify({ error: "missing_firecrawl_key" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    // ---- Discovery: fan out across multiple Ticombo index pages + firecrawl map ----
-    const allLinks = new Set<string>();
-    const roots: Array<{ url: string; scrape_ok: boolean; map_ok: boolean; raw_count: number; match_count: number; err?: string }> = [];
+    const body = await req.json().catch(() => ({}));
+    const apply = !!body?.apply;
 
-    // 1. Broad map of ticombo.com filtered by "world-cup" — primary source (~119 match URLs)
-    const mapRes = await firecrawlMap("https://www.ticombo.com", "world-cup", firecrawlKey);
-    if (mapRes.ok) for (const l of mapRes.links) allLinks.add(l);
+    // ---- 1. Discover URLs ----
+    const map = await firecrawlMap("https://www.ticombo.com", "world-cup", firecrawlKey);
+    const all = new Set(map.links);
 
-    // 2. Scrape each indexed root in parallel
-    const scrapeResults = await Promise.all(TICOMBO_ROOTS.map((r) => firecrawlScrape(r, firecrawlKey)));
-    TICOMBO_ROOTS.forEach((url, i) => {
-      const res = scrapeResults[i];
-      let matchCount = 0;
-      if (res.ok) {
-        for (const l of res.links) allLinks.add(l);
-        // Also harvest matches from markdown (catches hrefs the link extractor missed)
-        const mdHits = res.markdown.match(MATCH_PATH_RE) ?? [];
-        for (const m of mdHits) {
-          const full = m.startsWith("http") ? m : `https://www.ticombo.com${m}`;
-          allLinks.add(full);
-          matchCount++;
-        }
-      }
-      roots.push({
-        url,
-        scrape_ok: res.ok,
-        map_ok: false,
-        raw_count: res.links?.length ?? 0,
-        match_count: (res.links ?? []).filter((l) => /\/match-/i.test(l)).length + matchCount,
-        err: res.err,
-      });
-    });
-    roots.unshift({ url: "FIRECRAWL_MAP(world-cup-2026)", scrape_ok: false, map_ok: mapRes.ok, raw_count: mapRes.links.length, match_count: mapRes.links.filter((l) => /\/match-/i.test(l)).length, err: mapRes.err });
-
-    // ---- Filter to single-fixture URLs (with UUID) ----
-    const rejections: Record<string, number> = { not_ticombo: 0, no_match_prefix: 0, blacklist: 0, no_uuid: 0, unparseable_slug: 0 };
-    const acceptedRaw: string[] = [];
-    for (const raw of allLinks) {
-      let url: URL;
-      try { url = new URL(raw); } catch { continue; }
-      if (!url.hostname.includes("ticombo.com")) { rejections.not_ticombo++; continue; }
-      const cleanPath = url.pathname.toLowerCase();
-      if (!cleanPath.includes("/football-tickets/match-")) { rejections.no_match_prefix++; continue; }
-      if (BLACKLIST_FRAGMENTS.some((b) => cleanPath.includes(b))) { rejections.blacklist++; continue; }
-      // Must end with a UUID segment
-      if (!/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/?$/i.test(url.pathname)) {
+    const candidates: string[] = [];
+    const rejections: Record<string, number> = { not_ticombo: 0, no_match_prefix: 0, blacklist: 0, no_uuid: 0 };
+    for (const raw of all) {
+      let u: URL;
+      try { u = new URL(raw); } catch { continue; }
+      if (!u.hostname.includes("ticombo.com")) { rejections.not_ticombo++; continue; }
+      const p = u.pathname.toLowerCase();
+      if (!p.includes("/football-tickets/match-")) { rejections.no_match_prefix++; continue; }
+      if (BLACKLIST_FRAGMENTS.some((b) => p.includes(b))) { rejections.blacklist++; continue; }
+      if (!/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/?$/i.test(u.pathname)) {
         rejections.no_uuid++; continue;
       }
-      const clean = `${url.origin}${url.pathname.replace(/\/$/, "")}`;
-      acceptedRaw.push(clean);
+      candidates.push(`${u.origin}${u.pathname.replace(/\/$/, "")}`);
     }
 
-    // Dedupe by UUID + parse
-    const parsedByUuid = new Map<string, ParsedSlug>();
-    for (const u of acceptedRaw) {
-      const parsed = parseSlug(u);
-      if (!parsed) { rejections.unparseable_slug++; continue; }
-      const existing = parsedByUuid.get(parsed.uuid);
-      if (!existing) parsedByUuid.set(parsed.uuid, parsed);
+    // Dedupe by UUID
+    const byUuid = new Map<string, string>();
+    for (const url of candidates) {
+      const uuid = uuidFromUrl(url);
+      if (uuid && !byUuid.has(uuid)) byUuid.set(uuid, url);
     }
-    const events = [...parsedByUuid.values()];
+    const uniqueUrls = [...byUuid.values()];
 
-    // ---- Fetch WC2026 fixtures ----
+    // ---- 2. Scrape each event page in parallel (titles only) ----
+    const scrapes: EventScrape[] = await runWithConcurrency(uniqueUrls, 8, async (url) => {
+      const res = await firecrawlScrapeTitle(url, firecrawlKey);
+      const teams = res.title ? parseTitleTeams(res.title) : null;
+      return {
+        url,
+        uuid: uuidFromUrl(url) ?? "",
+        date_from_slug: dateFromSlug(url),
+        title: res.title,
+        home_label: teams?.home ?? null,
+        away_label: teams?.away ?? null,
+        scrape_ok: res.ok,
+        err: res.err,
+      };
+    });
+
+    // ---- 3. Fetch fixtures ----
     const { data: fixtures, error: fxErr } = await supabase
       .from("matches")
-      .select("id,home_team,away_team,date,group_code,phase,matchday,fifa_match_number,ticombo_url")
+      .select("id,home_team,away_team,date,group_code,phase,fifa_match_number,ticombo_url,home_team_status,away_team_status,stadium,city")
       .eq("competition", "FIFA World Cup 2026")
       .is("archived_at", null)
       .order("date");
     if (fxErr) throw fxErr;
     const fxRows = (fixtures ?? []) as Fixture[];
 
-    // ---- Score each event against every fixture; keep best per fixture ----
+    // ---- 4. Verify each event against fixtures ----
     const proposalsByMatch = new Map<string, Proposal>();
-    for (const ev of events) {
-      let best: { fx: Fixture; score: number; reasons: string[] } | null = null;
+    const rejected: Array<{ url: string; title: string | null; reason: string }> = [];
+    let bothTeamsVerified = 0;
+    let oneTeamVerified = 0;
+    let titleParseFailed = 0;
+    let scrapeFailed = 0;
+
+    for (const ev of scrapes) {
+      if (!ev.scrape_ok || !ev.title) { scrapeFailed++; rejected.push({ url: ev.url, title: ev.title, reason: ev.err ?? "scrape_failed" }); continue; }
+      if (!ev.home_label || !ev.away_label) { titleParseFailed++; rejected.push({ url: ev.url, title: ev.title, reason: "title_parse_failed" }); continue; }
+
+      const normTitle = normalize(ev.title);
+      // Find best fixture by date + team mentions
+      let best: { fx: Fixture; bothHit: boolean; oneHit: boolean } | null = null;
       for (const fx of fxRows) {
-        const { score, reasons } = scoreFixture(fx, ev);
-        if (!best || score > best.score) best = { fx, score, reasons };
+        if (fx.home_team_status !== "confirmed" || fx.away_team_status !== "confirmed") continue;
+        const fxDate = fx.date.slice(0, 10);
+        if (ev.date_from_slug && ev.date_from_slug !== fxDate) continue;
+        // Verify orientation: home matches title-home, away matches title-away (preferred)
+        const homeInTitle = titleMentionsTeam(normTitle, fx.home_team);
+        const awayInTitle = titleMentionsTeam(normTitle, fx.away_team);
+        const bothHit = homeInTitle && awayInTitle;
+        const oneHit = homeInTitle || awayInTitle;
+        if (!oneHit) continue;
+        if (!best || (bothHit && !best.bothHit)) best = { fx, bothHit, oneHit };
       }
-      if (!best || best.score < 100) continue; // require at least date_only
-      const confidence = classifyConfidence(best.score, best.reasons);
+
+      if (!best) {
+        rejected.push({ url: ev.url, title: ev.title, reason: "no_team_match_on_date" });
+        continue;
+      }
+
+      if (best.bothHit) bothTeamsVerified++;
+      else { oneTeamVerified++; rejected.push({ url: ev.url, title: ev.title, reason: "only_one_team_matched" }); continue; }
+
+      const confidence: "high" | "medium" | "low" = "high";
       const proposal: Proposal = {
         match_id: best.fx.id,
         home_team: best.fx.home_team,
         away_team: best.fx.away_team,
         kickoff: best.fx.date,
-        group_code: best.fx.group_code,
-        phase: best.fx.phase,
-        fifa_match_number: best.fx.fifa_match_number,
+        stadium: best.fx.stadium,
+        city: best.fx.city,
         current_url: best.fx.ticombo_url,
         suggested_url: ev.url,
         provider_event_id: ev.uuid,
-        ticombo_match_number: ev.match_number,
-        ticombo_date: ev.date,
-        ticombo_phase: ev.phase,
-        ticombo_group: ev.group_code,
+        ticombo_title: ev.title,
+        ticombo_home_label: ev.home_label,
+        ticombo_away_label: ev.away_label,
+        ticombo_date: ev.date_from_slug,
         confidence,
-        score: best.score,
-        reasons: best.reasons,
+        score: 1000,
+        reasons: ["title_both_teams_verified", "date_match"],
+        event_date: ev.date_from_slug,
       };
-      const existing = proposalsByMatch.get(proposal.match_id);
-      if (!existing || existing.score < proposal.score) proposalsByMatch.set(proposal.match_id, proposal);
+      const prior = proposalsByMatch.get(proposal.match_id);
+      if (!prior) proposalsByMatch.set(proposal.match_id, proposal);
     }
 
     const proposals = [...proposalsByMatch.values()].sort((a, b) => a.kickoff.localeCompare(b.kickoff));
 
+    // ---- 5. Optionally apply ----
+    let appliedCount = 0;
+    let applySkipped = 0;
+    if (apply && proposals.length > 0) {
+      for (const p of proposals) {
+        if (p.current_url === p.suggested_url) continue;
+        const { error } = await supabase
+          .from("matches")
+          .update({ ticombo_url: p.suggested_url, updated_at: new Date().toISOString() })
+          .eq("id", p.match_id)
+          .eq("competition", "FIFA World Cup 2026");
+        if (error) applySkipped++;
+        else appliedCount++;
+      }
+    }
+
+    const fxConfirmed = fxRows.filter((f) => f.home_team_status === "confirmed" && f.away_team_status === "confirmed").length;
+
     const stats = {
       fixtures_total: fxRows.length,
-      raw_links_discovered: allLinks.size,
-      links_accepted_to_uuid_dedupe: acceptedRaw.length,
-      unique_events: events.length,
-      rejections,
+      confirmed_fixtures: fxConfirmed,
+      events_discovered: uniqueUrls.length,
+      events_scraped_ok: scrapes.filter((s) => s.scrape_ok).length,
+      events_title_parsed: scrapes.filter((s) => s.home_label && s.away_label).length,
+      both_teams_verified: bothTeamsVerified,
+      one_team_verified: oneTeamVerified,
+      title_parse_failed: titleParseFailed,
+      scrape_failed: scrapeFailed,
       proposals: proposals.length,
       already_set: fxRows.filter((f) => f.ticombo_url).length,
-      high: proposals.filter((p) => p.confidence === "high").length,
-      medium: proposals.filter((p) => p.confidence === "medium").length,
-      low: proposals.filter((p) => p.confidence === "low").length,
-      would_change: proposals.filter((p) => p.suggested_url !== p.current_url).length,
+      high: proposals.length,
+      medium: 0,
+      low: 0,
+      new_urls: proposals.filter((p) => p.suggested_url !== p.current_url).length,
+      coverage_pct_of_confirmed: fxConfirmed ? Math.round((proposals.length / fxConfirmed) * 1000) / 10 : 0,
+      apply_mode: apply,
+      applied: appliedCount,
+      apply_skipped: applySkipped,
+      rejections,
     };
 
-    return new Response(JSON.stringify({ stats, roots, proposals, sample_events: events.slice(0, 8) }), {
+    return new Response(JSON.stringify({
+      stats,
+      proposals,
+      sample_rejected: rejected.slice(0, 30),
+      sample_scrapes: scrapes.slice(0, 6),
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     return new Response(JSON.stringify({ error: "unhandled", detail: String((e as Error)?.message ?? e) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
