@@ -265,6 +265,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "مستضيف",
     role_opening: "افتتاح",
     role_final: "نهائي",
+    view_tickets: "عرض التذاكر",
+    from_label: "ابتداءً من",
+    load_more: "المزيد من المباريات",
+    status_available: "متاحة",
+    status_selling_fast: "تنفد بسرعة",
+    status_sold_out: "نفدت",
   },
   ru: {
     nav_label: "ЧМ 2026",
