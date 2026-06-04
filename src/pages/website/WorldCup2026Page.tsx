@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, MapPin, Trophy, Ticket, Compass, ShieldCheck } from "lucide-react";
+import { ArrowRight, MapPin, Trophy, Ticket, Compass, ShieldCheck, Calendar, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatTeamLabel } from "@/lib/tournamentLabels";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useSEO } from "@/lib/seo";
-import { getWorldCup2026Copy } from "@/i18n/worldCup2026";
+import { getWorldCup2026Copy, type WorldCup2026Copy } from "@/i18n/worldCup2026";
 import { BrandedStadiumImage } from "@/components/stadium/BrandedStadiumImage";
 import { WorldCupTicketsSection } from "@/components/website/WorldCupTicketsSection";
+import { transformAffiliateUrl } from "@/lib/affiliate";
+import { trackAffiliateClick } from "@/lib/affiliateTracking";
+import type { Locale } from "@/i18n/translations";
 
 
 type Host = {
