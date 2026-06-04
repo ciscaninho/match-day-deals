@@ -55,6 +55,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Host",
     role_opening: "Opening",
     role_final: "Final",
+    view_tickets: "View Tickets",
+    from_label: "From",
+    load_more: "Load more matches",
+    status_available: "Available",
+    status_selling_fast: "Selling Fast",
+    status_sold_out: "Sold Out",
   },
   fr: {
     nav_label: "Coupe du Monde 2026",
