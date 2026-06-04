@@ -29,6 +29,17 @@ export type WorldCup2026Copy = {
   status_available: string;
   status_selling_fast: string;
   status_sold_out: string;
+  confirmed_section_title: string;
+  confirmed_section_subtitle: string;
+  knockout_section_title: string;
+  knockout_section_subtitle: string;
+  phase_r32: string;
+  phase_r16: string;
+  phase_qf: string;
+  phase_sf: string;
+  phase_3p: string;
+  phase_final: string;
+  team_tbd: string;
 };
 
 const COPY: Record<Locale, WorldCup2026Copy> = {
