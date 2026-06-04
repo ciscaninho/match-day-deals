@@ -235,6 +235,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Gastheer",
     role_opening: "Opening",
     role_final: "Finale",
+    view_tickets: "Bekijk tickets",
+    from_label: "Vanaf",
+    load_more: "Meer wedstrijden",
+    status_available: "Beschikbaar",
+    status_selling_fast: "Bijna uitverkocht",
+    status_sold_out: "Uitverkocht",
   },
   ar: {
     nav_label: "كأس العالم 2026",
