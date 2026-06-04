@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, MapPin, Trophy, Ticket, Compass, ShieldCheck } from "lucide-react";
+import { ArrowRight, MapPin, Trophy, Ticket, Compass, ShieldCheck, Calendar, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatTeamLabel } from "@/lib/tournamentLabels";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useSEO } from "@/lib/seo";
-import { getWorldCup2026Copy } from "@/i18n/worldCup2026";
+import { getWorldCup2026Copy, type WorldCup2026Copy } from "@/i18n/worldCup2026";
 import { BrandedStadiumImage } from "@/components/stadium/BrandedStadiumImage";
 import { WorldCupTicketsSection } from "@/components/website/WorldCupTicketsSection";
+import { transformAffiliateUrl } from "@/lib/affiliate";
+import { trackAffiliateClick } from "@/lib/affiliateTracking";
+import type { Locale } from "@/i18n/translations";
 
 
 type Host = {
@@ -47,7 +50,7 @@ function useWorldCupMatches() {
     queryFn: async () => {
       const { data } = await supabase
         .from("matches")
-        .select("id,home_team,away_team,competition,date,stadium,city,country,ticket_status,starting_price,fixture_confidence,home_team_status,away_team_status,home_team_projected,away_team_projected")
+        .select("id,home_team,away_team,home_logo,away_logo,competition,date,stadium,city,country,ticket_status,starting_price,fixture_confidence,home_team_status,away_team_status,home_team_projected,away_team_projected,ticombo_url" as any)
         .or("competition.ilike.%world cup%,competition.ilike.%fifa%,competition.ilike.%coupe du monde%,competition.ilike.%mundial%")
         .gte("date", new Date().toISOString())
         .is("archived_at", null)
@@ -55,11 +58,134 @@ function useWorldCupMatches() {
         .not("home_team_status", "in", "(tbd,projected)")
         .not("away_team_status", "in", "(tbd,projected)")
         .order("date")
-        .limit(8);
+        .limit(32);
       return data ?? [];
     },
   });
 }
+
+type StatusKey = "available" | "selling_fast" | "sold_out";
+
+const statusFromRow = (s: string | null | undefined): StatusKey => {
+  const k = (s ?? "").toLowerCase();
+  if (k.includes("sold")) return "sold_out";
+  if (k.includes("fast") || k.includes("low") || k.includes("limited")) return "selling_fast";
+  return "available";
+};
+
+const statusStyles: Record<StatusKey, string> = {
+  available: "bg-[#2ECC71]/15 text-[#2ECC71] border-[#2ECC71]/30",
+  selling_fast: "bg-amber-400/15 text-amber-300 border-amber-400/30",
+  sold_out: "bg-red-500/15 text-red-300 border-red-500/30",
+};
+
+function WorldCupMatchCard({ match, copy, locale }: { match: any; copy: WorldCup2026Copy; locale: Locale }) {
+  const navigate = useNavigate();
+  const ticombo: string | null = match.ticombo_url ?? null;
+  const status = statusFromRow(match.ticket_status);
+  const statusLabel =
+    status === "available" ? copy.status_available : status === "selling_fast" ? copy.status_selling_fast : copy.status_sold_out;
+  const d = new Date(match.date);
+  const dateStr = d.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
+  const timeStr = d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+  const home = formatTeamLabel({ raw: match.home_team, projected: match.home_team_projected, status: match.home_team_status });
+  const away = formatTeamLabel({ raw: match.away_team, projected: match.away_team_projected, status: match.away_team_status });
+  const isSoldOut = status === "sold_out";
+
+  const handleClick = () => {
+    if (ticombo && !isSoldOut) {
+      const url = transformAffiliateUrl(ticombo);
+      trackAffiliateClick({
+        event: "ticket_click",
+        destination: ticombo,
+        provider: "ticombo",
+        stadiumName: match.stadium ?? null,
+        league: "FIFA World Cup 2026",
+        matchId: match.id,
+      });
+      window.open(url, "_blank", "noopener");
+    } else {
+      navigate(`/matches/${match.id}`);
+    }
+  };
+
+  return (
+    <article className="group rounded-2xl bg-gradient-to-b from-white/[0.07] to-white/[0.03] border border-white/10 hover:border-[#2ECC71]/40 overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(46,204,113,0.35)] flex flex-col">
+      <div className="px-5 pt-5 pb-4 flex items-start justify-between gap-3">
+        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2ECC71]">{match.competition}</div>
+        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${statusStyles[status]}`}>
+          {statusLabel}
+        </span>
+      </div>
+
+      <div className="px-5 pb-4 flex items-center justify-between gap-3">
+        <div className="flex-1 flex flex-col items-center text-center gap-2 min-w-0">
+          <div className="w-14 h-14 rounded-full bg-white/95 flex items-center justify-center overflow-hidden shrink-0">
+            {match.home_logo ? (
+              <img src={match.home_logo} alt={home} loading="lazy" className="w-full h-full object-contain p-1.5" />
+            ) : (
+              <span className="text-sm font-extrabold text-slate-900">{home.slice(0, 3).toUpperCase()}</span>
+            )}
+          </div>
+          <p className="font-display text-base sm:text-lg text-white leading-tight line-clamp-2">{home}</p>
+        </div>
+        <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/40 shrink-0">vs</span>
+        <div className="flex-1 flex flex-col items-center text-center gap-2 min-w-0">
+          <div className="w-14 h-14 rounded-full bg-white/95 flex items-center justify-center overflow-hidden shrink-0">
+            {match.away_logo ? (
+              <img src={match.away_logo} alt={away} loading="lazy" className="w-full h-full object-contain p-1.5" />
+            ) : (
+              <span className="text-sm font-extrabold text-slate-900">{away.slice(0, 3).toUpperCase()}</span>
+            )}
+          </div>
+          <p className="font-display text-base sm:text-lg text-white leading-tight line-clamp-2">{away}</p>
+        </div>
+      </div>
+
+      <div className="px-5 pb-4 space-y-1.5 text-sm text-white/75">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-3.5 h-3.5 text-white/50 shrink-0" />
+          <span>{dateStr}</span>
+          <Clock className="w-3.5 h-3.5 text-white/50 shrink-0 ml-2" />
+          <span>{timeStr}</span>
+        </div>
+        {match.stadium && (
+          <div className="flex items-center gap-2">
+            <MapPin className="w-3.5 h-3.5 text-white/50 shrink-0" />
+            <span className="truncate">
+              {match.stadium}
+              {match.city ? ` · ${match.city}` : ""}
+              {match.country ? `, ${match.country}` : ""}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-auto px-5 pb-5">
+        {match.starting_price != null && (
+          <div className="mb-3 flex items-baseline gap-2">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-white/50 font-bold">{copy.from_label}</span>
+            <span className="font-display text-2xl sm:text-3xl text-[#2ECC71] leading-none">€{match.starting_price}</span>
+          </div>
+        )}
+        <button
+          onClick={handleClick}
+          disabled={isSoldOut}
+          className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold transition-all ${
+            isSoldOut
+              ? "bg-white/10 text-white/50 cursor-not-allowed"
+              : "bg-[#2ECC71] hover:bg-[#27ae60] text-[#0F1A2E] shadow-[0_10px_24px_-10px_rgba(46,204,113,0.7)] hover:-translate-y-0.5 active:translate-y-0"
+          }`}
+        >
+          <Ticket className="w-4 h-4" />
+          {isSoldOut ? copy.status_sold_out : copy.view_tickets}
+          {!isSoldOut && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />}
+        </button>
+      </div>
+    </article>
+  );
+}
+
 
 const WorldCup2026Page = () => {
   const { locale, dir } = useLanguage();
@@ -75,6 +201,7 @@ const WorldCup2026Page = () => {
   );
 
   const [slide, setSlide] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(12);
   useEffect(() => {
     if (heroSlides.length < 2) return;
     const id = setInterval(() => setSlide((i) => (i + 1) % heroSlides.length), 6000);
@@ -226,22 +353,24 @@ const WorldCup2026Page = () => {
             {matches.length === 0 ? (
               <p className="text-white/60 font-body">{copy.matches_empty}</p>
             ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {matches.map((m: any) => (
-                  <Link
-                    key={m.id}
-                    to={`/matches/${m.id}`}
-                    className="rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 p-4 transition-all"
-                  >
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-2">{m.competition}</div>
-                    <div className="font-display text-lg text-white">{formatTeamLabel({ raw: m.home_team, projected: m.home_team_projected, status: m.home_team_status })} <span className="text-white/50">vs</span> {formatTeamLabel({ raw: m.away_team, projected: m.away_team_projected, status: m.away_team_status })}</div>
-                    <div className="mt-2 text-xs text-white/60 flex items-center gap-1">
-                      <MapPin className="w-3 h-3" /> {m.stadium}, {m.city}
-                    </div>
-                    <div className="mt-1 text-xs text-white/50">{new Date(m.date).toLocaleString(locale)}</div>
-                  </Link>
-                ))}
-              </div>
+              <>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {matches.slice(0, visibleCount).map((m: any) => (
+                    <WorldCupMatchCard key={m.id} match={m} copy={copy} locale={locale} />
+                  ))}
+                </div>
+                {visibleCount < matches.length && (
+                  <div className="mt-10 flex justify-center">
+                    <button
+                      onClick={() => setVisibleCount((c) => c + 12)}
+                      className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/25 text-white px-6 py-3 text-sm font-semibold transition-all"
+                    >
+                      {copy.load_more}
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>

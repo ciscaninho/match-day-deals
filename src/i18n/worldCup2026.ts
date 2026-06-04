@@ -23,6 +23,12 @@ export type WorldCup2026Copy = {
   role_main: string;
   role_opening: string;
   role_final: string;
+  view_tickets: string;
+  from_label: string;
+  load_more: string;
+  status_available: string;
+  status_selling_fast: string;
+  status_sold_out: string;
 };
 
 const COPY: Record<Locale, WorldCup2026Copy> = {
@@ -49,6 +55,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Host",
     role_opening: "Opening",
     role_final: "Final",
+    view_tickets: "View Tickets",
+    from_label: "From",
+    load_more: "Load more matches",
+    status_available: "Available",
+    status_selling_fast: "Selling Fast",
+    status_sold_out: "Sold Out",
   },
   fr: {
     nav_label: "Coupe du Monde 2026",
@@ -73,6 +85,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Hôte",
     role_opening: "Ouverture",
     role_final: "Finale",
+    view_tickets: "Voir les billets",
+    from_label: "Dès",
+    load_more: "Voir plus de matchs",
+    status_available: "Disponible",
+    status_selling_fast: "Vente rapide",
+    status_sold_out: "Épuisé",
   },
   es: {
     nav_label: "Mundial 2026",
@@ -97,6 +115,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Sede",
     role_opening: "Inauguración",
     role_final: "Final",
+    view_tickets: "Ver entradas",
+    from_label: "Desde",
+    load_more: "Ver más partidos",
+    status_available: "Disponible",
+    status_selling_fast: "Últimas entradas",
+    status_sold_out: "Agotado",
   },
   de: {
     nav_label: "WM 2026",
@@ -121,6 +145,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Austragungsort",
     role_opening: "Eröffnung",
     role_final: "Finale",
+    view_tickets: "Tickets ansehen",
+    from_label: "Ab",
+    load_more: "Weitere Spiele",
+    status_available: "Verfügbar",
+    status_selling_fast: "Schnell ausverkauft",
+    status_sold_out: "Ausverkauft",
   },
   it: {
     nav_label: "Mondiali 2026",
@@ -145,6 +175,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Sede",
     role_opening: "Inaugurazione",
     role_final: "Finale",
+    view_tickets: "Vedi biglietti",
+    from_label: "Da",
+    load_more: "Carica altre partite",
+    status_available: "Disponibile",
+    status_selling_fast: "Ultimi posti",
+    status_sold_out: "Esaurito",
   },
   pt: {
     nav_label: "Copa do Mundo 2026",
@@ -169,6 +205,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Sede",
     role_opening: "Abertura",
     role_final: "Final",
+    view_tickets: "Ver ingressos",
+    from_label: "A partir de",
+    load_more: "Ver mais jogos",
+    status_available: "Disponível",
+    status_selling_fast: "Últimas unidades",
+    status_sold_out: "Esgotado",
   },
   nl: {
     nav_label: "WK 2026",
@@ -193,6 +235,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Gastheer",
     role_opening: "Opening",
     role_final: "Finale",
+    view_tickets: "Bekijk tickets",
+    from_label: "Vanaf",
+    load_more: "Meer wedstrijden",
+    status_available: "Beschikbaar",
+    status_selling_fast: "Bijna uitverkocht",
+    status_sold_out: "Uitverkocht",
   },
   ar: {
     nav_label: "كأس العالم 2026",
@@ -217,6 +265,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "مستضيف",
     role_opening: "افتتاح",
     role_final: "نهائي",
+    view_tickets: "عرض التذاكر",
+    from_label: "ابتداءً من",
+    load_more: "المزيد من المباريات",
+    status_available: "متاحة",
+    status_selling_fast: "تنفد بسرعة",
+    status_sold_out: "نفدت",
   },
   ru: {
     nav_label: "ЧМ 2026",
@@ -241,6 +295,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Хозяин",
     role_opening: "Открытие",
     role_final: "Финал",
+    view_tickets: "Смотреть билеты",
+    from_label: "От",
+    load_more: "Ещё матчи",
+    status_available: "Доступны",
+    status_selling_fast: "Быстро раскупают",
+    status_sold_out: "Распроданы",
   },
 };
 
