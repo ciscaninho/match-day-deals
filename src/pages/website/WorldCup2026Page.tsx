@@ -102,7 +102,7 @@ const statusStyles: Record<StatusKey, string> = {
   sold_out: "bg-red-500/15 text-red-300 border-red-500/30",
 };
 
-function WorldCupMatchCard({ match, copy, locale }: { match: any; copy: WorldCup2026Copy; locale: Locale }) {
+function WorldCupMatchCard({ match, copy, locale }: { match: WorldCupMatchRow; copy: WorldCup2026Copy; locale: Locale }) {
   const navigate = useNavigate();
   const ticombo: string | null = match.ticombo_url ?? null;
   const status = statusFromRow(match.ticket_status);
