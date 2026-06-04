@@ -248,8 +248,8 @@ Deno.serve(async (req) => {
     const allLinks = new Set<string>();
     const roots: Array<{ url: string; scrape_ok: boolean; map_ok: boolean; raw_count: number; match_count: number; err?: string }> = [];
 
-    // 1. Map of the root domain (filtered by "match-")
-    const mapRes = await firecrawlMap("https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026", firecrawlKey);
+    // 1. Broad map of ticombo.com filtered by "world-cup" — primary source (~119 match URLs)
+    const mapRes = await firecrawlMap("https://www.ticombo.com", "world-cup", firecrawlKey);
     if (mapRes.ok) for (const l of mapRes.links) allLinks.add(l);
 
     // 2. Scrape each indexed root in parallel
