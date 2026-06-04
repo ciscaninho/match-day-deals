@@ -43,8 +43,30 @@ function useWorldCupHosts() {
   });
 }
 
+type WorldCupMatchRow = Pick<
+  Database["public"]["Tables"]["matches"]["Row"],
+  | "id"
+  | "home_team"
+  | "away_team"
+  | "home_logo"
+  | "away_logo"
+  | "competition"
+  | "date"
+  | "stadium"
+  | "city"
+  | "country"
+  | "ticket_status"
+  | "starting_price"
+  | "fixture_confidence"
+  | "home_team_status"
+  | "away_team_status"
+  | "home_team_projected"
+  | "away_team_projected"
+  | "ticombo_url"
+>;
+
 function useWorldCupMatches() {
-  return useQuery({
+  return useQuery<WorldCupMatchRow[]>({
     queryKey: ["wc2026-matches"],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
@@ -59,7 +81,7 @@ function useWorldCupMatches() {
         .not("away_team_status", "in", "(tbd,projected)")
         .order("date")
         .limit(32);
-      return data ?? [];
+      return (data as WorldCupMatchRow[] | null) ?? [];
     },
   });
 }
