@@ -205,6 +205,12 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_main: "Sede",
     role_opening: "Abertura",
     role_final: "Final",
+    view_tickets: "Ver ingressos",
+    from_label: "A partir de",
+    load_more: "Ver mais jogos",
+    status_available: "Disponível",
+    status_selling_fast: "Últimas unidades",
+    status_sold_out: "Esgotado",
   },
   nl: {
     nav_label: "WK 2026",
