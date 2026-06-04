@@ -447,6 +447,7 @@ export default function AdminWorldCup2026Page() {
       {tab === "groups" && <GroupsTab />}
       {tab === "stadiums" && <StadiumsTab />}
       {tab === "coverage" && <CoverageTab />}
+      {tab === "ticombo_urls" && <TicomboUrlsTab />}
       {tab === "resolver" && <ResolverTab />}
       {tab === "audit" && <AuditTab />}
       {tab === "analytics" && <Placeholder label="CTR, conversions, image quality" />}
