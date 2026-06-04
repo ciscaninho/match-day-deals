@@ -158,6 +158,7 @@ export default function TicomboUrlsTab() {
               {suggestMut.isPending ? "Verifying…" : "Verify & Apply All"}
             </button>
           </div>
+        </div>
       </div>
 
       {stats && (
