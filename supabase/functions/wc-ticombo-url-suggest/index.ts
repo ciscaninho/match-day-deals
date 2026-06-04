@@ -133,8 +133,8 @@ async function firecrawlScrapeTitle(url: string, apiKey: string): Promise<{ titl
         url,
         formats: ["markdown"],
         onlyMainContent: false,
-        waitFor: 1200,
-        timeout: 25000,
+        waitFor: 0,
+        timeout: 12000,
       }),
     });
     if (!r.ok) return { title: null, ok: false, err: `http_${r.status}` };
