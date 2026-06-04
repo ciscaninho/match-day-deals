@@ -53,24 +53,30 @@ export default function TicomboUrlsTab() {
   const [filter, setFilter] = useState<"all" | "new" | "high" | "changed">("new");
 
   const suggestMut = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke("wc-ticombo-url-suggest", { body: {} });
+    mutationFn: async (apply: boolean) => {
+      const { data, error } = await supabase.functions.invoke("wc-ticombo-url-suggest", { body: { apply } });
       if (error) throw error;
-      return data as { stats: Stats; proposals: Proposal[] };
+      return data as { stats: Stats & { apply_mode?: boolean; applied?: number; cleared_stale?: number; coverage_pct_of_confirmed?: number; confirmed_fixtures?: number; both_teams_verified?: number }; proposals: Proposal[] };
     },
     onSuccess: (data) => {
       setProposals(data.proposals);
       setStats(data.stats);
-      // pre-select high-confidence proposals that would change the URL
       const next = new Set<string>();
       for (const p of data.proposals) {
         if (p.confidence === "high" && p.suggested_url !== p.current_url) next.add(p.match_id);
       }
       setSelected(next);
+      const s = data.stats as Stats & { apply_mode?: boolean; applied?: number; cleared_stale?: number; coverage_pct_of_confirmed?: number };
       toast({
-        title: "Suggestions generated",
-        description: `${data.stats.proposals} proposals · ${data.stats.high} high · ${data.stats.medium} medium · ${data.stats.low} low`,
+        title: s.apply_mode ? "Verified & applied" : "Suggestions generated",
+        description: s.apply_mode
+          ? `${s.applied ?? 0} written · ${s.cleared_stale ?? 0} stale cleared · ${s.coverage_pct_of_confirmed ?? 0}% coverage`
+          : `${data.stats.proposals} verified · ${s.coverage_pct_of_confirmed ?? 0}% coverage of confirmed fixtures`,
       });
+      if (s.apply_mode) {
+        qc.invalidateQueries({ queryKey: ["wc2026-matches"] });
+        qc.invalidateQueries({ queryKey: ["wc-overview-kpis"] });
+      }
     },
     onError: (e: Error) => toast({ title: "Suggestion failed", description: e.message, variant: "destructive" }),
   });
