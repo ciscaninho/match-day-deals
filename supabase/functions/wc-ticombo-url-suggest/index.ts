@@ -384,6 +384,7 @@ Deno.serve(async (req) => {
       apply_mode: apply,
       applied: appliedCount,
       apply_skipped: applySkipped,
+      cleared_stale: clearedCount,
       rejections,
     };
 
