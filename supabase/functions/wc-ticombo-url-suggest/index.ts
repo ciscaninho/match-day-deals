@@ -335,10 +335,21 @@ Deno.serve(async (req) => {
 
     const proposals = [...proposalsByMatch.values()].sort((a, b) => a.kickoff.localeCompare(b.kickoff));
 
-    // ---- 5. Optionally apply ----
+    // ---- 5. Optionally apply (clears stale URLs first, then writes verified) ----
     let appliedCount = 0;
     let applySkipped = 0;
-    if (apply && proposals.length > 0) {
+    let clearedCount = 0;
+    if (apply) {
+      const verifiedIds = new Set(proposals.map((p) => p.match_id));
+      // Clear ticombo_url on any WC fixture not in the verified set (kills wrong mappings)
+      const staleIds = fxRows.filter((f) => f.ticombo_url && !verifiedIds.has(f.id)).map((f) => f.id);
+      if (staleIds.length > 0) {
+        const { error: clearErr } = await supabase
+          .from("matches")
+          .update({ ticombo_url: null, updated_at: new Date().toISOString() })
+          .in("id", staleIds);
+        if (!clearErr) clearedCount = staleIds.length;
+      }
       for (const p of proposals) {
         if (p.current_url === p.suggested_url) continue;
         const { error } = await supabase
