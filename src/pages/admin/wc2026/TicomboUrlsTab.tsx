@@ -92,7 +92,7 @@ export default function TicomboUrlsTab() {
       qc.invalidateQueries({ queryKey: ["wc2026-matches"] });
       qc.invalidateQueries({ queryKey: ["wc-overview-kpis"] });
       // refresh suggestions to reflect new current_url values
-      suggestMut.mutate();
+      suggestMut.mutate(false);
     },
     onError: (e: Error) => toast({ title: "Apply failed", description: e.message, variant: "destructive" }),
   });
@@ -141,7 +141,7 @@ export default function TicomboUrlsTab() {
             </p>
           </div>
           <button
-            onClick={() => suggestMut.mutate()}
+            onClick={() => suggestMut.mutate(false)}
             disabled={suggestMut.isPending}
             className="px-3 py-1.5 text-xs font-bold uppercase rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-1.5"
           >
