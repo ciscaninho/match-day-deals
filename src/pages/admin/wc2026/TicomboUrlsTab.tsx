@@ -140,15 +140,24 @@ export default function TicomboUrlsTab() {
               Nothing is written until you Apply.
             </p>
           </div>
-          <button
-            onClick={() => suggestMut.mutate(false)}
-            disabled={suggestMut.isPending}
-            className="px-3 py-1.5 text-xs font-bold uppercase rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-1.5"
-          >
-            {suggestMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-            {suggestMut.isPending ? "Crawling…" : "Generate suggestions"}
-          </button>
-        </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => suggestMut.mutate(false)}
+              disabled={suggestMut.isPending}
+              className="px-3 py-1.5 text-xs font-bold uppercase rounded border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50 inline-flex items-center gap-1.5"
+            >
+              {suggestMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              {suggestMut.isPending ? "Crawling…" : "Preview only"}
+            </button>
+            <button
+              onClick={() => suggestMut.mutate(true)}
+              disabled={suggestMut.isPending}
+              className="px-3 py-1.5 text-xs font-bold uppercase rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-1.5"
+            >
+              {suggestMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              {suggestMut.isPending ? "Verifying…" : "Verify & Apply All"}
+            </button>
+          </div>
       </div>
 
       {stats && (
