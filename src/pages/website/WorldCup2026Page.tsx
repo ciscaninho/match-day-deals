@@ -226,22 +226,24 @@ const WorldCup2026Page = () => {
             {matches.length === 0 ? (
               <p className="text-white/60 font-body">{copy.matches_empty}</p>
             ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {matches.map((m: any) => (
-                  <Link
-                    key={m.id}
-                    to={`/matches/${m.id}`}
-                    className="rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 p-4 transition-all"
-                  >
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-2">{m.competition}</div>
-                    <div className="font-display text-lg text-white">{formatTeamLabel({ raw: m.home_team, projected: m.home_team_projected, status: m.home_team_status })} <span className="text-white/50">vs</span> {formatTeamLabel({ raw: m.away_team, projected: m.away_team_projected, status: m.away_team_status })}</div>
-                    <div className="mt-2 text-xs text-white/60 flex items-center gap-1">
-                      <MapPin className="w-3 h-3" /> {m.stadium}, {m.city}
-                    </div>
-                    <div className="mt-1 text-xs text-white/50">{new Date(m.date).toLocaleString(locale)}</div>
-                  </Link>
-                ))}
-              </div>
+              <>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {matches.slice(0, visibleCount).map((m: any) => (
+                    <WorldCupMatchCard key={m.id} match={m} copy={copy} locale={locale} />
+                  ))}
+                </div>
+                {visibleCount < matches.length && (
+                  <div className="mt-10 flex justify-center">
+                    <button
+                      onClick={() => setVisibleCount((c) => c + 12)}
+                      className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/25 text-white px-6 py-3 text-sm font-semibold transition-all"
+                    >
+                      {copy.load_more}
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>
