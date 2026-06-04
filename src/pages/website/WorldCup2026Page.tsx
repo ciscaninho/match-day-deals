@@ -237,6 +237,35 @@ const WorldCup2026Page = () => {
 
   const current = heroSlides[slide];
 
+  const { confirmedMatches, knockoutMatches } = useMemo(() => {
+    const confirmed: WorldCupMatchRow[] = [];
+    const knockout: WorldCupMatchRow[] = [];
+    for (const m of matches) {
+      const bothConfirmed = m.home_team_status === "confirmed" && m.away_team_status === "confirmed";
+      if (bothConfirmed) confirmed.push(m);
+      else if (m.phase && m.phase !== "group") knockout.push(m);
+    }
+    knockout.sort((a, b) => {
+      const pa = PHASE_ORDER[a.phase ?? ""] ?? 99;
+      const pb = PHASE_ORDER[b.phase ?? ""] ?? 99;
+      if (pa !== pb) return pa - pb;
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+    return { confirmedMatches: confirmed, knockoutMatches: knockout };
+  }, [matches]);
+
+  const phaseLabel = (phase: string | null) => {
+    switch (phase) {
+      case "r32": return copy.phase_r32;
+      case "r16": return copy.phase_r16;
+      case "qf": return copy.phase_qf;
+      case "sf": return copy.phase_sf;
+      case "3p": return copy.phase_3p;
+      case "final": return copy.phase_final;
+      default: return "";
+    }
+  };
+
   const roleLabel = (r: string | null) => {
     if (!r) return null;
     const k = r.toLowerCase();
