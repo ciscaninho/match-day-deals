@@ -64,28 +64,32 @@ type WorldCupMatchRow = Pick<
   | "home_team_projected"
   | "away_team_projected"
   | "ticombo_url"
+  | "phase"
+  | "group_code"
+  | "matchday"
 >;
 
 function useWorldCupMatches() {
   return useQuery<WorldCupMatchRow[]>({
-    queryKey: ["wc2026-matches"],
+    queryKey: ["wc2026-matches-v2"],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase
         .from("matches")
-        .select("id,home_team,away_team,home_logo,away_logo,competition,date,stadium,city,country,ticket_status,starting_price,fixture_confidence,home_team_status,away_team_status,home_team_projected,away_team_projected,ticombo_url")
+        .select("id,home_team,away_team,home_logo,away_logo,competition,date,stadium,city,country,ticket_status,starting_price,fixture_confidence,home_team_status,away_team_status,home_team_projected,away_team_projected,ticombo_url,phase,group_code,matchday")
         .or("competition.ilike.%world cup%,competition.ilike.%fifa%,competition.ilike.%coupe du monde%,competition.ilike.%mundial%")
         .gte("date", new Date().toISOString())
         .is("archived_at", null)
-        .eq("fixture_confidence", "confirmed")
-        .not("home_team_status", "in", "(tbd,projected)")
-        .not("away_team_status", "in", "(tbd,projected)")
         .order("date")
-        .limit(32);
+        .limit(150);
       return (data as WorldCupMatchRow[] | null) ?? [];
     },
   });
 }
+
+const PHASE_ORDER: Record<string, number> = {
+  r32: 1, r16: 2, qf: 3, sf: 4, "3p": 5, final: 6,
+};
 
 type StatusKey = "available" | "selling_fast" | "sold_out";
 
