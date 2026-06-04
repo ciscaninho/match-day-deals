@@ -51,14 +51,11 @@ const isEventUrl = (u: string): boolean => {
     if (BAD_PATH_RE.test(path) && !SINGLE_FIXTURE_PATH_RE.test(path)) return false;
     if (hasBlacklistedFragment(path)) return false;
 
-    // Strong accept: explicit single-fixture path pattern
+    // Strong accept: explicit single-fixture path pattern (new schema has no -vs- in slug)
     if (SINGLE_FIXTURE_PATH_RE.test(path)) return true;
 
-    // Weaker accept: generic /event/<id> or /tickets/<slug>-eXXXXX page with a numeric id,
-    // but only if the slug clearly looks like a single fixture ("-vs-" between two teams).
-    if (EVENT_PATH_RE.test(path) && EVENT_ID_RE.test(p)) {
-      if (/-vs-/i.test(path)) return true;
-    }
+    // Weaker accept: generic /event/<id> or /tickets/<slug>-eXXXXX or trailing UUID
+    if (EVENT_PATH_RE.test(path) && EVENT_ID_RE.test(p)) return true;
     return false;
   } catch { return false; }
 };
