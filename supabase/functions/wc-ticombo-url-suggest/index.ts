@@ -208,9 +208,17 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const token = authHeader.replace(/^Bearer\s+/i, "");
-    const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    console.log("auth_debug", { tokenPrefix: token.slice(0, 12), srvPrefix: serviceRole.slice(0, 12), tokenLen: token.length, srvLen: serviceRole.length });
-    if (token !== serviceRole) {
+    // Service-role bypass: accept either the modern sb_secret_ key OR a JWT whose payload role === "service_role".
+    const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    let isServiceRole = !!serviceRole && token === serviceRole;
+    if (!isServiceRole && token.split(".").length === 3) {
+      try {
+        const payloadJson = atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"));
+        const payload = JSON.parse(payloadJson);
+        if (payload?.role === "service_role" && payload?.ref) isServiceRole = true;
+      } catch { /* ignore */ }
+    }
+    if (!isServiceRole) {
       const { data: userRes } = await supabase.auth.getUser(token);
       const userId = userRes?.user?.id;
       if (!userId) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
