@@ -100,6 +100,7 @@ const COUNTRY_FLAG: Record<string, string> = {
   uruguay: "🇺🇾", wales: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", uzbekistan: "🇺🇿", jordan: "🇯🇴", "cape verde": "🇨🇻",
   "bosnia and herzegovina": "🇧🇦", panama: "🇵🇦", curacao: "🇨🇼", curaçao: "🇨🇼",
   haiti: "🇭🇹", "new zealand": "🇳🇿", "dr congo": "🇨🇩", russia: "🇷🇺",
+  algeria: "🇩🇿", "czech republic": "🇨🇿", czechia: "🇨🇿", iraq: "🇮🇶",
 };
 const flagFor = (label?: string | null): string => {
   if (!label) return "";
