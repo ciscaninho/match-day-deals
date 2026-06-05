@@ -289,6 +289,10 @@ const validateAndUpsert = async (
   if (!stadium) throw new Error(`stadium_unresolved:${ex.stadium_name}`);
   const s = stadium as { id: string; slug: string; stadium_name: string; city: string | null; country: string | null };
 
+  // Parse + validate kickoff before using it.
+  const kickoff = new Date(ex.kickoff_iso!);
+  if (isNaN(kickoff.getTime())) throw new Error(`bad_kickoff_iso:${ex.kickoff_iso}`);
+
   // Resolve canonical FIFA match
   const windowMs = 6 * 3600 * 1000;
   const { data: candidates } = await admin
@@ -316,14 +320,22 @@ const validateAndUpsert = async (
 
   if (!match_id) throw new Error("no_match_candidate");
 
-  // Quantity-aware price: prefer the structured value; fall back to markdown min.
-  const mdMin = minPriceFromMarkdown(markdown);
-  let single = ex.lowest_single_ticket_price ?? null;
-  if (single == null || !Number.isFinite(single) || single <= 0) single = mdMin;
-  // Sanity: if structured value is suspiciously high vs markdown min, prefer markdown.
-  if (single != null && mdMin != null && mdMin > 0 && single > mdMin * 1.25) single = mdMin;
-  if (single == null) throw new Error("no_visible_ticket_price");
-  if (!Number.isFinite(single) || single <= 0) throw new Error("invalid_price");
+  // Price: trust the markdown-based hospitality-filtered scan as primary.
+  // The LLM payload often leaks VIP / bundle averages, so use it only when
+  // the markdown scan finds nothing and the LLM value is in a sane range.
+  const mdScan = cheapestStandardPriceEUR(markdown);
+  let priceEur: number | null = mdScan?.eur ?? null;
+  let priceCcy = mdScan?.ccy ?? "EUR";
+  let priceSource: "markdown_eur_min" | "llm_fallback" | null = mdScan ? "markdown_eur_min" : null;
+  if (priceEur == null && typeof ex.lowest_single_ticket_price === "number") {
+    const v = ex.lowest_single_ticket_price;
+    if (Number.isFinite(v) && v >= 40 && v <= 4000) {
+      priceEur = Math.round(v);
+      priceCcy = (ex.currency ?? "EUR").toUpperCase();
+      priceSource = "llm_fallback";
+    }
+  }
+  if (priceEur == null) throw new Error("no_visible_ticket_price");
 
   const event_slug = `ticombo-${provider_event_id.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const row = {
@@ -340,11 +352,15 @@ const validateAndUpsert = async (
     stadium_name: s.stadium_name,
     city: s.city,
     country: s.country,
-    starting_price: single,
-    lowest_single_ticket_price: single,
+    starting_price: priceEur,
+    lowest_single_ticket_price: priceEur,
     quantity_basis: 1,
-    currency: ex.currency ?? "EUR",
+    currency: "EUR",
+    price_source: priceSource,
+    price_confidence: priceSource === "markdown_eur_min" ? "high" : "medium",
+    last_price_check: new Date().toISOString(),
     image_url: ex.image_url ?? null,
+
     match_id,
     kind: "resale",
     ticket_source_type: "event_page",
