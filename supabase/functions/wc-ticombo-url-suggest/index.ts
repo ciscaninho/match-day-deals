@@ -231,9 +231,27 @@ Deno.serve(async (req) => {
     const fxRows = (fixtures ?? []) as Fixture[];
     const fixtureDates = new Set(fxRows.map((f) => f.date.slice(0, 10)));
 
-    // ---- 2. Discover URLs via Firecrawl map ----
-    const map = await firecrawlMap("https://www.ticombo.com", "world-cup", firecrawlKey);
-    const all = new Set(map.links);
+    // ---- 2. Discover URLs via Firecrawl map (multi-query sweep) ----
+    // Firecrawl's map endpoint caps results, so a single "world-cup" query only
+    // surfaces ~60 of the 104 fixtures. Sweep with many narrow terms (groups,
+    // knockout phases, dates) and union the results for full coverage.
+    const searchTerms = [
+      "world-cup", "world cup 2026", "football-world-cup-2026", "match",
+      "group-a", "group-b", "group-c", "group-d", "group-e", "group-f",
+      "group-g", "group-h", "group-i", "group-j", "group-k", "group-l",
+      "round-of-32", "round-of-16", "quarter-final", "semi-final", "final",
+      "third-place", "2026-06", "2026-07",
+    ];
+    const mapResults = await runWithConcurrency(searchTerms, 8, (term) =>
+      firecrawlMap("https://www.ticombo.com", term, firecrawlKey)
+    );
+    const mapErrors = mapResults.filter((m) => !m.ok).map((m) => m.err ?? "unknown");
+    const all = new Set<string>();
+    let rawLinkCount = 0;
+    for (const m of mapResults) {
+      rawLinkCount += m.links.length;
+      for (const l of m.links) all.add(l);
+    }
 
     const candidates: string[] = [];
     const rejections: Record<string, number> = { not_ticombo: 0, no_match_prefix: 0, blacklist: 0, no_uuid: 0, date_not_in_fixtures: 0 };
