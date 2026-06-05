@@ -107,6 +107,49 @@ const flagFor = (label?: string | null): string => {
   return COUNTRY_FLAG[label.trim().toLowerCase()] ?? "🌐";
 };
 
+// ISO 3166-1 alpha-2 codes for circular flag images (flagcdn.com).
+const COUNTRY_ISO: Record<string, string> = {
+  argentina: "ar", australia: "au", austria: "at", belgium: "be", brazil: "br",
+  cameroon: "cm", canada: "ca", chile: "cl", colombia: "co", "costa rica": "cr",
+  croatia: "hr", denmark: "dk", ecuador: "ec", egypt: "eg", england: "gb-eng",
+  france: "fr", germany: "de", ghana: "gh", greece: "gr", iran: "ir",
+  italy: "it", japan: "jp", "ivory coast": "ci", "côte d'ivoire": "ci",
+  "south korea": "kr", korea: "kr", "korea republic": "kr",
+  mexico: "mx", morocco: "ma", netherlands: "nl", nigeria: "ng", norway: "no",
+  paraguay: "py", peru: "pe", poland: "pl", portugal: "pt", qatar: "qa",
+  "saudi arabia": "sa", scotland: "gb-sct", senegal: "sn", serbia: "rs", spain: "es",
+  "south africa": "za", sweden: "se", switzerland: "ch", tunisia: "tn", turkey: "tr",
+  ukraine: "ua", "united states": "us", usa: "us", "united states of america": "us",
+  uruguay: "uy", wales: "gb-wls", uzbekistan: "uz", jordan: "jo", "cape verde": "cv",
+  "bosnia and herzegovina": "ba", panama: "pa", curacao: "cw", "curaçao": "cw",
+  haiti: "ht", "new zealand": "nz", "dr congo": "cd", russia: "ru",
+  algeria: "dz", "czech republic": "cz", czechia: "cz", iraq: "iq",
+};
+const isoFor = (label?: string | null): string | null => {
+  if (!label) return null;
+  return COUNTRY_ISO[label.trim().toLowerCase()] ?? null;
+};
+const flagImgUrl = (label?: string | null): string | null => {
+  const iso = isoFor(label);
+  return iso ? `https://flagcdn.com/w160/${iso}.png` : null;
+};
+
+function CircleFlag({ label, size = 56 }: { label: string; size?: number }) {
+  const url = flagImgUrl(label);
+  return (
+    <div
+      className="rounded-full overflow-hidden shrink-0 ring-2 ring-white/80 shadow-[0_4px_12px_rgba(0,0,0,0.4)] bg-white/95 flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      {url ? (
+        <img src={url} alt={label} loading="lazy" className="w-full h-full object-cover" />
+      ) : (
+        <span style={{ fontSize: size * 0.6 }} aria-hidden>{flagFor(label)}</span>
+      )}
+    </div>
+  );
+}
+
 const normalizeCountry = (c: string | null | undefined): string | null => {
   const k = (c ?? "").trim().toLowerCase();
   if (!k) return null;
@@ -118,7 +161,17 @@ const normalizeCountry = (c: string | null | undefined): string | null => {
 
 type SortKey = "date_asc" | "date_desc" | "price_asc" | "price_desc";
 
-function WorldCupMatchCard({ match, copy, locale }: { match: WorldCupMatchRow; copy: WorldCup2026Copy; locale: Locale }) {
+function WorldCupMatchCard({
+  match,
+  copy,
+  locale,
+  stadiumImage,
+}: {
+  match: WorldCupMatchRow;
+  copy: WorldCup2026Copy;
+  locale: Locale;
+  stadiumImage: string | null;
+}) {
   const navigate = useNavigate();
   const ticombo: string | null = match.ticombo_url ?? null;
   const status = statusFromRow(match.ticket_status);
@@ -149,90 +202,84 @@ function WorldCupMatchCard({ match, copy, locale }: { match: WorldCupMatchRow; c
   };
 
   return (
-    <article className="group rounded-2xl bg-gradient-to-b from-white/[0.07] to-white/[0.03] border border-white/10 hover:border-[#2ECC71]/40 overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(46,204,113,0.35)] flex flex-col">
-      <div className="px-5 pt-5 pb-3 flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2ECC71]">{match.competition}</div>
-          {match.group_code && (
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70 border border-white/10">
-              {copy.filter_group} {match.group_code}
-            </span>
+    <article className="group relative rounded-2xl border border-white/10 hover:border-[#2ECC71]/40 overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(46,204,113,0.35)] flex flex-col bg-[#0F1A2E]">
+      {/* Stadium background */}
+      {stadiumImage && (
+        <img
+          src={stadiumImage}
+          alt={match.stadium ?? ""}
+          loading="lazy"
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-[1.04] transition-transform duration-[700ms] ease-out"
+        />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0F1A2E]/70 via-[#0F1A2E]/85 to-[#0F1A2E]/97" />
+
+      <div className="relative flex flex-col h-full">
+        <div className="px-4 pt-4 pb-2 flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2ECC71] truncate">{match.competition}</div>
+            {match.group_code && (
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/15 backdrop-blur-sm shrink-0">
+                {copy.filter_group} {match.group_code}
+              </span>
+            )}
+          </div>
+          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border backdrop-blur-sm shrink-0 ${statusStyles[status]}`}>
+            {statusLabel}
+          </span>
+        </div>
+
+        <div className="px-4 pb-3 flex items-center justify-between gap-2">
+          <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
+            <CircleFlag label={home} size={52} />
+            <p className="font-display text-sm sm:text-base text-white leading-tight line-clamp-2">{home}</p>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 shrink-0">vs</span>
+          <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
+            <CircleFlag label={away} size={52} />
+            <p className="font-display text-sm sm:text-base text-white leading-tight line-clamp-2">{away}</p>
+          </div>
+        </div>
+
+        <div className="px-4 pb-3 space-y-1 text-xs text-white/75">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3 h-3 text-white/50 shrink-0" />
+            <span>{dateStr}</span>
+            <Clock className="w-3 h-3 text-white/50 shrink-0 ml-1" />
+            <span>{timeStr}</span>
+          </div>
+          {match.stadium && (
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-3 h-3 text-white/50 shrink-0" />
+              <span className="truncate">
+                {match.stadium}
+                {match.city ? ` · ${match.city}` : ""}
+              </span>
+            </div>
           )}
         </div>
-        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${statusStyles[status]}`}>
-          {statusLabel}
-        </span>
-      </div>
 
-      <div className="px-5 pb-4 flex items-center justify-between gap-3">
-        <div className="flex-1 flex flex-col items-center text-center gap-2 min-w-0">
-          <div className="w-14 h-14 rounded-full bg-white/95 flex items-center justify-center overflow-hidden shrink-0 relative">
-            {match.home_logo ? (
-              <img src={match.home_logo} alt={home} loading="lazy" className="w-full h-full object-contain p-1.5" />
-            ) : (
-              <span className="text-2xl leading-none" aria-hidden>{flagFor(home)}</span>
-            )}
-          </div>
-          <div className="flex items-center justify-center gap-1.5 min-w-0">
-            <span className="text-base leading-none shrink-0" aria-hidden>{flagFor(home)}</span>
-            <p className="font-display text-base sm:text-lg text-white leading-tight line-clamp-2">{home}</p>
-          </div>
+        <div className="mt-auto px-4 pb-4">
+          {match.starting_price != null && (
+            <p className="mb-2 text-sm font-semibold text-[#2ECC71]">
+              {(copy.tickets_from ?? "Tickets from")} €{match.starting_price}
+            </p>
+          )}
+          <button
+            onClick={handleClick}
+            disabled={isSoldOut}
+            className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${
+              isSoldOut
+                ? "bg-white/10 text-white/50 cursor-not-allowed"
+                : "bg-[#2ECC71] hover:bg-[#27ae60] text-[#0F1A2E] shadow-[0_10px_24px_-10px_rgba(46,204,113,0.7)] hover:-translate-y-0.5 active:translate-y-0"
+            }`}
+          >
+            <Ticket className="w-4 h-4" />
+            {isSoldOut ? copy.status_sold_out : copy.view_tickets}
+            {!isSoldOut && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />}
+          </button>
         </div>
-        <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/40 shrink-0">vs</span>
-        <div className="flex-1 flex flex-col items-center text-center gap-2 min-w-0">
-          <div className="w-14 h-14 rounded-full bg-white/95 flex items-center justify-center overflow-hidden shrink-0 relative">
-            {match.away_logo ? (
-              <img src={match.away_logo} alt={away} loading="lazy" className="w-full h-full object-contain p-1.5" />
-            ) : (
-              <span className="text-2xl leading-none" aria-hidden>{flagFor(away)}</span>
-            )}
-          </div>
-          <div className="flex items-center justify-center gap-1.5 min-w-0">
-            <span className="text-base leading-none shrink-0" aria-hidden>{flagFor(away)}</span>
-            <p className="font-display text-base sm:text-lg text-white leading-tight line-clamp-2">{away}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-5 pb-4 space-y-1.5 text-sm text-white/75">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-3.5 h-3.5 text-white/50 shrink-0" />
-          <span>{dateStr}</span>
-          <Clock className="w-3.5 h-3.5 text-white/50 shrink-0 ml-2" />
-          <span>{timeStr}</span>
-        </div>
-        {match.stadium && (
-          <div className="flex items-center gap-2">
-            <MapPin className="w-3.5 h-3.5 text-white/50 shrink-0" />
-            <span className="truncate">
-              {match.stadium}
-              {match.city ? ` · ${match.city}` : ""}
-              {match.country ? `, ${normalizeCountry(match.country)}` : ""}
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-auto px-5 pb-5">
-        {match.starting_price != null && (
-          <div className="mb-3 flex items-baseline gap-2">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-white/50 font-bold">{copy.from_label}</span>
-            <span className="font-display text-2xl sm:text-3xl text-[#2ECC71] leading-none">€{match.starting_price}</span>
-          </div>
-        )}
-        <button
-          onClick={handleClick}
-          disabled={isSoldOut}
-          className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold transition-all ${
-            isSoldOut
-              ? "bg-white/10 text-white/50 cursor-not-allowed"
-              : "bg-[#2ECC71] hover:bg-[#27ae60] text-[#0F1A2E] shadow-[0_10px_24px_-10px_rgba(46,204,113,0.7)] hover:-translate-y-0.5 active:translate-y-0"
-          }`}
-        >
-          <Ticket className="w-4 h-4" />
-          {isSoldOut ? copy.status_sold_out : copy.view_tickets}
-          {!isSoldOut && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />}
-        </button>
       </div>
     </article>
   );
@@ -251,6 +298,21 @@ const WorldCup2026Page = () => {
     [hosts]
   );
 
+  // Map stadium name -> image (for fixture card backgrounds).
+  const stadiumImageByName = useMemo(() => {
+    const map = new Map<string, string>();
+    const norm = (s: string) => s.trim().toLowerCase();
+    for (const h of hosts) {
+      const img = h.hero_image_url || h.background_image_url || h.image_url;
+      if (img && h.stadium_name) map.set(norm(h.stadium_name), img);
+    }
+    return map;
+  }, [hosts]);
+  const imageForStadium = (name: string | null | undefined): string | null => {
+    if (!name) return null;
+    return stadiumImageByName.get(name.trim().toLowerCase()) ?? null;
+  };
+
   const [slide, setSlide] = useState(0);
   const [visibleCount, setVisibleCount] = useState(12);
   useEffect(() => {
@@ -266,7 +328,12 @@ const WorldCup2026Page = () => {
     for (const m of matches) {
       const bothConfirmed = m.home_team_status === "confirmed" && m.away_team_status === "confirmed";
       if (bothConfirmed) confirmed.push(m);
-      else if (m.phase && m.phase !== "group") knockout.push(m);
+      else if (m.phase && m.phase !== "group") {
+        // Hide knockout entries where BOTH teams are unknown.
+        if (m.home_team_status === "confirmed" || m.away_team_status === "confirmed") {
+          knockout.push(m);
+        }
+      }
     }
     knockout.sort((a, b) => {
       const pa = PHASE_ORDER[a.phase ?? ""] ?? 99;
@@ -559,7 +626,7 @@ const WorldCup2026Page = () => {
               <>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                   {filteredMatches.slice(0, visibleCount).map((m) => (
-                    <WorldCupMatchCard key={m.id} match={m} copy={copy} locale={locale} />
+                    <WorldCupMatchCard key={m.id} match={m} copy={copy} locale={locale} stadiumImage={imageForStadium(m.stadium)} />
                   ))}
                 </div>
                 {visibleCount < filteredMatches.length && (
@@ -595,9 +662,17 @@ const WorldCup2026Page = () => {
                         {phaseLabel(m.phase ?? null)}
                       </div>
                       <div className="flex items-center justify-between gap-3">
-                        <span className="font-display text-base text-white/85 truncate">{copy.team_tbd}</span>
+                        <span className="font-display text-base text-white/85 truncate">
+                          {m.home_team_status === "confirmed"
+                            ? formatTeamLabel({ raw: m.home_team, projected: m.home_team_projected, status: m.home_team_status })
+                            : copy.team_tbd}
+                        </span>
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 shrink-0">vs</span>
-                        <span className="font-display text-base text-white/85 truncate text-right">{copy.team_tbd}</span>
+                        <span className="font-display text-base text-white/85 truncate text-right">
+                          {m.away_team_status === "confirmed"
+                            ? formatTeamLabel({ raw: m.away_team, projected: m.away_team_projected, status: m.away_team_status })
+                            : copy.team_tbd}
+                        </span>
                       </div>
                       <div className="space-y-1.5 text-xs text-white/70">
                         <div className="flex items-center gap-2">

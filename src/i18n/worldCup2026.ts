@@ -25,6 +25,7 @@ export type WorldCup2026Copy = {
   role_final: string;
   view_tickets: string;
   from_label: string;
+  tickets_from: string;
   load_more: string;
   status_available: string;
   status_selling_fast: string;
@@ -86,6 +87,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_final: "Final",
     view_tickets: "View Tickets",
     from_label: "From",
+    tickets_from: "Tickets from",
     load_more: "Load more matches",
     status_available: "Available",
     status_selling_fast: "Selling Fast",
@@ -145,6 +147,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_final: "Finale",
     view_tickets: "Voir les billets",
     from_label: "Dès",
+    tickets_from: "Billets dès",
     load_more: "Voir plus de matchs",
     status_available: "Disponible",
     status_selling_fast: "Vente rapide",
@@ -204,6 +207,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_final: "Final",
     view_tickets: "Ver entradas",
     from_label: "Desde",
+    tickets_from: "Entradas desde",
     load_more: "Ver más partidos",
     status_available: "Disponible",
     status_selling_fast: "Últimas entradas",
@@ -263,6 +267,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_final: "Finale",
     view_tickets: "Tickets ansehen",
     from_label: "Ab",
+    tickets_from: "Tickets ab",
     load_more: "Weitere Spiele",
     status_available: "Verfügbar",
     status_selling_fast: "Schnell ausverkauft",
@@ -322,6 +327,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_final: "Finale",
     view_tickets: "Vedi biglietti",
     from_label: "Da",
+    tickets_from: "Biglietti da",
     load_more: "Carica altre partite",
     status_available: "Disponibile",
     status_selling_fast: "Ultimi posti",
@@ -381,6 +387,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_final: "Final",
     view_tickets: "Ver ingressos",
     from_label: "A partir de",
+    tickets_from: "Ingressos a partir de",
     load_more: "Ver mais jogos",
     status_available: "Disponível",
     status_selling_fast: "Últimas unidades",
@@ -440,6 +447,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_final: "Finale",
     view_tickets: "Bekijk tickets",
     from_label: "Vanaf",
+    tickets_from: "Tickets vanaf",
     load_more: "Meer wedstrijden",
     status_available: "Beschikbaar",
     status_selling_fast: "Bijna uitverkocht",
@@ -499,6 +507,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_final: "نهائي",
     view_tickets: "عرض التذاكر",
     from_label: "ابتداءً من",
+    tickets_from: "تذاكر ابتداءً من",
     load_more: "المزيد من المباريات",
     status_available: "متاحة",
     status_selling_fast: "تنفد بسرعة",
@@ -558,6 +567,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     role_final: "Финал",
     view_tickets: "Смотреть билеты",
     from_label: "От",
+    tickets_from: "Билеты от",
     load_more: "Ещё матчи",
     status_available: "Доступны",
     status_selling_fast: "Быстро раскупают",
