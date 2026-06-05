@@ -390,6 +390,10 @@ Deno.serve(async (req) => {
     const stats = {
       fixtures_total: fxRows.length,
       confirmed_fixtures: fxConfirmed,
+      discovery_search_terms: searchTerms.length,
+      discovery_map_errors: mapErrors.length,
+      discovery_raw_links: rawLinkCount,
+      discovery_unique_links: all.size,
       events_discovered: uniqueUrls.length,
       events_scraped_ok: scrapes.filter((s) => s.scrape_ok).length,
       events_title_parsed: scrapes.filter((s) => s.home_label && s.away_label).length,
