@@ -107,6 +107,49 @@ const flagFor = (label?: string | null): string => {
   return COUNTRY_FLAG[label.trim().toLowerCase()] ?? "🌐";
 };
 
+// ISO 3166-1 alpha-2 codes for circular flag images (flagcdn.com).
+const COUNTRY_ISO: Record<string, string> = {
+  argentina: "ar", australia: "au", austria: "at", belgium: "be", brazil: "br",
+  cameroon: "cm", canada: "ca", chile: "cl", colombia: "co", "costa rica": "cr",
+  croatia: "hr", denmark: "dk", ecuador: "ec", egypt: "eg", england: "gb-eng",
+  france: "fr", germany: "de", ghana: "gh", greece: "gr", iran: "ir",
+  italy: "it", japan: "jp", "ivory coast": "ci", "côte d'ivoire": "ci",
+  "south korea": "kr", korea: "kr", "korea republic": "kr",
+  mexico: "mx", morocco: "ma", netherlands: "nl", nigeria: "ng", norway: "no",
+  paraguay: "py", peru: "pe", poland: "pl", portugal: "pt", qatar: "qa",
+  "saudi arabia": "sa", scotland: "gb-sct", senegal: "sn", serbia: "rs", spain: "es",
+  "south africa": "za", sweden: "se", switzerland: "ch", tunisia: "tn", turkey: "tr",
+  ukraine: "ua", "united states": "us", usa: "us", "united states of america": "us",
+  uruguay: "uy", wales: "gb-wls", uzbekistan: "uz", jordan: "jo", "cape verde": "cv",
+  "bosnia and herzegovina": "ba", panama: "pa", curacao: "cw", "curaçao": "cw",
+  haiti: "ht", "new zealand": "nz", "dr congo": "cd", russia: "ru",
+  algeria: "dz", "czech republic": "cz", czechia: "cz", iraq: "iq",
+};
+const isoFor = (label?: string | null): string | null => {
+  if (!label) return null;
+  return COUNTRY_ISO[label.trim().toLowerCase()] ?? null;
+};
+const flagImgUrl = (label?: string | null): string | null => {
+  const iso = isoFor(label);
+  return iso ? `https://flagcdn.com/w160/${iso}.png` : null;
+};
+
+function CircleFlag({ label, size = 56 }: { label: string; size?: number }) {
+  const url = flagImgUrl(label);
+  return (
+    <div
+      className="rounded-full overflow-hidden shrink-0 ring-2 ring-white/80 shadow-[0_4px_12px_rgba(0,0,0,0.4)] bg-white/95 flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      {url ? (
+        <img src={url} alt={label} loading="lazy" className="w-full h-full object-cover" />
+      ) : (
+        <span style={{ fontSize: size * 0.6 }} aria-hidden>{flagFor(label)}</span>
+      )}
+    </div>
+  );
+}
+
 const normalizeCountry = (c: string | null | undefined): string | null => {
   const k = (c ?? "").trim().toLowerCase();
   if (!k) return null;
