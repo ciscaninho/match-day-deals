@@ -32,6 +32,7 @@ const BLACKLIST_FRAGMENTS = [
 // Map DB team name → list of acceptable lowercase tokens/phrases that may appear in Ticombo title.
 const TEAM_ALIASES: Record<string, string[]> = {
   "USA": ["usa", "united states", "u.s.a", "united-states"],
+  "United States": ["usa", "united states", "u.s.a", "united-states", "united states of america"],
   "South Korea": ["south korea", "korea republic", "republic of korea", "korea"],
   "North Korea": ["north korea", "dpr korea", "korea dpr"],
   "Cape Verde": ["cape verde", "cabo verde"],
@@ -124,7 +125,8 @@ async function firecrawlMap(rootUrl: string, search: string | null, apiKey: stri
   }
 }
 
-async function firecrawlScrapeTitle(url: string, apiKey: string): Promise<{ title: string | null; ok: boolean; err?: string }> {
+async function firecrawlScrapeTitle(url: string, apiKey: string, attempt = 1): Promise<{ title: string | null; ok: boolean; err?: string; attempts: number }> {
+  const MAX_ATTEMPTS = 5;
   try {
     const r = await fetch("https://api.firecrawl.dev/v2/scrape", {
       method: "POST",
@@ -134,10 +136,16 @@ async function firecrawlScrapeTitle(url: string, apiKey: string): Promise<{ titl
         formats: ["markdown"],
         onlyMainContent: false,
         waitFor: 0,
-        timeout: 12000,
+        timeout: 20000,
       }),
     });
-    if (!r.ok) return { title: null, ok: false, err: `http_${r.status}` };
+    if (!r.ok) {
+      if ((r.status === 408 || r.status === 429 || r.status >= 500) && attempt < 3) {
+        await new Promise((res) => setTimeout(res, 600 * attempt));
+        return firecrawlScrapeTitle(url, apiKey, attempt + 1);
+      }
+      return { title: null, ok: false, err: `http_${r.status}`, attempts: attempt };
+    }
     const j = await r.json();
     const meta = (j?.data?.metadata ?? j?.metadata ?? {}) as Record<string, unknown>;
     const title =
@@ -145,9 +153,13 @@ async function firecrawlScrapeTitle(url: string, apiKey: string): Promise<{ titl
       (meta["og:title"] as string) ||
       (meta.title as string) ||
       null;
-    return { title: title ?? null, ok: true };
+    return { title: title ?? null, ok: true, attempts: attempt };
   } catch (e) {
-    return { title: null, ok: false, err: String((e as Error).message ?? e) };
+    if (attempt < 3) {
+      await new Promise((res) => setTimeout(res, 600 * attempt));
+      return firecrawlScrapeTitle(url, apiKey, attempt + 1);
+    }
+    return { title: null, ok: false, err: String((e as Error).message ?? e), attempts: attempt };
   }
 }
 
@@ -242,7 +254,16 @@ Deno.serve(async (req) => {
       .order("date");
     if (fxErr) throw fxErr;
     const fxRows = (fixtures ?? []) as Fixture[];
-    const fixtureDates = new Set(fxRows.map((f) => f.date.slice(0, 10)));
+    // Timezone-tolerant fixture date window: include ±1 day around each kickoff
+    // because Ticombo slug dates are local (often UTC-4..-8 for NA hosts).
+    const fixtureDates = new Set<string>();
+    for (const f of fxRows) {
+      const ms = new Date(f.date).getTime();
+      for (const offset of [-1, 0, 1]) {
+        const d = new Date(ms + offset * 86_400_000).toISOString().slice(0, 10);
+        fixtureDates.add(d);
+      }
+    }
 
     // ---- 2. Discover URLs via Firecrawl map (multi-query sweep) ----
     // Firecrawl's map endpoint caps results, so a single "world-cup" query only
@@ -326,9 +347,14 @@ Deno.serve(async (req) => {
       let best: { fx: Fixture; bothHit: boolean; oneHit: boolean } | null = null;
       for (const fx of fxRows) {
         if (fx.home_team_status !== "confirmed" || fx.away_team_status !== "confirmed") continue;
-        const fxDate = fx.date.slice(0, 10);
-        if (ev.date_from_slug && ev.date_from_slug !== fxDate) continue;
-        // Verify orientation: home matches title-home, away matches title-away (preferred)
+        const fxUtcMs = new Date(fx.date).getTime();
+        // Timezone-tolerant date check: Ticombo slug dates are local (often UTC-4..-8 for NA host cities).
+        // Accept any candidate whose slug date is within ±1 day of the DB UTC kickoff date.
+        if (ev.date_from_slug) {
+          const slugMs = new Date(`${ev.date_from_slug}T12:00:00Z`).getTime();
+          const diffDays = Math.abs(slugMs - fxUtcMs) / 86_400_000;
+          if (diffDays > 1.5) continue;
+        }
         const homeInTitle = titleMentionsTeam(normTitle, fx.home_team);
         const awayInTitle = titleMentionsTeam(normTitle, fx.away_team);
         const bothHit = homeInTitle && awayInTitle;
@@ -405,6 +431,7 @@ Deno.serve(async (req) => {
       confirmed_fixtures: fxConfirmed,
       discovery_search_terms: searchTerms.length,
       discovery_map_errors: mapErrors.length,
+      discovery_map_error_samples: mapErrors.slice(0, 8),
       discovery_raw_links: rawLinkCount,
       discovery_unique_links: all.size,
       events_discovered: uniqueUrls.length,
@@ -414,6 +441,8 @@ Deno.serve(async (req) => {
       one_team_verified: oneTeamVerified,
       title_parse_failed: titleParseFailed,
       scrape_failed: scrapeFailed,
+      scrape_timeouts_408: scrapes.filter((s) => s.err === "http_408").length,
+      scrape_errors_by_code: scrapes.filter((s) => !s.scrape_ok).reduce((acc: Record<string, number>, s) => { const k = s.err ?? "unknown"; acc[k] = (acc[k] ?? 0) + 1; return acc; }, {}),
       proposals: proposals.length,
       already_set: fxRows.filter((f) => f.ticombo_url).length,
       high: proposals.length,
