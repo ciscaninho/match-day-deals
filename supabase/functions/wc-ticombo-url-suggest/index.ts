@@ -209,6 +209,7 @@ Deno.serve(async (req) => {
     if (!authHeader) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const token = authHeader.replace(/^Bearer\s+/i, "");
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    console.log("auth_debug", { tokenPrefix: token.slice(0, 12), srvPrefix: serviceRole.slice(0, 12), tokenLen: token.length, srvLen: serviceRole.length });
     if (token !== serviceRole) {
       const { data: userRes } = await supabase.auth.getUser(token);
       const userId = userRes?.user?.id;
