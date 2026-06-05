@@ -469,7 +469,9 @@ Deno.serve(async (req) => {
       applied: appliedCount,
       apply_skipped: applySkipped,
       cleared_stale: clearedCount,
+      apply_aborted: applyAborted,
       rejections,
+
     };
 
     // ---- 6. Optional diagnostic audit (no writes) ----
