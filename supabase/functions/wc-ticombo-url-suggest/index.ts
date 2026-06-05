@@ -416,11 +416,138 @@ Deno.serve(async (req) => {
       rejections,
     };
 
+    // ---- 6. Optional diagnostic audit (no writes) ----
+    let audit_report: unknown = undefined;
+    if (audit) {
+      // Build a per-event index for quick lookups: by date.
+      const evByDate = new Map<string, EventScrape[]>();
+      for (const ev of scrapes) {
+        const d = ev.date_from_slug ?? "unknown";
+        if (!evByDate.has(d)) evByDate.set(d, []);
+        evByDate.get(d)!.push(ev);
+      }
+
+      const causes: Record<string, number> = {
+        matched_high: 0,
+        no_event_on_date: 0,
+        date_only_one_team: 0,
+        date_no_team: 0,
+        date_title_parse_failed: 0,
+        date_scrape_failed: 0,
+        team_unconfirmed: 0,
+      };
+
+      type FxAudit = {
+        match_id: string;
+        home_team: string;
+        away_team: string;
+        kickoff: string;
+        date: string;
+        group_code: string | null;
+        confirmed: boolean;
+        matched: boolean;
+        matched_url: string | null;
+        matched_title: string | null;
+        rejection_reason: string;
+        closest_candidate?: {
+          url: string;
+          title: string | null;
+          home_label: string | null;
+          away_label: string | null;
+          home_in_title: boolean;
+          away_in_title: boolean;
+          score: number;
+        };
+        candidates_on_date: number;
+      };
+
+      const fxAudits: FxAudit[] = fxRows.map((fx) => {
+        const fxDate = fx.date.slice(0, 10);
+        const confirmed = fx.home_team_status === "confirmed" && fx.away_team_status === "confirmed";
+        const matched = proposalsByMatch.get(fx.id);
+        if (matched) {
+          causes.matched_high++;
+          return {
+            match_id: fx.id, home_team: fx.home_team, away_team: fx.away_team,
+            kickoff: fx.date, date: fxDate, group_code: fx.group_code, confirmed,
+            matched: true, matched_url: matched.suggested_url, matched_title: matched.ticombo_title,
+            rejection_reason: "", candidates_on_date: (evByDate.get(fxDate) ?? []).length,
+          };
+        }
+        if (!confirmed) {
+          causes.team_unconfirmed++;
+          return {
+            match_id: fx.id, home_team: fx.home_team, away_team: fx.away_team,
+            kickoff: fx.date, date: fxDate, group_code: fx.group_code, confirmed,
+            matched: false, matched_url: null, matched_title: null,
+            rejection_reason: "team_unconfirmed_placeholder",
+            candidates_on_date: (evByDate.get(fxDate) ?? []).length,
+          };
+        }
+        const dayEvents = evByDate.get(fxDate) ?? [];
+        if (dayEvents.length === 0) {
+          causes.no_event_on_date++;
+          return {
+            match_id: fx.id, home_team: fx.home_team, away_team: fx.away_team,
+            kickoff: fx.date, date: fxDate, group_code: fx.group_code, confirmed,
+            matched: false, matched_url: null, matched_title: null,
+            rejection_reason: "no_ticombo_event_on_fixture_date", candidates_on_date: 0,
+          };
+        }
+        // Find closest candidate on date
+        let best: { ev: EventScrape; homeIn: boolean; awayIn: boolean; score: number } | null = null;
+        for (const ev of dayEvents) {
+          const normTitle = ev.title ? normalize(ev.title) : "";
+          const homeIn = !!normTitle && titleMentionsTeam(normTitle, fx.home_team);
+          const awayIn = !!normTitle && titleMentionsTeam(normTitle, fx.away_team);
+          const score = (homeIn ? 50 : 0) + (awayIn ? 50 : 0);
+          if (!best || score > best.score) best = { ev, homeIn, awayIn, score };
+        }
+        let reason = "date_no_team_in_title";
+        if (best) {
+          if (!best.ev.scrape_ok) { reason = `scrape_failed:${best.ev.err ?? "unknown"}`; causes.date_scrape_failed++; }
+          else if (!best.ev.home_label) { reason = "title_parse_failed"; causes.date_title_parse_failed++; }
+          else if (best.homeIn !== best.awayIn) { reason = "only_one_team_matched_in_title"; causes.date_only_one_team++; }
+          else { reason = "date_no_team_in_title"; causes.date_no_team++; }
+        }
+        return {
+          match_id: fx.id, home_team: fx.home_team, away_team: fx.away_team,
+          kickoff: fx.date, date: fxDate, group_code: fx.group_code, confirmed,
+          matched: false, matched_url: null, matched_title: null,
+          rejection_reason: reason,
+          closest_candidate: best ? {
+            url: best.ev.url, title: best.ev.title,
+            home_label: best.ev.home_label, away_label: best.ev.away_label,
+            home_in_title: best.homeIn, away_in_title: best.awayIn, score: best.score,
+          } : undefined,
+          candidates_on_date: dayEvents.length,
+        };
+      });
+
+      // Discovered but unmatched events (no DB fixture claimed them)
+      const claimedUrls = new Set([...proposalsByMatch.values()].map((p) => p.suggested_url));
+      const unmatched_events = scrapes
+        .filter((s) => !claimedUrls.has(s.url))
+        .map((s) => ({
+          url: s.url, title: s.title, date: s.date_from_slug,
+          home_label: s.home_label, away_label: s.away_label,
+          scrape_ok: s.scrape_ok, err: s.err,
+        }));
+
+      audit_report = {
+        causes,
+        fixtures: fxAudits,
+        unmatched_fixtures_sample: fxAudits.filter((f) => !f.matched).slice(0, 20),
+        unmatched_events,
+      };
+    }
+
     return new Response(JSON.stringify({
       stats,
       proposals,
       sample_rejected: rejected.slice(0, 30),
       sample_scrapes: scrapes.slice(0, 6),
+      audit_report,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
