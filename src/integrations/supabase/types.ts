@@ -618,6 +618,156 @@ export type Database = {
         }
         Relationships: []
       }
+      matches_wc2026_backup_20260605: {
+        Row: {
+          archived_at: string | null
+          away_logo: string | null
+          away_short: string | null
+          away_team: string | null
+          away_team_projected: string | null
+          away_team_status: string | null
+          category: string | null
+          city: string | null
+          competition: string | null
+          country: string | null
+          created_at: string | null
+          data_source: string | null
+          date: string | null
+          featured: boolean | null
+          fifa_match_number: number | null
+          fixture_confidence: string | null
+          fixture_origin: string | null
+          group_code: string | null
+          home_logo: string | null
+          home_short: string | null
+          home_team: string | null
+          home_team_projected: string | null
+          home_team_status: string | null
+          id: string | null
+          import_batch_id: string | null
+          import_source: string | null
+          kickoff_local: string | null
+          kickoff_locked: boolean | null
+          last_synced_at: string | null
+          lifecycle_status: string | null
+          matchday: number | null
+          official_link: string | null
+          phase: string | null
+          priority: boolean | null
+          publication_status: string | null
+          slug: string | null
+          sportmonks_id: number | null
+          stadium: string | null
+          stadium_id: string | null
+          stadium_locked: boolean | null
+          starting_price: number | null
+          ticket_release_date: string | null
+          ticket_sources: Json | null
+          ticket_status: string | null
+          ticombo_url: string | null
+          updated_at: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          archived_at?: string | null
+          away_logo?: string | null
+          away_short?: string | null
+          away_team?: string | null
+          away_team_projected?: string | null
+          away_team_status?: string | null
+          category?: string | null
+          city?: string | null
+          competition?: string | null
+          country?: string | null
+          created_at?: string | null
+          data_source?: string | null
+          date?: string | null
+          featured?: boolean | null
+          fifa_match_number?: number | null
+          fixture_confidence?: string | null
+          fixture_origin?: string | null
+          group_code?: string | null
+          home_logo?: string | null
+          home_short?: string | null
+          home_team?: string | null
+          home_team_projected?: string | null
+          home_team_status?: string | null
+          id?: string | null
+          import_batch_id?: string | null
+          import_source?: string | null
+          kickoff_local?: string | null
+          kickoff_locked?: boolean | null
+          last_synced_at?: string | null
+          lifecycle_status?: string | null
+          matchday?: number | null
+          official_link?: string | null
+          phase?: string | null
+          priority?: boolean | null
+          publication_status?: string | null
+          slug?: string | null
+          sportmonks_id?: number | null
+          stadium?: string | null
+          stadium_id?: string | null
+          stadium_locked?: boolean | null
+          starting_price?: number | null
+          ticket_release_date?: string | null
+          ticket_sources?: Json | null
+          ticket_status?: string | null
+          ticombo_url?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          archived_at?: string | null
+          away_logo?: string | null
+          away_short?: string | null
+          away_team?: string | null
+          away_team_projected?: string | null
+          away_team_status?: string | null
+          category?: string | null
+          city?: string | null
+          competition?: string | null
+          country?: string | null
+          created_at?: string | null
+          data_source?: string | null
+          date?: string | null
+          featured?: boolean | null
+          fifa_match_number?: number | null
+          fixture_confidence?: string | null
+          fixture_origin?: string | null
+          group_code?: string | null
+          home_logo?: string | null
+          home_short?: string | null
+          home_team?: string | null
+          home_team_projected?: string | null
+          home_team_status?: string | null
+          id?: string | null
+          import_batch_id?: string | null
+          import_source?: string | null
+          kickoff_local?: string | null
+          kickoff_locked?: boolean | null
+          last_synced_at?: string | null
+          lifecycle_status?: string | null
+          matchday?: number | null
+          official_link?: string | null
+          phase?: string | null
+          priority?: boolean | null
+          publication_status?: string | null
+          slug?: string | null
+          sportmonks_id?: number | null
+          stadium?: string | null
+          stadium_id?: string | null
+          stadium_locked?: boolean | null
+          starting_price?: number | null
+          ticket_release_date?: string | null
+          ticket_sources?: Json | null
+          ticket_status?: string | null
+          ticombo_url?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
