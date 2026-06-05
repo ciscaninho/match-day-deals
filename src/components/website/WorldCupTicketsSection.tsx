@@ -17,6 +17,10 @@ const COUNTRY_FLAG: Record<string, string> = {
   "saudi arabia": "🇸🇦", scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", senegal: "🇸🇳", serbia: "🇷🇸", spain: "🇪🇸",
   "south africa": "🇿🇦", sweden: "🇸🇪", switzerland: "🇨🇭", tunisia: "🇹🇳", turkey: "🇹🇷",
   ukraine: "🇺🇦", "united states": "🇺🇸", usa: "🇺🇸", uruguay: "🇺🇾", wales: "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+  algeria: "🇩🇿", "czech republic": "🇨🇿", czechia: "🇨🇿", iraq: "🇮🇶",
+  "bosnia and herzegovina": "🇧🇦", "cape verde": "🇨🇻", curacao: "🇨🇼", "curaçao": "🇨🇼",
+  "dr congo": "🇨🇩", haiti: "🇭🇹", jordan: "🇯🇴", "new zealand": "🇳🇿",
+  panama: "🇵🇦", uzbekistan: "🇺🇿",
 };
 
 const flagFor = (label?: string | null): string => {
