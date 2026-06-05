@@ -74,7 +74,7 @@ type FailureCode =
   | "unknown";
 
 // URL/title patterns that indicate a multi-match / bundle / package / follow-team product.
-const NON_SINGLE_URL_RE = /(all-|matches-world-cup|stadium-\d|-stadium-tickets|package|follow-|group-matches|hospitality|venue-series|vip-experience|bundle|series-pass)/i;
+const NON_SINGLE_URL_RE = /(\/all-|matches-world-cup|stadium-\d|-stadium-tickets|\/package|follow-team|group-matches|hospitality|venue-series|vip-experience|\/bundle|series-pass)/i;
 const SINGLE_FIXTURE_URL_RE = /\/football-tickets\/match-/i;
 const TITLE_VS_RE = /\bvs\.?\b|\s—\s|\s-\s/i;
 
