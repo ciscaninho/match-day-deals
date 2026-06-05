@@ -401,28 +401,43 @@ Deno.serve(async (req) => {
     let appliedCount = 0;
     let applySkipped = 0;
     let clearedCount = 0;
+    let applyAborted: string | null = null;
     if (apply) {
-      const verifiedIds = new Set(proposals.map((p) => p.match_id));
-      // Clear ticombo_url on any WC fixture not in the verified set (kills wrong mappings)
-      const staleIds = fxRows.filter((f) => f.ticombo_url && !verifiedIds.has(f.id)).map((f) => f.id);
-      if (staleIds.length > 0) {
-        const { error: clearErr } = await supabase
-          .from("matches")
-          .update({ ticombo_url: null, updated_at: new Date().toISOString() })
-          .in("id", staleIds);
-        if (!clearErr) clearedCount = staleIds.length;
+      // Safety guard: refuse to apply (and never clear) when discovery looks broken.
+      // This prevents wiping good URLs when Ticombo rate-limits every map call.
+      const currentlySet = fxRows.filter((f) => f.ticombo_url).length;
+      if (uniqueUrls.length === 0) {
+        applyAborted = "discovery_empty";
+      } else if (proposals.length === 0) {
+        applyAborted = "no_proposals";
+      } else if (currentlySet > 0 && proposals.length < Math.ceil(currentlySet * 0.5)) {
+        applyAborted = `degraded_discovery (proposals=${proposals.length} < 50% of currently_set=${currentlySet})`;
       }
-      for (const p of proposals) {
-        if (p.current_url === p.suggested_url) continue;
-        const { error } = await supabase
-          .from("matches")
-          .update({ ticombo_url: p.suggested_url, updated_at: new Date().toISOString() })
-          .eq("id", p.match_id)
-          .eq("competition", "FIFA World Cup 2026");
-        if (error) applySkipped++;
-        else appliedCount++;
+
+      if (!applyAborted) {
+        const verifiedIds = new Set(proposals.map((p) => p.match_id));
+        // Clear ticombo_url on any WC fixture not in the verified set (kills wrong mappings)
+        const staleIds = fxRows.filter((f) => f.ticombo_url && !verifiedIds.has(f.id)).map((f) => f.id);
+        if (staleIds.length > 0) {
+          const { error: clearErr } = await supabase
+            .from("matches")
+            .update({ ticombo_url: null, updated_at: new Date().toISOString() })
+            .in("id", staleIds);
+          if (!clearErr) clearedCount = staleIds.length;
+        }
+        for (const p of proposals) {
+          if (p.current_url === p.suggested_url) continue;
+          const { error } = await supabase
+            .from("matches")
+            .update({ ticombo_url: p.suggested_url, updated_at: new Date().toISOString() })
+            .eq("id", p.match_id)
+            .eq("competition", "FIFA World Cup 2026");
+          if (error) applySkipped++;
+          else appliedCount++;
+        }
       }
     }
+
 
     const fxConfirmed = fxRows.filter((f) => f.home_team_status === "confirmed" && f.away_team_status === "confirmed").length;
 
