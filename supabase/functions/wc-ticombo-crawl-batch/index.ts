@@ -423,7 +423,9 @@ const validateAndUpsert = async (
     match_id,
     link_confidence,
     stadium_confidence,
-    price_eur: single,
+    price_eur: priceEur,
+    price_source: priceSource,
+
     upsertResult,
     archived_generic,
   };
@@ -461,7 +463,7 @@ Deno.serve(async (req) => {
           teams: [ex.home_team, ex.away_team],
           group_code: ex.group_code,
           price_payload: ex.lowest_single_ticket_price,
-          md_min_price: minPriceFromMarkdown(markdown),
+          md_min_price: cheapestStandardPriceEUR(markdown)?.eur ?? null,
           image_url: ex.image_url ?? null,
         };
         const meta = await validateAndUpsert(admin, q.url, ex, markdown);
