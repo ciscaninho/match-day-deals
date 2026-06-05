@@ -219,6 +219,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const apply = !!body?.apply;
+    const audit = !!body?.audit;
 
     // ---- 1. Fetch fixtures FIRST (needed for date pre-filter) ----
     const { data: fixtures, error: fxErr } = await supabase
