@@ -626,7 +626,7 @@ const WorldCup2026Page = () => {
               <>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                   {filteredMatches.slice(0, visibleCount).map((m) => (
-                    <WorldCupMatchCard key={m.id} match={m} copy={copy} locale={locale} />
+                    <WorldCupMatchCard key={m.id} match={m} copy={copy} locale={locale} stadiumImage={imageForStadium(m.stadium)} />
                   ))}
                 </div>
                 {visibleCount < filteredMatches.length && (
