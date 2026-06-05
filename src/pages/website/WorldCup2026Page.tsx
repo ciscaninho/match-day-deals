@@ -662,9 +662,17 @@ const WorldCup2026Page = () => {
                         {phaseLabel(m.phase ?? null)}
                       </div>
                       <div className="flex items-center justify-between gap-3">
-                        <span className="font-display text-base text-white/85 truncate">{copy.team_tbd}</span>
+                        <span className="font-display text-base text-white/85 truncate">
+                          {m.home_team_status === "confirmed"
+                            ? formatTeamLabel({ raw: m.home_team, projected: m.home_team_projected, status: m.home_team_status })
+                            : copy.team_tbd}
+                        </span>
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 shrink-0">vs</span>
-                        <span className="font-display text-base text-white/85 truncate text-right">{copy.team_tbd}</span>
+                        <span className="font-display text-base text-white/85 truncate text-right">
+                          {m.away_team_status === "confirmed"
+                            ? formatTeamLabel({ raw: m.away_team, projected: m.away_team_projected, status: m.away_team_status })
+                            : copy.team_tbd}
+                        </span>
                       </div>
                       <div className="space-y-1.5 text-xs text-white/70">
                         <div className="flex items-center gap-2">
