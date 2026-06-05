@@ -25,6 +25,7 @@ export type WorldCup2026Copy = {
   role_final: string;
   view_tickets: string;
   from_label: string;
+  tickets_from: string;
   load_more: string;
   status_available: string;
   status_selling_fast: string;
