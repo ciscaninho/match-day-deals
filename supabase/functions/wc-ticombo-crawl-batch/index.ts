@@ -74,7 +74,7 @@ type FailureCode =
   | "unknown";
 
 // URL/title patterns that indicate a multi-match / bundle / package / follow-team product.
-const NON_SINGLE_URL_RE = /(all-|matches-world-cup|stadium-\d|-stadium-tickets|package|follow-|group-matches|hospitality|venue-series|vip-experience|bundle|series-pass)/i;
+const NON_SINGLE_URL_RE = /(\/all-|matches-world-cup|stadium-\d|-stadium-tickets|\/package|follow-team|group-matches|hospitality|venue-series|vip-experience|\/bundle|series-pass)/i;
 const SINGLE_FIXTURE_URL_RE = /\/football-tickets\/match-/i;
 const TITLE_VS_RE = /\bvs\.?\b|\s—\s|\s-\s/i;
 
@@ -118,14 +118,15 @@ const normalizeFailure = (message: string): { code: FailureCode; reason: string 
   return { code: "unknown", reason: message };
 };
 
-// Force the Ticombo page into "1 Ticket" mode using known query params so the
-// price list and the structured payload reflect a single seat.
+// Force EUR locale + "1 Ticket" mode so the price list reflects one standard seat.
 const forceQty1 = (url: string): string => {
   try {
     const u = new URL(url);
+    u.pathname = u.pathname.replace(/^\/[a-z]{2}(?:-[a-z]{2})?\//i, "/en/");
     u.searchParams.set("q", "1");
     u.searchParams.set("quantity", "1");
     u.searchParams.set("tickets", "1");
+    u.searchParams.set("currency", "EUR");
     return u.toString();
   } catch { return url; }
 };
@@ -142,7 +143,7 @@ const fcScrape = async (url: string) => {
           type: "json",
           schema: EVENT_SCHEMA,
           prompt:
-            "Extract real event data from this Ticombo event page. The page MUST be read as if the '1 Ticket' filter is active. For lowest_single_ticket_price, return the minimum visible price for ONE seat (not bundles, not category averages, not 2-ticket defaults). Do not invent values; if unsure leave blank.",
+            "Extract real event data from this Ticombo event page. For lowest_single_ticket_price, return the minimum visible price for ONE STANDARD seat in EUR. STRICTLY EXCLUDE hospitality, VIP, lounge, suite, business seat, premium experience, package, bundle, club lounge and skybox prices. Do not invent values; if unsure leave blank.",
         },
       ],
       onlyMainContent: true,
@@ -157,26 +158,75 @@ const fcScrape = async (url: string) => {
 };
 
 const extractIdFromUrl = (url: string): string | null => {
-  // Prefer trailing UUID (new Ticombo schema); fall back to legacy numeric id.
   const uuid = url.match(/\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?(?:[?#]|$)/i);
   if (uuid) return uuid[1].toLowerCase();
   const m = url.match(/-e?(\d{5,})(?:[/?#]|$)/i) ?? url.match(/\/(\d{6,})(?:[/?#]|$)/);
   return m ? m[1] : null;
 };
 
-// Fallback: scan the page markdown for the smallest € amount in plausible
-// single-ticket range (filters out aggregate "€1,097 – 98,345" headers).
-const minPriceFromMarkdown = (md: string): number | null => {
-  if (!md) return null;
-  const re = /€\s?([0-9][0-9.,]{1,7})/g;
-  let m: RegExpExecArray | null;
-  const nums: number[] = [];
-  while ((m = re.exec(md)) !== null) {
-    const n = Number(m[1].replace(/[.,](?=\d{3}\b)/g, "").replace(",", "."));
-    if (Number.isFinite(n) && n >= 20 && n <= 50000) nums.push(n);
+// FX → EUR (approx, refreshed periodically).
+const FX_TO_EUR: Record<string, number> = {
+  EUR: 1, USD: 0.92, GBP: 1.17, CHF: 1.04, DKK: 0.134, SEK: 0.087, NOK: 0.086,
+  CAD: 0.68, MXN: 0.053, AUD: 0.61, JPY: 0.0062, BRL: 0.18,
+};
+const SYMBOL_TO_CCY: Array<[RegExp, string]> = [
+  [/€/, "EUR"], [/£/, "GBP"], [/\$/, "USD"],
+];
+// Hospitality / VIP / bundle markers — exclude any price whose context contains these.
+const HOSPITALITY_RE = /\b(hospitality|vip|lounge|suite|skybox|business\s+seat|premium\s+experience|premium\s+lounge|package|bundle|club\s+lounge|all[\s-]?inclusive|3[\s-]?course|food\s+and\s+beverage|champagne|hosted\s+experience)\b/i;
+
+const parsePriceNumber = (raw: string): number | null => {
+  const cleaned = raw.replace(/\s+/g, "");
+  if (cleaned.includes(",") && cleaned.includes(".")) {
+    const dec = cleaned.lastIndexOf(",") > cleaned.lastIndexOf(".") ? "," : ".";
+    const thou = dec === "," ? "." : ",";
+    const n = Number(cleaned.replaceAll(thou, "").replace(dec, "."));
+    return Number.isFinite(n) ? n : null;
   }
-  if (!nums.length) return null;
-  return Math.min(...nums);
+  if (cleaned.includes(",")) {
+    const parts = cleaned.split(",");
+    if (parts.length === 2 && parts[1].length === 2) {
+      const n = Number(parts[0] + "." + parts[1]);
+      return Number.isFinite(n) ? n : null;
+    }
+    return Number(cleaned.replaceAll(",", "")) || null;
+  }
+  if (cleaned.includes(".")) {
+    const parts = cleaned.split(".");
+    if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+      return Number(cleaned.replaceAll(".", "")) || null;
+    }
+  }
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : null;
+};
+
+// Cheapest STANDARD single-ticket price in EUR from page markdown.
+const cheapestStandardPriceEUR = (md: string): { eur: number; raw: number; ccy: string } | null => {
+  if (!md) return null;
+  const re = /(€|£|\$)\s?([0-9][0-9.,]{0,9})|([0-9][0-9.,]{0,9})\s?(€|£|\$|EUR|USD|GBP)\b/gi;
+  let best: { eur: number; raw: number; ccy: string } | null = null;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(md)) !== null) {
+    const sym = (m[1] ?? m[4] ?? "").trim();
+    const raw = m[2] ?? m[3] ?? "";
+    let ccy: string | null = null;
+    for (const [rgx, c] of SYMBOL_TO_CCY) if (rgx.test(sym)) { ccy = c; break; }
+    if (!ccy) {
+      const u = sym.toUpperCase();
+      if (FX_TO_EUR[u]) ccy = u;
+    }
+    if (!ccy) continue;
+    const n = parsePriceNumber(raw);
+    if (n == null) continue;
+    const eur = n * (FX_TO_EUR[ccy] ?? 1);
+    if (eur < 40 || eur > 4000) continue;
+    const start = Math.max(0, m.index - 120);
+    const end = Math.min(md.length, m.index + (m[0]?.length ?? 0) + 120);
+    if (HOSPITALITY_RE.test(md.slice(start, end))) continue;
+    if (!best || eur < best.eur) best = { eur: Math.round(eur), raw: n, ccy };
+  }
+  return best;
 };
 
 const validateAndUpsert = async (
@@ -239,6 +289,10 @@ const validateAndUpsert = async (
   if (!stadium) throw new Error(`stadium_unresolved:${ex.stadium_name}`);
   const s = stadium as { id: string; slug: string; stadium_name: string; city: string | null; country: string | null };
 
+  // Parse + validate kickoff before using it.
+  const kickoff = new Date(ex.kickoff_iso!);
+  if (isNaN(kickoff.getTime())) throw new Error(`bad_kickoff_iso:${ex.kickoff_iso}`);
+
   // Resolve canonical FIFA match
   const windowMs = 6 * 3600 * 1000;
   const { data: candidates } = await admin
@@ -266,14 +320,22 @@ const validateAndUpsert = async (
 
   if (!match_id) throw new Error("no_match_candidate");
 
-  // Quantity-aware price: prefer the structured value; fall back to markdown min.
-  const mdMin = minPriceFromMarkdown(markdown);
-  let single = ex.lowest_single_ticket_price ?? null;
-  if (single == null || !Number.isFinite(single) || single <= 0) single = mdMin;
-  // Sanity: if structured value is suspiciously high vs markdown min, prefer markdown.
-  if (single != null && mdMin != null && mdMin > 0 && single > mdMin * 1.25) single = mdMin;
-  if (single == null) throw new Error("no_visible_ticket_price");
-  if (!Number.isFinite(single) || single <= 0) throw new Error("invalid_price");
+  // Price: trust the markdown-based hospitality-filtered scan as primary.
+  // The LLM payload often leaks VIP / bundle averages, so use it only when
+  // the markdown scan finds nothing and the LLM value is in a sane range.
+  const mdScan = cheapestStandardPriceEUR(markdown);
+  let priceEur: number | null = mdScan?.eur ?? null;
+  let priceCcy = mdScan?.ccy ?? "EUR";
+  let priceSource: "markdown_eur_min" | "llm_fallback" | null = mdScan ? "markdown_eur_min" : null;
+  if (priceEur == null && typeof ex.lowest_single_ticket_price === "number") {
+    const v = ex.lowest_single_ticket_price;
+    if (Number.isFinite(v) && v >= 40 && v <= 4000) {
+      priceEur = Math.round(v);
+      priceCcy = (ex.currency ?? "EUR").toUpperCase();
+      priceSource = "llm_fallback";
+    }
+  }
+  if (priceEur == null) throw new Error("no_visible_ticket_price");
 
   const event_slug = `ticombo-${provider_event_id.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const row = {
@@ -290,11 +352,15 @@ const validateAndUpsert = async (
     stadium_name: s.stadium_name,
     city: s.city,
     country: s.country,
-    starting_price: single,
-    lowest_single_ticket_price: single,
+    starting_price: priceEur,
+    lowest_single_ticket_price: priceEur,
     quantity_basis: 1,
-    currency: ex.currency ?? "EUR",
+    currency: "EUR",
+    price_source: priceSource,
+    price_confidence: priceSource === "markdown_eur_min" ? "high" : "medium",
+    last_price_check: new Date().toISOString(),
     image_url: ex.image_url ?? null,
+
     match_id,
     kind: "resale",
     ticket_source_type: "event_page",
@@ -357,7 +423,9 @@ const validateAndUpsert = async (
     match_id,
     link_confidence,
     stadium_confidence,
-    price_eur: single,
+    price_eur: priceEur,
+    price_source: priceSource,
+
     upsertResult,
     archived_generic,
   };
@@ -395,7 +463,7 @@ Deno.serve(async (req) => {
           teams: [ex.home_team, ex.away_team],
           group_code: ex.group_code,
           price_payload: ex.lowest_single_ticket_price,
-          md_min_price: minPriceFromMarkdown(markdown),
+          md_min_price: cheapestStandardPriceEUR(markdown)?.eur ?? null,
           image_url: ex.image_url ?? null,
         };
         const meta = await validateAndUpsert(admin, q.url, ex, markdown);
