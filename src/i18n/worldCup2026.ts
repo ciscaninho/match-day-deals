@@ -40,6 +40,24 @@ export type WorldCup2026Copy = {
   phase_3p: string;
   phase_final: string;
   team_tbd: string;
+  search_placeholder: string;
+  filter_team: string;
+  filter_group: string;
+  filter_country: string;
+  filter_stadium: string;
+  all_teams: string;
+  all_groups: string;
+  all_countries: string;
+  all_stadiums: string;
+  sort_label: string;
+  sort_date_asc: string;
+  sort_date_desc: string;
+  sort_price_asc: string;
+  sort_price_desc: string;
+  results_count_one: string;
+  results_count_other: string;
+  no_results: string;
+  reset_filters: string;
 };
 
 const COPY: Record<Locale, WorldCup2026Copy> = {
