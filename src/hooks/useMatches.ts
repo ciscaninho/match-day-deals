@@ -38,13 +38,8 @@ export const isPubliclyVisibleMatchRow = (row: MatchRow): boolean =>
   row.home_team_status !== "tbd" &&
   row.away_team_status !== "tbd";
 
-const isProjectedOrTbdStatus = (s?: string | null) =>
-  s === "tbd" || s === "projected";
+// (legacy publish-ready check kept as alias below — see end of file)
 
-export const isPublishReadyMatchRow = (row: MatchRow): boolean =>
-  !isProjectedOrTbdStatus(row.home_team_status) &&
-  !isProjectedOrTbdStatus(row.away_team_status) &&
-  row.fixture_confidence !== "projected";
 
 const mapRow = (row: MatchRow): Match => {
   const archivedAt = row.archived_at ?? null;
