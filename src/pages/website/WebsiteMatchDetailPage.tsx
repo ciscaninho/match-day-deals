@@ -241,6 +241,7 @@ const WebsiteMatchDetailPage = () => {
 
   return (
     <WebsiteLayout>
+      {showNoIndex && <NoIndex />}
       {/* CINEMATIC HERO */}
       <ImmersiveMatchHero match={match} stadium={dbStadium} backHref="/matches" />
 
