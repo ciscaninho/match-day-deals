@@ -115,8 +115,8 @@ export const useMatch = (id: string | undefined, opts?: { allowDraft?: boolean }
   const allowDraft = !!opts?.allowDraft;
   return useQuery({
     queryKey: ["match", id, allowDraft],
-    queryFn: async (): Promise<UseMatchResult> => {
-      if (!id) return { match: null, isDraftOrProjected: false };
+    queryFn: async (): Promise<Match | null> => {
+      if (!id) return null;
       const { data, error } = await supabase
         .from("matches")
         .select("*")
@@ -126,18 +126,42 @@ export const useMatch = (id: string | undefined, opts?: { allowDraft?: boolean }
         console.error("Erreur Supabase:", error);
         throw error;
       }
-      if (!data) return { match: null, isDraftOrProjected: false };
+      if (!data) return null;
       const row = data as MatchRow;
-      const visible = isPubliclyVisibleMatchRow(row) && !isPublishReadyMatchRowIsTbd(row);
-      const draftOrProjected = !visible;
-      if (!visible && !allowDraft) return { match: null, isDraftOrProjected: true };
+      const visible = isPubliclyVisibleMatchRow(row);
+      if (!visible && !allowDraft) return null;
       const m = mapRow(row);
-      if (isTbdMatch(m) && !allowDraft) return { match: null, isDraftOrProjected: true };
-      return { match: m, isDraftOrProjected: draftOrProjected };
+      if (isTbdMatch(m) && !allowDraft) return null;
+      return m;
     },
     enabled: !!id,
   });
 };
 
-const isPublishReadyMatchRowIsTbd = (row: MatchRow): boolean =>
-  row.home_team_status === "tbd" || row.away_team_status === "tbd";
+// Lightweight gate hook: returns whether a fixture exists but is draft/projected
+// (so the detail page can render a 404 for non-admin visitors while still
+// allowing admin previews via useMatch(id, { allowDraft: true })).
+export const useMatchAccess = (id: string | undefined) => {
+  return useQuery({
+    queryKey: ["match-access", id],
+    queryFn: async () => {
+      if (!id) return { exists: false, isDraftOrProjected: false };
+      const { data } = await supabase
+        .from("matches")
+        .select("id,publication_status,fixture_confidence,home_team_status,away_team_status")
+        .eq("id", id)
+        .maybeSingle();
+      if (!data) return { exists: false, isDraftOrProjected: false };
+      const row = data as MatchRow;
+      return {
+        exists: true,
+        isDraftOrProjected: !isPubliclyVisibleMatchRow(row),
+      };
+    },
+    enabled: !!id,
+  });
+};
+
+// Backwards-compat alias used elsewhere in the codebase.
+export const isPublishReadyMatchRow = isPubliclyVisibleMatchRow;
+
