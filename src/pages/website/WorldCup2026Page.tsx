@@ -768,8 +768,14 @@ const WorldCup2026Page = () => {
             </div>
           </div>
         </section>
-      </div>
-    </WebsiteLayout>
+
+        <section className="px-5 sm:px-8 lg:px-12 pb-16">
+          <div className="max-w-2xl mx-auto">
+            <NewsletterCTA source="world_cup_2026" />
+          </div>
+        </section>
+       </div>
+     </WebsiteLayout>
   );
 };
 
