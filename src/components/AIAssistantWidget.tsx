@@ -29,6 +29,7 @@ export const AIAssistantWidget = () => {
   const navigate = useNavigate();
   const { data: matches = [] } = useMatches();
   const { data: stadiums = [] } = useStadiums();
+  const { data: wcMatches = [] } = useWorldCupMatches();
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
