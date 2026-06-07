@@ -186,6 +186,7 @@ const App = () => (
               <Route path="/app/admin/stadium-map-review" element={<Navigate to="/admin/stadium-map-review" replace />} />
               <Route path="/app/admin/stadium-media-sync" element={<Navigate to="/admin/stadium-media-sync" replace />} />
 
+              <Route path="/go/:shortId" element={<GoRedirectPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AIAssistantWidget />
