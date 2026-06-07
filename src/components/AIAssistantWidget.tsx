@@ -13,6 +13,7 @@ import { useMatches } from "@/hooks/useMatches";
 import { useStadiums } from "@/hooks/useStadium";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 type Msg = { role: "user" | "assistant"; content: string };
