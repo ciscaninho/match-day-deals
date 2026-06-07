@@ -192,8 +192,16 @@ const WebsiteMatchDetailPage = () => {
   if (!match) {
     return (
       <WebsiteLayout>
+        <NoIndex />
         <div className="max-w-4xl mx-auto px-5 py-20 text-center">
-          <h1 className="text-2xl font-extrabold text-[#2C3E50]">{t("md.not_found")}</h1>
+          <h1 className="text-2xl font-extrabold text-[#2C3E50]">
+            {access?.isDraftOrProjected ? "Match not yet confirmed" : t("md.not_found")}
+          </h1>
+          {access?.isDraftOrProjected && (
+            <p className="mt-2 text-sm text-[#2C3E50]/70">
+              This fixture is not publicly available yet. Teams have not been confirmed.
+            </p>
+          )}
           <Link to="/matches" className="mt-4 inline-flex items-center gap-2 text-[#2ECC71] font-bold">
             <ArrowLeft className="w-4 h-4" /> {t("md.back_to_matches")}
           </Link>
@@ -201,6 +209,10 @@ const WebsiteMatchDetailPage = () => {
       </WebsiteLayout>
     );
   }
+
+  // Admin previewing a draft/projected fixture — render normally but block indexing.
+  const showNoIndex = isAdmin && access?.isDraftOrProjected;
+
 
   const fallbackStadium = stadiumInfo(match.stadium || "");
   const stadium = dbStadium
