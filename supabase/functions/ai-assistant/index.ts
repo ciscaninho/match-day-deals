@@ -138,8 +138,30 @@ serve(async (req) => {
     };
     const langName = langNames[language] || "English";
 
+    // Pull curated knowledge entries (admin-maintained, structured).
+    let knowledgeBlock = "";
+    try {
+      const SB_URL = Deno.env.get("SUPABASE_URL");
+      const SB_ANON = Deno.env.get("SUPABASE_ANON_KEY");
+      if (SB_URL && SB_ANON) {
+        const kbRes = await fetch(
+          `${SB_URL}/rest/v1/assistant_knowledge?select=topic,title,body,priority&is_published=eq.true&order=priority.desc&limit=40`,
+          { headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` } },
+        );
+        if (kbRes.ok) {
+          const rows = await kbRes.json() as Array<{ topic: string; title: string; body: string }>;
+          if (Array.isArray(rows) && rows.length > 0) {
+            knowledgeBlock = "\n\nCURATED KNOWLEDGE BASE (authoritative — prefer this over training data; surface relevant links to /matches/{id}, /world-cup-2026, /world-cup-2026/stadiums, /stadiums/{slug} when appropriate):\n" +
+              rows.map((r) => `- [${r.topic}] ${r.title}\n  ${r.body}`).join("\n");
+          }
+        }
+      }
+    } catch (_e) {
+      /* fall back to no KB block */
+    }
+
     const nowIso = context?.nowIso || new Date().toISOString();
-    const contextBlock = `\n\nCURRENT USER CONTEXT:\n- Language: ${langName} (code: ${language || "en"}) — YOU MUST REPLY IN ${langName.toUpperCase()} ONLY.\n- Current page: ${context?.currentPage || "unknown"}\n- User type: ${context?.userType || "free"}\n- nowIso: ${nowIso}\n${context?.matchInfo ? `- Viewing match: ${context.matchInfo}` : ""}\n${context?.matchesSummary ? `\nUPCOMING MATCHES DATA (JSON array — source of truth):\n${context.matchesSummary}` : "\n(No upcoming match data was provided.)"}\n${context?.stadiumsSummary ? `\nSTADIUMS INTELLIGENCE DATA (JSON array — source of truth for stadium questions like "best atmosphere", "best family stadium", "best visibility", "cheapest big atmosphere stadium". Scores are 0-10. Always link to /stadiums/{slug} when recommending a stadium):\n${context.stadiumsSummary}` : ""}\n\nREMINDER: Read the full prior conversation above and carry forward city, teams, budget, dates the user already mentioned. Do not re-ask. End with a short follow-up question OR a subtle premium suggestion when natural.`;
+    const contextBlock = `\n\nCURRENT USER CONTEXT:\n- Language: ${langName} (code: ${language || "en"}) — YOU MUST REPLY IN ${langName.toUpperCase()} ONLY.\n- Current page: ${context?.currentPage || "unknown"}\n- User type: ${context?.userType || "free"}\n- nowIso: ${nowIso}\n${context?.matchInfo ? `- Viewing match: ${context.matchInfo}` : ""}\n${context?.matchesSummary ? `\nUPCOMING MATCHES DATA (JSON array — source of truth):\n${context.matchesSummary}` : "\n(No upcoming match data was provided.)"}\n${context?.stadiumsSummary ? `\nSTADIUMS INTELLIGENCE DATA (JSON array — source of truth for stadium questions like "best atmosphere", "best family stadium", "best visibility", "cheapest big atmosphere stadium". Scores are 0-10. Always link to /stadiums/{slug} when recommending a stadium):\n${context.stadiumsSummary}` : ""}${knowledgeBlock}\n\nREMINDER: Read the full prior conversation above and carry forward city, teams, budget, dates the user already mentioned. Do not re-ask. End with a short follow-up question OR a subtle premium suggestion when natural.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
