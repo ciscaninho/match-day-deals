@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, Megaphone, Sparkles, TrendingUp } from "lucide-react";
+import { BarChart3, Link2, Megaphone, Sparkles, TrendingUp } from "lucide-react";
 
 const ranges = [
   { id: "today", label: "Today", days: 0 },
@@ -33,6 +33,7 @@ const AdminMarketingLayout = () => {
   const tabs = [
     { to: "/admin/marketing", end: true, label: "Funnel", icon: BarChart3 },
     { to: "/admin/marketing/content", label: "Content", icon: TrendingUp },
+    { to: "/admin/marketing/affiliate", label: "Affiliate Links", icon: Link2 },
     { to: "/admin/marketing/campaigns", label: "Campaigns", icon: Megaphone },
     { to: "/admin/marketing/knowledge", label: "Assistant KB", icon: Sparkles },
   ];
