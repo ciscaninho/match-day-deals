@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, Megaphone, Sparkles, TrendingUp } from "lucide-react";
+import { BarChart3, Link2, Megaphone, Sparkles, TrendingUp } from "lucide-react";
 
 const ranges = [
   { id: "today", label: "Today", days: 0 },
