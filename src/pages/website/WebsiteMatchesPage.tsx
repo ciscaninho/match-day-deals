@@ -7,6 +7,7 @@ import { useSEO } from "@/lib/seo";
 import { SmartSearch } from "@/components/SmartSearch";
 import { filterMatchesByQuery, buildRecommendations } from "@/lib/smartSearch";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { trackEvent } from "@/lib/analytics";
 
 const WebsiteMatchesPage = () => {
   const { t } = useLanguage();
