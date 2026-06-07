@@ -10,6 +10,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { useUser } from "@/contexts/UserContext";
 import { useAssistantSettings } from "@/hooks/useAssistantSettings";
 import { useMatches } from "@/hooks/useMatches";
+import { useWorldCupMatches } from "@/hooks/useWorldCupMatches";
 import { useStadiums } from "@/hooks/useStadium";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
