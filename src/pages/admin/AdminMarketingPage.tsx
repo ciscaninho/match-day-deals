@@ -33,6 +33,7 @@ const AdminMarketingLayout = () => {
   const tabs = [
     { to: "/admin/marketing", end: true, label: "Funnel", icon: BarChart3 },
     { to: "/admin/marketing/content", label: "Content", icon: TrendingUp },
+    { to: "/admin/marketing/affiliate", label: "Affiliate Links", icon: Link2 },
     { to: "/admin/marketing/campaigns", label: "Campaigns", icon: Megaphone },
     { to: "/admin/marketing/knowledge", label: "Assistant KB", icon: Sparkles },
   ];
