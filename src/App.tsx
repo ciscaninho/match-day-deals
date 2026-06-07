@@ -168,8 +168,10 @@ const App = () => (
                   <Route index element={<AdminMarketingFunnelPage />} />
                   <Route path="content" element={<AdminMarketingContentPage />} />
                   <Route path="campaigns" element={<AdminMarketingCampaignsPage />} />
+                  <Route path="affiliate" element={<AdminMarketingAffiliatePage />} />
                   <Route path="knowledge" element={<AdminAssistantKnowledgePage />} />
                 </Route>
+
 
                 <Route path="legacy" element={<AdminLegacyPage />} />
               </Route>
