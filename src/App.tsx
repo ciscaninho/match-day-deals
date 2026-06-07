@@ -45,6 +45,7 @@ import AdminAuditPage from "./pages/admin/AdminAuditPage";
 import AdminWorldCup2026Page from "./pages/admin/AdminWorldCup2026Page";
 import AdminMarketingLayout, { AdminMarketingFunnelPage, AdminMarketingContentPage } from "./pages/admin/AdminMarketingPage";
 import AdminMarketingCampaignsPage from "./pages/admin/AdminMarketingCampaignsPage";
+import AdminMarketingAffiliatePage from "./pages/admin/AdminMarketingAffiliatePage";
 import AdminAssistantKnowledgePage from "./pages/admin/AdminAssistantKnowledgePage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
