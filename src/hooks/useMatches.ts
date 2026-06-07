@@ -141,5 +141,3 @@ export const useMatch = (id: string | undefined, opts?: { allowDraft?: boolean }
 
 const isPublishReadyMatchRowIsTbd = (row: MatchRow): boolean =>
   row.home_team_status === "tbd" || row.away_team_status === "tbd";
-
-};
