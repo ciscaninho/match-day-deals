@@ -272,6 +272,9 @@ export const AIAssistantWidget = () => {
     if (!href) return;
     if (href.startsWith("/") && !href.startsWith("//")) {
       e.preventDefault();
+      if (/^\/matches?\//.test(href)) {
+        try { trackEvent("chatbot_match_result_click", { href }); } catch { /* noop */ }
+      }
       navigate(href);
       setOpen(false);
     }
