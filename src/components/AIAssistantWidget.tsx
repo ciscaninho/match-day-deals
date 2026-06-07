@@ -38,6 +38,8 @@ export const AIAssistantWidget = () => {
   const [showEscalation, setShowEscalation] = useState(false);
   const [escalationMsg, setEscalationMsg] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<Msg[]>([]);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   // Reset greeting when locale changes (so the welcome message switches language live)
   useEffect(() => {
