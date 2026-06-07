@@ -38,6 +38,8 @@ export const AIAssistantWidget = () => {
   const [showEscalation, setShowEscalation] = useState(false);
   const [escalationMsg, setEscalationMsg] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<Msg[]>([]);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   // Reset greeting when locale changes (so the welcome message switches language live)
   useEffect(() => {
@@ -204,17 +206,40 @@ export const AIAssistantWidget = () => {
     }
   };
 
+  // Heuristic: does this user message look like a World Cup match-discovery query?
+  const WC_INTENT_RE = /world\s*cup|coupe\s*du\s*monde|mondial|mundial|group\s*[a-l]\b|groupe\s*[a-l]\b|metlife|sofi|azteca|mercedes-benz|at&t stadium|hard rock|arrowhead|nrg|levi'?s|gillette|lincoln financial|lumen field|bmo field|bc place|estadio|stadium|stadion|when does|quand joue|matches? (in|at|of)|fixtures? (in|at|of)|qui joue/i;
+  const TEAM_RE = /\b(france|belgium|brazil|argentina|germany|spain|england|portugal|netherlands|croatia|japan|south korea|saudi arabia|qatar|ecuador|colombia|morocco|senegal|usa|united states|canada|mexico|uruguay|switzerland|denmark|poland|serbia|cameroon|ghana|tunisia|iran|australia|wales|costa rica|peru|chile|paraguay|new zealand|haiti|jamaica)\b/i;
+  const detectWcIntent = (text: string) => WC_INTENT_RE.test(text) || TEAM_RE.test(text);
+
+  const NO_RESULT_MARKERS = [
+    "no confirmed world cup 2026 fixture",
+    "aucun match",
+    "n'est confirmé",
+  ];
+
   const sendPrompt = async (text: string) => {
     if (!text.trim() || sending) return;
     const next: Msg[] = [...messages, { role: "user", content: text.trim() }];
     setMessages(next);
     setInput("");
     setSending(true);
+    const wcIntent = detectWcIntent(text);
     try {
       trackEvent("chatbot_message", { length: text.trim().length });
+      if (wcIntent) {
+        trackEvent("chatbot_match_search", { query: text.trim().slice(0, 200) });
+      }
     } catch { /* noop */ }
     try {
       await streamChat(next);
+      if (wcIntent) {
+        try {
+          const last = (messagesRef.current?.[messagesRef.current.length - 1]?.content || "").toLowerCase();
+          if (NO_RESULT_MARKERS.some((m) => last.includes(m))) {
+            trackEvent("chatbot_no_result", { query: text.trim().slice(0, 200) });
+          }
+        } catch { /* noop */ }
+      }
     } catch (e: any) {
       setMessages((prev) => [...prev, { role: "assistant", content: e.message || t("ai.fallback") }]);
     } finally {
@@ -247,6 +272,9 @@ export const AIAssistantWidget = () => {
     if (!href) return;
     if (href.startsWith("/") && !href.startsWith("//")) {
       e.preventDefault();
+      if (/^\/matches?\//.test(href)) {
+        try { trackEvent("chatbot_match_result_click", { href }); } catch { /* noop */ }
+      }
       navigate(href);
       setOpen(false);
     }

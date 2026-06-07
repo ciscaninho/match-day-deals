@@ -25,18 +25,23 @@ export const useWorldCupMatches = () => {
       const { data, error } = await supabase
         .from("matches")
         .select(
-          "id,home_team,away_team,date,stadium,city,country,phase,group_code,matchday,starting_price,ticket_status,ticombo_url,fixture_confidence,home_team_status,away_team_status,archived_at",
+          "id,home_team,away_team,date,stadium,city,country,phase,group_code,matchday,starting_price,ticket_status,ticombo_url,fixture_confidence,home_team_status,away_team_status,archived_at,publication_status",
         )
         .eq("competition", WC_COMPETITION)
+        .eq("publication_status", "published")
+        .eq("fixture_confidence", "confirmed")
         .is("archived_at", null)
         .order("date", { ascending: true });
       if (error) throw error;
       return (data || [])
         .filter(
           (r: any) =>
-            r.fixture_confidence !== "projected" &&
             r.home_team_status === "confirmed" &&
-            r.away_team_status === "confirmed",
+            r.away_team_status === "confirmed" &&
+            r.home_team &&
+            r.away_team &&
+            !/tbd/i.test(r.home_team) &&
+            !/tbd/i.test(r.away_team),
         )
         .map((r: any) => ({
           id: r.id,

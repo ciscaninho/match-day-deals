@@ -24,6 +24,9 @@ export type AnalyticsEventType =
   | "affiliate_redirect"
   | "chatbot_open"
   | "chatbot_message"
+  | "chatbot_match_search"
+  | "chatbot_match_result_click"
+  | "chatbot_no_result"
   | "newsletter_signup";
 
 export interface AnalyticsEventProps {
