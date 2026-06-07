@@ -6,6 +6,7 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { inspectAffiliateUrl } from "@/lib/affiliate";
+import { trackEvent } from "@/lib/analytics";
 
 export type AffiliateEventType =
   | "ticket_click"
