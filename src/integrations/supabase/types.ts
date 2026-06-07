@@ -198,6 +198,135 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          away_team: string | null
+          browser: string | null
+          campaign_id: string | null
+          competition: string | null
+          country: string | null
+          created_at: string
+          device: string | null
+          event_type: string
+          home_team: string | null
+          host_city: string | null
+          host_country: string | null
+          id: string
+          language: string | null
+          match_id: string | null
+          os: string | null
+          page_path: string | null
+          page_url: string | null
+          props: Json
+          referrer: string | null
+          session_id: string | null
+          stadium: string | null
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          away_team?: string | null
+          browser?: string | null
+          campaign_id?: string | null
+          competition?: string | null
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          event_type: string
+          home_team?: string | null
+          host_city?: string | null
+          host_country?: string | null
+          id?: string
+          language?: string | null
+          match_id?: string | null
+          os?: string | null
+          page_path?: string | null
+          page_url?: string | null
+          props?: Json
+          referrer?: string | null
+          session_id?: string | null
+          stadium?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          away_team?: string | null
+          browser?: string | null
+          campaign_id?: string | null
+          competition?: string | null
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          event_type?: string
+          home_team?: string | null
+          host_city?: string | null
+          host_country?: string | null
+          id?: string
+          language?: string | null
+          match_id?: string | null
+          os?: string | null
+          page_path?: string | null
+          page_url?: string | null
+          props?: Json
+          referrer?: string | null
+          session_id?: string | null
+          stadium?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: []
+      }
+      assistant_knowledge: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_published: boolean
+          locale: string
+          priority: number
+          title: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          locale?: string
+          priority?: number
+          title: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          locale?: string
+          priority?: number
+          title?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       assistant_settings: {
         Row: {
           display_name: string
@@ -465,6 +594,66 @@ export type Database = {
           publication_status?: string
           slug?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      marketing_campaigns: {
+        Row: {
+          archived_at: string | null
+          competition: string | null
+          created_at: string
+          created_by: string | null
+          creator_name: string | null
+          id: string
+          match_id: string | null
+          name: string
+          notes: string | null
+          platform: string
+          short_id: string
+          target_path: string
+          updated_at: string
+          utm_campaign: string
+          utm_content: string | null
+          utm_medium: string
+          utm_source: string
+        }
+        Insert: {
+          archived_at?: string | null
+          competition?: string | null
+          created_at?: string
+          created_by?: string | null
+          creator_name?: string | null
+          id?: string
+          match_id?: string | null
+          name: string
+          notes?: string | null
+          platform: string
+          short_id: string
+          target_path?: string
+          updated_at?: string
+          utm_campaign: string
+          utm_content?: string | null
+          utm_medium: string
+          utm_source: string
+        }
+        Update: {
+          archived_at?: string | null
+          competition?: string | null
+          created_at?: string
+          created_by?: string | null
+          creator_name?: string | null
+          id?: string
+          match_id?: string | null
+          name?: string
+          notes?: string | null
+          platform?: string
+          short_id?: string
+          target_path?: string
+          updated_at?: string
+          utm_campaign?: string
+          utm_content?: string | null
+          utm_medium?: string
+          utm_source?: string
         }
         Relationships: []
       }
@@ -765,6 +954,51 @@ export type Database = {
           ticombo_url?: string | null
           updated_at?: string | null
           verified?: boolean | null
+        }
+        Relationships: []
+      }
+      newsletter_signups: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          email: string
+          favourite_team: string | null
+          id: string
+          language: string | null
+          page_path: string | null
+          source: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          email: string
+          favourite_team?: string | null
+          id?: string
+          language?: string | null
+          page_path?: string | null
+          source?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          email?: string
+          favourite_team?: string | null
+          id?: string
+          language?: string | null
+          page_path?: string | null
+          source?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }
