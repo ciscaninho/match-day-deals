@@ -13,6 +13,7 @@ import { transformAffiliateUrl } from "@/lib/affiliate";
 import { trackAffiliateClick } from "@/lib/affiliateTracking";
 import type { Locale } from "@/i18n/translations";
 import type { Database } from "@/integrations/supabase/types";
+import { NewsletterCTA } from "@/components/marketing/NewsletterCTA";
 
 type Host = {
   slug: string;
