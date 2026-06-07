@@ -21,6 +21,7 @@ const AdminShell = () => {
     { to: "/admin/match-review", label: t("admin.nav.match_review"), icon: ListChecks },
     { to: "/admin/leagues", label: t("admin.nav.leagues"), icon: Trophy },
     { to: "/admin/world-cup-2026", label: "World Cup 2026", icon: Globe },
+    { to: "/admin/marketing", label: "Marketing Hub", icon: Megaphone },
     { to: "/admin/ticketing", label: t("admin.nav.ticketing"), icon: Ticket },
     { to: "/admin/media", label: t("admin.nav.media"), icon: ImageIcon },
     { to: "/admin/map", label: t("admin.nav.map"), icon: MapIcon },
