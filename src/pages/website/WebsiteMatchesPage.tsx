@@ -139,6 +139,11 @@ const WebsiteMatchesPage = () => {
               <Link
                 key={m.id}
                 to={`/matches/${m.id}`}
+                onClick={() => trackEvent("match_card_click", {
+                  match_id: m.id, competition: m.competition,
+                  home_team: m.homeTeam, away_team: m.awayTeam,
+                  host_city: m.city, stadium: m.stadium,
+                })}
                 className="rounded-2xl bg-white border border-slate-200 p-5 hover:border-[#2ECC71]/40 hover:shadow-xl transition group"
               >
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#2C3E50]/50">{m.competition}</span>
