@@ -88,6 +88,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <ScrollToTop />
+            <AnalyticsTracker />
             <AuthGateProvider>
             <PremiumGateProvider>
             <TrackPriceSheetProvider>
