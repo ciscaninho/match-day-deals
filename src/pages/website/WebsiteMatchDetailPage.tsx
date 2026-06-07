@@ -123,7 +123,9 @@ const WebsiteMatchDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { data: match, isLoading } = useMatch(id);
+  const { isAdmin } = useAuth();
+  const { data: access } = useMatchAccess(id);
+  const { data: match, isLoading } = useMatch(id, { allowDraft: isAdmin });
   const { data: allMatches = [] } = useMatches();
   const { data: offers = [] } = useTicketOffers(id);
   const { data: tmEvent } = useTicketmasterEvent(match?.homeTeam ?? "", match?.awayTeam ?? "");
