@@ -106,11 +106,17 @@ export const useMatches = () => {
 };
 
 
-export const useMatch = (id: string | undefined) => {
+export interface UseMatchResult {
+  match: Match | null;
+  isDraftOrProjected: boolean;
+}
+
+export const useMatch = (id: string | undefined, opts?: { allowDraft?: boolean }) => {
+  const allowDraft = !!opts?.allowDraft;
   return useQuery({
-    queryKey: ["match", id],
-    queryFn: async (): Promise<Match | null> => {
-      if (!id) return null;
+    queryKey: ["match", id, allowDraft],
+    queryFn: async (): Promise<UseMatchResult> => {
+      if (!id) return { match: null, isDraftOrProjected: false };
       const { data, error } = await supabase
         .from("matches")
         .select("*")
@@ -120,12 +126,20 @@ export const useMatch = (id: string | undefined) => {
         console.error("Erreur Supabase:", error);
         throw error;
       }
-      if (!data) return null;
+      if (!data) return { match: null, isDraftOrProjected: false };
       const row = data as MatchRow;
-      if (!isPublishReadyMatchRow(row)) return null;
+      const visible = isPubliclyVisibleMatchRow(row) && !isPublishReadyMatchRowIsTbd(row);
+      const draftOrProjected = !visible;
+      if (!visible && !allowDraft) return { match: null, isDraftOrProjected: true };
       const m = mapRow(row);
-      return isTbdMatch(m) ? null : m;
+      if (isTbdMatch(m) && !allowDraft) return { match: null, isDraftOrProjected: true };
+      return { match: m, isDraftOrProjected: draftOrProjected };
     },
     enabled: !!id,
   });
+};
+
+const isPublishReadyMatchRowIsTbd = (row: MatchRow): boolean =>
+  row.home_team_status === "tbd" || row.away_team_status === "tbd";
+
 };
