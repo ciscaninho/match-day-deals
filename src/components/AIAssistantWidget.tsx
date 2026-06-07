@@ -13,6 +13,7 @@ import { useMatches } from "@/hooks/useMatches";
 import { useStadiums } from "@/hooks/useStadium";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -187,6 +188,9 @@ export const AIAssistantWidget = () => {
     setInput("");
     setSending(true);
     try {
+      trackEvent("chatbot_message", { length: text.trim().length });
+    } catch { /* noop */ }
+    try {
       await streamChat(next);
     } catch (e: any) {
       setMessages((prev) => [...prev, { role: "assistant", content: e.message || t("ai.fallback") }]);
@@ -231,7 +235,7 @@ export const AIAssistantWidget = () => {
     <>
       {!open && (
         <button
-          onClick={() => setOpen(true)}
+          onClick={() => { setOpen(true); trackEvent("chatbot_open"); }}
           aria-label={t("ai.open")}
           className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform md:bottom-6 md:right-6"
         >

@@ -13,6 +13,7 @@ import { transformAffiliateUrl } from "@/lib/affiliate";
 import { trackAffiliateClick } from "@/lib/affiliateTracking";
 import type { Locale } from "@/i18n/translations";
 import type { Database } from "@/integrations/supabase/types";
+import { NewsletterCTA } from "@/components/marketing/NewsletterCTA";
 
 type Host = {
   slug: string;
@@ -768,8 +769,14 @@ const WorldCup2026Page = () => {
             </div>
           </div>
         </section>
-      </div>
-    </WebsiteLayout>
+
+        <section className="px-5 sm:px-8 lg:px-12 pb-16">
+          <div className="max-w-2xl mx-auto">
+            <NewsletterCTA source="world_cup_2026" />
+          </div>
+        </section>
+       </div>
+     </WebsiteLayout>
   );
 };
 

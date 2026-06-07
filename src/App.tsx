@@ -43,6 +43,9 @@ import AdminLegacyPage from "./pages/admin/AdminLegacyPage";
 import AdminWorldMapPage from "./pages/admin/AdminWorldMapPage";
 import AdminAuditPage from "./pages/admin/AdminAuditPage";
 import AdminWorldCup2026Page from "./pages/admin/AdminWorldCup2026Page";
+import AdminMarketingLayout, { AdminMarketingFunnelPage, AdminMarketingContentPage } from "./pages/admin/AdminMarketingPage";
+import AdminMarketingCampaignsPage from "./pages/admin/AdminMarketingCampaignsPage";
+import AdminAssistantKnowledgePage from "./pages/admin/AdminAssistantKnowledgePage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
@@ -66,6 +69,8 @@ import { AuthGateProvider } from "./components/auth/AuthGate";
 import { PremiumGateProvider } from "./components/premium/PremiumGate";
 import { TrackPriceSheetProvider } from "./components/track/TrackPriceSheet";
 import ScrollToTop from "./components/ScrollToTop";
+import { AnalyticsTracker } from "./hooks/useAnalyticsTracking";
+import GoRedirectPage from "./pages/GoRedirectPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,6 +91,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <ScrollToTop />
+            <AnalyticsTracker />
             <AuthGateProvider>
             <PremiumGateProvider>
             <TrackPriceSheetProvider>
@@ -157,6 +163,13 @@ const App = () => (
                 <Route path="world-cup-2026" element={<AdminWorldCup2026Page />} />
                 <Route path="world-cup-2026/:tab" element={<AdminWorldCup2026Page />} />
 
+                <Route path="marketing" element={<AdminMarketingLayout />}>
+                  <Route index element={<AdminMarketingFunnelPage />} />
+                  <Route path="content" element={<AdminMarketingContentPage />} />
+                  <Route path="campaigns" element={<AdminMarketingCampaignsPage />} />
+                  <Route path="knowledge" element={<AdminAssistantKnowledgePage />} />
+                </Route>
+
                 <Route path="legacy" element={<AdminLegacyPage />} />
               </Route>
               <Route path="/admin/media" element={<RequireAdmin><StadiumMediaSyncPage /></RequireAdmin>} />
@@ -183,6 +196,7 @@ const App = () => (
               <Route path="/app/admin/stadium-map-review" element={<Navigate to="/admin/stadium-map-review" replace />} />
               <Route path="/app/admin/stadium-media-sync" element={<Navigate to="/admin/stadium-media-sync" replace />} />
 
+              <Route path="/go/:shortId" element={<GoRedirectPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AIAssistantWidget />

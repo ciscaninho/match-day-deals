@@ -6,6 +6,7 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { inspectAffiliateUrl } from "@/lib/affiliate";
+import { trackEvent } from "@/lib/analytics";
 
 export type AffiliateEventType =
   | "ticket_click"
@@ -47,6 +48,21 @@ export const trackAffiliateClick = (input: TrackAffiliateClickInput): void => {
       () => undefined,
       () => undefined,
     );
+    // Mirror into analytics_events for unified funnel / campaign attribution.
+    try {
+      trackEvent(input.event === "ticket_click" ? "ticket_button_click" : "affiliate_redirect", {
+        match_id: input.matchId ?? null,
+        stadium: input.stadiumName ?? null,
+        provider: input.provider ?? null,
+        merchant: info.merchant ?? null,
+        network: info.network ?? null,
+        destination: info.destination ?? null,
+        league: input.league ?? null,
+        club_slug: input.clubSlug ?? null,
+      });
+    } catch {
+      /* noop */
+    }
   } catch {
     /* swallow — tracking must never break UX */
   }
