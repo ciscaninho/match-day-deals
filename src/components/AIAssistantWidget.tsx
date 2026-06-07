@@ -187,6 +187,9 @@ export const AIAssistantWidget = () => {
     setInput("");
     setSending(true);
     try {
+      trackEvent("chatbot_message", { length: text.trim().length });
+    } catch { /* noop */ }
+    try {
       await streamChat(next);
     } catch (e: any) {
       setMessages((prev) => [...prev, { role: "assistant", content: e.message || t("ai.fallback") }]);
