@@ -66,6 +66,8 @@ import { AuthGateProvider } from "./components/auth/AuthGate";
 import { PremiumGateProvider } from "./components/premium/PremiumGate";
 import { TrackPriceSheetProvider } from "./components/track/TrackPriceSheet";
 import ScrollToTop from "./components/ScrollToTop";
+import { AnalyticsTracker } from "./hooks/useAnalyticsTracking";
+import GoRedirectPage from "./pages/GoRedirectPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
