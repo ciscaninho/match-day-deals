@@ -25,9 +25,18 @@ type MatchRow = {
   archived_at?: string | null;
   lifecycle_status?: string | null;
   fixture_confidence?: string | null;
+  publication_status?: string | null;
   home_team_status?: string | null;
   away_team_status?: string | null;
 };
+
+export const isPubliclyVisibleMatchRow = (row: MatchRow): boolean =>
+  row.publication_status !== "draft" &&
+  row.fixture_confidence !== "projected" &&
+  row.home_team_status !== "projected" &&
+  row.away_team_status !== "projected" &&
+  row.home_team_status !== "tbd" &&
+  row.away_team_status !== "tbd";
 
 const isProjectedOrTbdStatus = (s?: string | null) =>
   s === "tbd" || s === "projected";
