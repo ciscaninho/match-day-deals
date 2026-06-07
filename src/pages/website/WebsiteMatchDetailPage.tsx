@@ -6,7 +6,9 @@ import {
   Star, Clock, Ticket, BadgeCheck, Building2, Activity, Lightbulb, ChevronRight,
 } from "lucide-react";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
-import { useMatch, useMatches } from "@/hooks/useMatches";
+import { useMatch, useMatches, useMatchAccess } from "@/hooks/useMatches";
+import { useAuth } from "@/hooks/useAuth";
+import { NoIndex } from "@/components/seo/NoIndex";
 import { useTicketOffers } from "@/hooks/useTicketOffers";
 import { useTicketmasterEvent } from "@/hooks/useTicketmasterEvent";
 import { useLanguage } from "@/i18n/LanguageContext";
