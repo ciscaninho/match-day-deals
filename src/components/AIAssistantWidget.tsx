@@ -10,6 +10,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { useUser } from "@/contexts/UserContext";
 import { useAssistantSettings } from "@/hooks/useAssistantSettings";
 import { useMatches } from "@/hooks/useMatches";
+import { useWorldCupMatches } from "@/hooks/useWorldCupMatches";
 import { useStadiums } from "@/hooks/useStadium";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ export const AIAssistantWidget = () => {
   const navigate = useNavigate();
   const { data: matches = [] } = useMatches();
   const { data: stadiums = [] } = useStadiums();
+  const { data: wcMatches = [] } = useWorldCupMatches();
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -106,6 +108,26 @@ export const AIAssistantWidget = () => {
       value: s.value_score,
       url: `/stadiums/${s.slug}`,
     }));
+    const wcSummary = wcMatches
+      .filter((m) => new Date(m.date) >= now)
+      .map((m) => ({
+        id: m.id,
+        homeTeam: m.homeTeam,
+        awayTeam: m.awayTeam,
+        match: `${m.homeTeam} vs ${m.awayTeam}`,
+        competition: "FIFA World Cup 2026",
+        date: m.date,
+        stadium: m.stadium,
+        city: m.city,
+        hostCountry: m.country,
+        phase: m.phase,
+        group: m.groupCode,
+        matchday: m.matchday,
+        startingPrice: m.startingPrice,
+        ticketStatus: m.ticketStatus,
+        url: `/matches/${m.id}`,
+        ticketsUrl: m.ticombo_url || `/matches/${m.id}`,
+      }));
     return {
       currentPage: location.pathname,
       userType: isPremium ? "premium" : "free",
@@ -114,6 +136,7 @@ export const AIAssistantWidget = () => {
         ? `${currentMatch.homeTeam} vs ${currentMatch.awayTeam} (${currentMatch.competition}, ${currentMatch.date})`
         : null,
       matchesSummary: JSON.stringify(upcoming),
+      wcMatchesSummary: JSON.stringify(wcSummary),
       stadiumsSummary: JSON.stringify(stadiumsSummary),
     };
   };
