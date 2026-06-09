@@ -1,6 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { Ticket, Menu, X, Mail, Instagram, ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { openCookiePreferences } from "@/lib/consent";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { HeaderAuthButton } from "@/components/auth/HeaderAuthButton";
 import { getFooterCopy } from "@/i18n/footer";
@@ -239,8 +240,16 @@ export const WebsiteLayout = ({ children }: Props) => {
         </div>
 
         <div className="border-t border-white/10">
-          <div className="max-w-6xl mx-auto px-5 py-5 text-xs text-white/50 text-center leading-relaxed">
-            {footer.legal_line.replace("{year}", String(new Date().getFullYear()))}
+          <div className="max-w-6xl mx-auto px-5 py-5 text-xs text-white/50 text-center leading-relaxed flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+            <span>{footer.legal_line.replace("{year}", String(new Date().getFullYear()))}</span>
+            <span className="hidden sm:inline text-white/20">•</span>
+            <button
+              type="button"
+              onClick={() => openCookiePreferences()}
+              className="text-white/70 hover:text-[#2ECC71] underline-offset-2 hover:underline transition-colors"
+            >
+              Cookie preferences
+            </button>
           </div>
         </div>
       </footer>

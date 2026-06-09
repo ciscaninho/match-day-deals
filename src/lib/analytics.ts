@@ -10,6 +10,7 @@
  * Never throws. Never blocks navigation.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { hasConsent } from "@/lib/consent";
 
 export type AnalyticsEventType =
   | "page_view"
@@ -163,6 +164,8 @@ const getLanguage = (): string => {
 let initialized = false;
 export const initAnalytics = () => {
   if (initialized || typeof window === "undefined") return;
+  // Gate on user consent — GDPR requires opt-in for analytics cookies & persistent IDs.
+  if (!hasConsent("analytics")) return;
   initialized = true;
   // Capture fresh UTM on landing.
   captureUtmFromUrl();
@@ -173,10 +176,12 @@ export const initAnalytics = () => {
 
 /**
  * Fire an analytics event. Never awaits, never throws.
+ * No-op until the user has granted the `analytics` consent category.
  */
 export const trackEvent = (event: AnalyticsEventType, props: AnalyticsEventProps = {}): void => {
   try {
     if (typeof window === "undefined") return;
+    if (!hasConsent("analytics")) return;
     initAnalytics();
 
     const utm = getStoredUtm();
@@ -231,3 +236,18 @@ export const trackEvent = (event: AnalyticsEventType, props: AnalyticsEventProps
     /* swallow */
   }
 };
+
+// When the user grants analytics consent later, retro-fire a page_view so the
+// current page isn't missed (initial page_view was suppressed before consent).
+if (typeof window !== "undefined") {
+  try {
+    window.addEventListener("ftf:consent-changed", () => {
+      if (hasConsent("analytics") && !initialized) {
+        initAnalytics();
+        trackEvent("page_view");
+      }
+    });
+  } catch {
+    /* swallow */
+  }
+}
