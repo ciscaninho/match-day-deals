@@ -29,7 +29,6 @@ Deno.serve(async (req) => {
 
   const email = (body.email as string).trim().toLowerCase();
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
-  const ua = req.headers.get("user-agent") || null;
 
   const payload = {
     email,
@@ -41,7 +40,6 @@ Deno.serve(async (req) => {
     utm_content: typeof body.utm_content === "string" ? body.utm_content.slice(0, 120) : null,
     page_path: typeof body.page_path === "string" ? body.page_path.slice(0, 240) : null,
     language: typeof body.language === "string" ? body.language.slice(0, 8) : null,
-    user_agent: ua,
     consent_given: true,
     consent_at: new Date().toISOString(),
     consent_ip: ip,
