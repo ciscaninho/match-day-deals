@@ -45,6 +45,12 @@ interface AnalyticsRow {
 
 type FixtureStatus = "active" | "missing" | "reconcile";
 
+type CoverageValidation = {
+  ok: boolean;
+  reasons: string[]; // human-readable rejection reasons
+  checks: { date: boolean; stadium: boolean; teams: boolean; nonGeneric: boolean; activeUrl: boolean };
+};
+
 type FixtureRow = {
   matchId: string;
   home: string;
@@ -61,7 +67,9 @@ type FixtureRow = {
   matchPagePath: string;
   coverageCount: number;
   reconcileCount: number;
+  validations: Array<{ coverageId: string; validation: CoverageValidation }>;
 };
+
 
 // ---------------- Helpers ----------------
 
@@ -87,6 +95,93 @@ const copyText = async (text: string, label = "Link") => {
   try { await navigator.clipboard.writeText(text); toast.success(`${label} copied`); }
   catch { toast.error("Copy failed"); }
 };
+
+// ---------------- Coverage validation ----------------
+
+const fold = (s: string | null | undefined) =>
+  (s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+// Strip common stadium suffix noise so "MetLife Stadium" ≈ "metlife"
+const normStadium = (s: string | null | undefined) => {
+  const f = fold(s).replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+  return f
+    .replace(/\b(stadium|stadion|arena|field|park|estadio|coliseum)\b/g, "")
+    .replace(/\s+/g, " ").trim();
+};
+
+const sameDay = (a: string | null | undefined, b: string | null | undefined) => {
+  if (!a || !b) return false;
+  return new Date(a).toISOString().slice(0, 10) === new Date(b).toISOString().slice(0, 10);
+};
+
+const GENERIC_TITLE_RE = /^\s*(match\s+\d+\s+group\s+[a-l]|group\s+stage\s+match|world\s+cup\s+match)\s*$/i;
+
+// Normalize team aliases that appear differently across data sources
+const TEAM_ALIASES: Record<string, string[]> = {
+  "united states": ["usa", "us", "united states", "u s a"],
+  "south korea": ["south korea", "korea republic", "korea rep", "republic of korea", "korea"],
+  "north korea": ["north korea", "korea dpr", "dpr korea"],
+  "bosnia and herzegovina": ["bosnia and herzegovina", "bosnia", "bih"],
+  "dr congo": ["dr congo", "democratic republic of the congo", "drc", "congo dr"],
+  "ivory coast": ["ivory coast", "cote d ivoire", "cote d'ivoire", "cote divoire"],
+  "czech republic": ["czech republic", "czechia"],
+  "cape verde": ["cape verde", "cabo verde"],
+  "curacao": ["curacao", "curacau"],
+};
+
+const expandTeam = (name: string): string[] => {
+  const base = fold(name);
+  for (const canon of Object.keys(TEAM_ALIASES)) {
+    if (canon === base || TEAM_ALIASES[canon].includes(base)) return [canon, ...TEAM_ALIASES[canon]];
+  }
+  return [base];
+};
+
+const teamMentioned = (haystack: string, team: string): boolean => {
+  const hay = fold(haystack);
+  return expandTeam(team).some((alias) => alias && hay.includes(alias));
+};
+
+const validateCoverage = (
+  fixture: MatchRow,
+  cov: CoverageRow,
+): CoverageValidation => {
+  const reasons: string[] = [];
+  const link = (cov.ticket_url || cov.url || "").trim();
+  const activeUrl = !!(cov.active && cov.is_available !== false && link);
+  if (!activeUrl) reasons.push("inactive_or_no_url");
+
+  const nonGeneric = !(cov.event_name && GENERIC_TITLE_RE.test(cov.event_name.trim()));
+  if (!nonGeneric) reasons.push("generic_title");
+
+  const date = sameDay(cov.event_date, fixture.date);
+  if (!date) reasons.push("date_mismatch");
+
+  const fixStad = normStadium(fixture.stadium);
+  const covStad = normStadium(cov.stadium_name);
+  const stadium = !!fixStad && !!covStad && (fixStad === covStad || fixStad.includes(covStad) || covStad.includes(fixStad));
+  if (!stadium) reasons.push("stadium_mismatch");
+
+  // Team check: try home_label/away_label first, fall back to event_name string match.
+  const labelHay = `${cov.home_label ?? ""} ${cov.away_label ?? ""} ${cov.event_name ?? ""}`;
+  const homeHit = teamMentioned(labelHay, fixture.home_team);
+  const awayHit = teamMentioned(labelHay, fixture.away_team);
+  const teams = homeHit && awayHit;
+  if (!teams) reasons.push(homeHit || awayHit ? "team_partial" : "team_mismatch");
+
+  const ok = activeUrl && nonGeneric && date && stadium && teams;
+  return { ok, reasons, checks: { date, stadium, teams, nonGeneric, activeUrl } };
+};
+
+const REASON_LABEL: Record<string, string> = {
+  inactive_or_no_url: "Inactive or missing URL",
+  generic_title: "Generic placeholder title",
+  date_mismatch: "Event date ≠ fixture date",
+  stadium_mismatch: "Stadium ≠ fixture stadium",
+  team_mismatch: "Neither team appears in event",
+  team_partial: "Only one of the two teams appears",
+};
+
 
 // ---------------- Page ----------------
 
@@ -171,24 +266,22 @@ const AdminMarketingAffiliatePage = () => {
     [coverage, officialIds]
   );
 
-  // Build rows driven by fixtures (creator-first)
+  // Build rows driven by fixtures (creator-first) with strict per-row validation
   const fixtureRows: FixtureRow[] = useMemo(() => {
     return fixtures.map(f => {
       const covs = coverageByMatch.get(f.id) ?? [];
-      // pick best active coverage with URL
-      const sorted = covs.slice().sort((a, b) => {
-        const aw = (a.active && a.is_available !== false && (a.ticket_url || a.url)) ? 1 : 0;
-        const bw = (b.active && b.is_available !== false && (b.ticket_url || b.url)) ? 1 : 0;
-        if (aw !== bw) return bw - aw;
+      const validations = covs.map(c => ({ coverageId: c.id, validation: validateCoverage(f, c) }));
+      const validRows = covs.filter((_, i) => validations[i].validation.ok);
+      // Among VALID rows only, prefer latest sync.
+      const sortedValid = validRows.slice().sort((a, b) => {
         const ad = a.last_sync_at ? new Date(a.last_sync_at).getTime() : 0;
         const bd = b.last_sync_at ? new Date(b.last_sync_at).getTime() : 0;
         return bd - ad;
       });
-      const best = sorted[0];
+      const best = sortedValid[0];
       const rawUrl = best ? (best.ticket_url || best.url || "").trim() : "";
-      const hasActive = !!(best && best.active && best.is_available !== false && rawUrl);
-      // reconcile = coverage rows exist but none are active+URL
-      const reconcileCount = covs.filter(c => !(c.active && c.is_available !== false && (c.ticket_url || c.url))).length;
+      const hasActive = !!(best && rawUrl);
+
       let status: FixtureStatus;
       if (hasActive) status = "active";
       else if (covs.length > 0) status = "reconcile";
@@ -209,10 +302,12 @@ const AdminMarketingAffiliatePage = () => {
         affiliateUrl: hasActive ? transformAffiliateUrl(rawUrl) : "",
         matchPagePath: `/matches/${f.id}`,
         coverageCount: covs.length,
-        reconcileCount,
+        reconcileCount: covs.length - validRows.length,
+        validations,
       };
     });
   }, [fixtures, coverageByMatch]);
+
 
   // Metrics
   const totalConfirmed = fixtureRows.length;
@@ -435,30 +530,35 @@ const AdminMarketingAffiliatePage = () => {
                   <td className="px-2 py-2">
                     <div className="flex items-center justify-end gap-1">
                       <button
-                        disabled={!r.affiliateUrl}
+                        disabled={r.status !== "active" || !r.affiliateUrl}
                         onClick={() => copyText(r.affiliateUrl)}
-                        className="inline-flex items-center gap-1 rounded-md bg-slate-900 text-white px-2 py-1 text-[10px] font-bold hover:bg-slate-800 disabled:opacity-30">
+                        title={r.status !== "active" ? "Disabled — coverage failed validation" : "Copy tracked affiliate URL"}
+                        className="inline-flex items-center gap-1 rounded-md bg-slate-900 text-white px-2 py-1 text-[10px] font-bold hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Copy className="w-3 h-3" /> Copy
                       </button>
-                      {r.affiliateUrl && (
+                      {r.status === "active" && r.affiliateUrl && (
                         <a href={r.affiliateUrl} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center rounded-md border border-slate-300 bg-white px-1.5 py-1 text-[10px] text-slate-700 hover:bg-slate-50">
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       )}
-                      <button onClick={() => createCampaign(r)}
-                        className="inline-flex items-center gap-1 rounded-md border border-violet-300 bg-violet-50 text-violet-800 px-2 py-1 text-[10px] font-bold hover:bg-violet-100">
+                      <button
+                        disabled={r.status !== "active"}
+                        onClick={() => createCampaign(r)}
+                        title={r.status !== "active" ? "Disabled — no validated affiliate link" : "Create quick TikTok campaign"}
+                        className="inline-flex items-center gap-1 rounded-md border border-violet-300 bg-violet-50 text-violet-800 px-2 py-1 text-[10px] font-bold hover:bg-violet-100 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Plus className="w-3 h-3" /> Campaign
                       </button>
                       <button
                         disabled={r.coverageCount === 0}
                         onClick={() => setReconcileOpen(r)}
                         className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-30"
-                        title={r.coverageCount === 0 ? "No coverage rows" : "View coverage details"}>
+                        title={r.coverageCount === 0 ? "No coverage rows" : "View coverage details & validation"}>
                         <Eye className="w-3 h-3" /> Coverage ({r.coverageCount})
                       </button>
                     </div>
                   </td>
+
                 </tr>
               ))}
             </tbody>
@@ -487,24 +587,44 @@ const AdminMarketingAffiliatePage = () => {
               )}
               {reconcileRows.map(c => {
                 const link = (c.ticket_url || c.url || "").trim();
-                const ok = c.active && c.is_available !== false && link;
+                const v = reconcileOpen?.validations.find(x => x.coverageId === c.id)?.validation;
+                const ok = !!v?.ok;
                 return (
-                  <div key={c.id} className="rounded-lg border border-slate-200 p-2 text-xs">
+                  <div key={c.id} className={`rounded-lg border p-2 text-xs ${ok ? "border-emerald-200 bg-emerald-50/40" : "border-rose-200 bg-rose-50/40"}`}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="font-bold text-slate-900 truncate">{c.event_name || "—"}</div>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
                         ok ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                      }`}>{ok ? "active+url" : "needs fix"}</span>
+                      }`}>{ok ? "✅ validated" : "🔴 rejected"}</span>
                     </div>
                     <div className="text-[11px] text-slate-600 mt-1">
                       {c.home_label || "?"} vs {c.away_label || "?"} · {c.stadium_name || "?"} · {c.city || "?"} · {fmtDate(c.event_date)}
                     </div>
+                    {v && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        <Check label="date" ok={v.checks.date} />
+                        <Check label="stadium" ok={v.checks.stadium} />
+                        <Check label="teams" ok={v.checks.teams} />
+                        <Check label="non-generic" ok={v.checks.nonGeneric} />
+                        <Check label="active+url" ok={v.checks.activeUrl} />
+                      </div>
+                    )}
+                    {!ok && v && v.reasons.length > 0 && (
+                      <ul className="mt-1.5 text-[10px] text-rose-700 list-disc pl-4">
+                        {v.reasons.map(r => <li key={r}>{REASON_LABEL[r] ?? r}</li>)}
+                      </ul>
+                    )}
                     <div className="text-[10px] text-slate-500 mt-1">id: {c.id} · last_sync: {c.last_sync_at || "—"}</div>
-                    {link && (
+                    {link && ok && (
                       <a href={transformAffiliateUrl(link)} target="_blank" rel="noopener noreferrer"
                         className="mt-1 inline-flex items-center gap-1 text-[11px] text-violet-700 hover:underline">
                         <ExternalLink className="w-3 h-3" /> Open partner link
                       </a>
+                    )}
+                    {link && !ok && (
+                      <div className="mt-1 text-[10px] text-slate-500 italic">
+                        Partner link hidden — validation failed. Reconcile in source data before exposing.
+                      </div>
                     )}
                   </div>
                 );
@@ -513,6 +633,7 @@ const AdminMarketingAffiliatePage = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };
@@ -551,4 +672,11 @@ const Stat = ({ label, value, tone = "slate" }: { label: string; value: number |
   </div>
 );
 
+const Check = ({ label, ok }: { label: string; ok: boolean }) => (
+  <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold ${
+    ok ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"
+  }`}>{ok ? "✓" : "✗"} {label}</span>
+);
+
 export default AdminMarketingAffiliatePage;
+
