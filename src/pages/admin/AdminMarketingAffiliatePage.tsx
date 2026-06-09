@@ -266,24 +266,22 @@ const AdminMarketingAffiliatePage = () => {
     [coverage, officialIds]
   );
 
-  // Build rows driven by fixtures (creator-first)
+  // Build rows driven by fixtures (creator-first) with strict per-row validation
   const fixtureRows: FixtureRow[] = useMemo(() => {
     return fixtures.map(f => {
       const covs = coverageByMatch.get(f.id) ?? [];
-      // pick best active coverage with URL
-      const sorted = covs.slice().sort((a, b) => {
-        const aw = (a.active && a.is_available !== false && (a.ticket_url || a.url)) ? 1 : 0;
-        const bw = (b.active && b.is_available !== false && (b.ticket_url || b.url)) ? 1 : 0;
-        if (aw !== bw) return bw - aw;
+      const validations = covs.map(c => ({ coverageId: c.id, validation: validateCoverage(f, c) }));
+      const validRows = covs.filter((_, i) => validations[i].validation.ok);
+      // Among VALID rows only, prefer latest sync.
+      const sortedValid = validRows.slice().sort((a, b) => {
         const ad = a.last_sync_at ? new Date(a.last_sync_at).getTime() : 0;
         const bd = b.last_sync_at ? new Date(b.last_sync_at).getTime() : 0;
         return bd - ad;
       });
-      const best = sorted[0];
+      const best = sortedValid[0];
       const rawUrl = best ? (best.ticket_url || best.url || "").trim() : "";
-      const hasActive = !!(best && best.active && best.is_available !== false && rawUrl);
-      // reconcile = coverage rows exist but none are active+URL
-      const reconcileCount = covs.filter(c => !(c.active && c.is_available !== false && (c.ticket_url || c.url))).length;
+      const hasActive = !!(best && rawUrl);
+
       let status: FixtureStatus;
       if (hasActive) status = "active";
       else if (covs.length > 0) status = "reconcile";
@@ -304,10 +302,12 @@ const AdminMarketingAffiliatePage = () => {
         affiliateUrl: hasActive ? transformAffiliateUrl(rawUrl) : "",
         matchPagePath: `/matches/${f.id}`,
         coverageCount: covs.length,
-        reconcileCount,
+        reconcileCount: covs.length - validRows.length,
+        validations,
       };
     });
   }, [fixtures, coverageByMatch]);
+
 
   // Metrics
   const totalConfirmed = fixtureRows.length;
