@@ -344,7 +344,7 @@ const AdminMarketingAffiliatePage = () => {
         group: f.group_code,
         competition: f.competition,
         status,
-        affiliateUrl: hasActive ? transformAffiliateUrl(rawUrl) : "",
+        affiliateUrl: chosenUrl ? transformAffiliateUrl(chosenUrl) : "",
         matchPagePath: `/matches/${f.id}`,
         coverageCount: covs.length,
         reconcileCount: covs.length - validRows.length,
