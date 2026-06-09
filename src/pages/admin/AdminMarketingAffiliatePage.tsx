@@ -96,6 +96,93 @@ const copyText = async (text: string, label = "Link") => {
   catch { toast.error("Copy failed"); }
 };
 
+// ---------------- Coverage validation ----------------
+
+const fold = (s: string | null | undefined) =>
+  (s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+// Strip common stadium suffix noise so "MetLife Stadium" ≈ "metlife"
+const normStadium = (s: string | null | undefined) => {
+  const f = fold(s).replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+  return f
+    .replace(/\b(stadium|stadion|arena|field|park|estadio|coliseum)\b/g, "")
+    .replace(/\s+/g, " ").trim();
+};
+
+const sameDay = (a: string | null | undefined, b: string | null | undefined) => {
+  if (!a || !b) return false;
+  return new Date(a).toISOString().slice(0, 10) === new Date(b).toISOString().slice(0, 10);
+};
+
+const GENERIC_TITLE_RE = /^\s*(match\s+\d+\s+group\s+[a-l]|group\s+stage\s+match|world\s+cup\s+match)\s*$/i;
+
+// Normalize team aliases that appear differently across data sources
+const TEAM_ALIASES: Record<string, string[]> = {
+  "united states": ["usa", "us", "united states", "u s a"],
+  "south korea": ["south korea", "korea republic", "korea rep", "republic of korea", "korea"],
+  "north korea": ["north korea", "korea dpr", "dpr korea"],
+  "bosnia and herzegovina": ["bosnia and herzegovina", "bosnia", "bih"],
+  "dr congo": ["dr congo", "democratic republic of the congo", "drc", "congo dr"],
+  "ivory coast": ["ivory coast", "cote d ivoire", "cote d'ivoire", "cote divoire"],
+  "czech republic": ["czech republic", "czechia"],
+  "cape verde": ["cape verde", "cabo verde"],
+  "curacao": ["curacao", "curacau"],
+};
+
+const expandTeam = (name: string): string[] => {
+  const base = fold(name);
+  for (const canon of Object.keys(TEAM_ALIASES)) {
+    if (canon === base || TEAM_ALIASES[canon].includes(base)) return [canon, ...TEAM_ALIASES[canon]];
+  }
+  return [base];
+};
+
+const teamMentioned = (haystack: string, team: string): boolean => {
+  const hay = fold(haystack);
+  return expandTeam(team).some((alias) => alias && hay.includes(alias));
+};
+
+const validateCoverage = (
+  fixture: MatchRow,
+  cov: CoverageRow,
+): CoverageValidation => {
+  const reasons: string[] = [];
+  const link = (cov.ticket_url || cov.url || "").trim();
+  const activeUrl = !!(cov.active && cov.is_available !== false && link);
+  if (!activeUrl) reasons.push("inactive_or_no_url");
+
+  const nonGeneric = !(cov.event_name && GENERIC_TITLE_RE.test(cov.event_name.trim()));
+  if (!nonGeneric) reasons.push("generic_title");
+
+  const date = sameDay(cov.event_date, fixture.date);
+  if (!date) reasons.push("date_mismatch");
+
+  const fixStad = normStadium(fixture.stadium);
+  const covStad = normStadium(cov.stadium_name);
+  const stadium = !!fixStad && !!covStad && (fixStad === covStad || fixStad.includes(covStad) || covStad.includes(fixStad));
+  if (!stadium) reasons.push("stadium_mismatch");
+
+  // Team check: try home_label/away_label first, fall back to event_name string match.
+  const labelHay = `${cov.home_label ?? ""} ${cov.away_label ?? ""} ${cov.event_name ?? ""}`;
+  const homeHit = teamMentioned(labelHay, fixture.home_team);
+  const awayHit = teamMentioned(labelHay, fixture.away_team);
+  const teams = homeHit && awayHit;
+  if (!teams) reasons.push(homeHit || awayHit ? "team_partial" : "team_mismatch");
+
+  const ok = activeUrl && nonGeneric && date && stadium && teams;
+  return { ok, reasons, checks: { date, stadium, teams, nonGeneric, activeUrl } };
+};
+
+const REASON_LABEL: Record<string, string> = {
+  inactive_or_no_url: "Inactive or missing URL",
+  generic_title: "Generic placeholder title",
+  date_mismatch: "Event date ≠ fixture date",
+  stadium_mismatch: "Stadium ≠ fixture stadium",
+  team_mismatch: "Neither team appears in event",
+  team_partial: "Only one of the two teams appears",
+};
+
+
 // ---------------- Page ----------------
 
 const AdminMarketingAffiliatePage = () => {
