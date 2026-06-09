@@ -1,6 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { Ticket, Menu, X, Mail, Instagram, ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { openCookiePreferences } from "@/lib/consent";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { HeaderAuthButton } from "@/components/auth/HeaderAuthButton";
 import { getFooterCopy } from "@/i18n/footer";
