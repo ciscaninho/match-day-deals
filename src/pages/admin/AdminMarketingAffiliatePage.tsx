@@ -587,24 +587,44 @@ const AdminMarketingAffiliatePage = () => {
               )}
               {reconcileRows.map(c => {
                 const link = (c.ticket_url || c.url || "").trim();
-                const ok = c.active && c.is_available !== false && link;
+                const v = reconcileOpen?.validations.find(x => x.coverageId === c.id)?.validation;
+                const ok = !!v?.ok;
                 return (
-                  <div key={c.id} className="rounded-lg border border-slate-200 p-2 text-xs">
+                  <div key={c.id} className={`rounded-lg border p-2 text-xs ${ok ? "border-emerald-200 bg-emerald-50/40" : "border-rose-200 bg-rose-50/40"}`}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="font-bold text-slate-900 truncate">{c.event_name || "—"}</div>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
                         ok ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                      }`}>{ok ? "active+url" : "needs fix"}</span>
+                      }`}>{ok ? "✅ validated" : "🔴 rejected"}</span>
                     </div>
                     <div className="text-[11px] text-slate-600 mt-1">
                       {c.home_label || "?"} vs {c.away_label || "?"} · {c.stadium_name || "?"} · {c.city || "?"} · {fmtDate(c.event_date)}
                     </div>
+                    {v && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        <Check label="date" ok={v.checks.date} />
+                        <Check label="stadium" ok={v.checks.stadium} />
+                        <Check label="teams" ok={v.checks.teams} />
+                        <Check label="non-generic" ok={v.checks.nonGeneric} />
+                        <Check label="active+url" ok={v.checks.activeUrl} />
+                      </div>
+                    )}
+                    {!ok && v && v.reasons.length > 0 && (
+                      <ul className="mt-1.5 text-[10px] text-rose-700 list-disc pl-4">
+                        {v.reasons.map(r => <li key={r}>{REASON_LABEL[r] ?? r}</li>)}
+                      </ul>
+                    )}
                     <div className="text-[10px] text-slate-500 mt-1">id: {c.id} · last_sync: {c.last_sync_at || "—"}</div>
-                    {link && (
+                    {link && ok && (
                       <a href={transformAffiliateUrl(link)} target="_blank" rel="noopener noreferrer"
                         className="mt-1 inline-flex items-center gap-1 text-[11px] text-violet-700 hover:underline">
                         <ExternalLink className="w-3 h-3" /> Open partner link
                       </a>
+                    )}
+                    {link && !ok && (
+                      <div className="mt-1 text-[10px] text-slate-500 italic">
+                        Partner link hidden — validation failed. Reconcile in source data before exposing.
+                      </div>
                     )}
                   </div>
                 );
@@ -613,6 +633,7 @@ const AdminMarketingAffiliatePage = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };
