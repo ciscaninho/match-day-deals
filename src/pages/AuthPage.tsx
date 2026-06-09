@@ -156,7 +156,46 @@ const AuthPage = () => {
     goAfterAuth();
   };
 
+  if (pendingVerification) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-6" dir={dir}>
+        <div className="w-full max-w-md flex flex-col items-center gap-6">
+          <img src={logo} alt="Foot Ticket Finder" className="w-20 h-20 object-contain" />
+          <Card className="w-full">
+            <CardHeader className="text-center">
+              <CardTitle>{t("auth.check_email.title") || "Check your email ✉️"}</CardTitle>
+              <CardDescription>
+                {(t("auth.check_email.desc") || "We sent a confirmation link to {email}. Click it to activate your account.").replace("{email}", pendingVerification)}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              <Button type="button" onClick={handleResendConfirmation} disabled={resending} className="h-11">
+                {resending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {t("auth.check_email.resend") || "Resend confirmation email"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11"
+                onClick={() => {
+                  setPendingVerification(null);
+                  setPassword("");
+                }}
+              >
+                {t("auth.check_email.use_different") || "Use a different email"}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                {t("auth.check_email.spam") || "Didn't get it? Check your spam folder."}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
+
     <div className="min-h-screen bg-background flex items-center justify-center px-6" dir={dir}>
       <div className="w-full max-w-md flex flex-col items-center gap-6">
         <img src={logo} alt="Foot Ticket Finder" className="w-20 h-20 object-contain" />
