@@ -23,6 +23,8 @@ const AuthPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [pendingVerification, setPendingVerification] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
 
   // Decide where to send the user after auth: onboarding if not completed.
   const goAfterAuth = async () => {
@@ -41,6 +43,18 @@ const AuthPage = () => {
     }
     navigate(next, { replace: true });
   };
+
+  // Detect email confirmation redirect (Supabase returns tokens in URL hash with type=signup).
+  useEffect(() => {
+    const hash = window.location.hash || "";
+    if (hash.includes("type=signup") || hash.includes("type=email_change")) {
+      toast({
+        title: t("auth.verified.title") || "Email verified",
+        description: t("auth.verified.desc") || "Your email has been confirmed. Welcome!",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!sessionLoading && session) {
@@ -68,7 +82,7 @@ const AuthPage = () => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}${next}` },
+      options: { emailRedirectTo: `${window.location.origin}/auth?next=${encodeURIComponent(next)}` },
     });
     setSubmitting(false);
     if (error) {
@@ -79,9 +93,30 @@ const AuthPage = () => {
       toast({ title: t("auth.signup.created"), description: t("auth.signup.personalize") });
       goAfterAuth();
     } else {
-      toast({ title: t("auth.signup.created") });
+      // Email confirmation required → show "Check your email" screen
+      setPendingVerification(email);
     }
   };
+
+  const handleResendConfirmation = async () => {
+    if (!pendingVerification) return;
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: pendingVerification,
+      options: { emailRedirectTo: `${window.location.origin}/auth?next=${encodeURIComponent(next)}` },
+    });
+    setResending(false);
+    if (error) {
+      toast({ title: t("auth.resend.error") || "Could not resend email", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({
+      title: t("auth.resend.success") || "Email sent",
+      description: (t("auth.resend.success_desc") || "We sent a new confirmation link to {email}.").replace("{email}", pendingVerification),
+    });
+  };
+
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
@@ -121,7 +156,46 @@ const AuthPage = () => {
     goAfterAuth();
   };
 
+  if (pendingVerification) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-6" dir={dir}>
+        <div className="w-full max-w-md flex flex-col items-center gap-6">
+          <img src={logo} alt="Foot Ticket Finder" className="w-20 h-20 object-contain" />
+          <Card className="w-full">
+            <CardHeader className="text-center">
+              <CardTitle>{t("auth.check_email.title") || "Check your email ✉️"}</CardTitle>
+              <CardDescription>
+                {(t("auth.check_email.desc") || "We sent a confirmation link to {email}. Click it to activate your account.").replace("{email}", pendingVerification)}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              <Button type="button" onClick={handleResendConfirmation} disabled={resending} className="h-11">
+                {resending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {t("auth.check_email.resend") || "Resend confirmation email"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11"
+                onClick={() => {
+                  setPendingVerification(null);
+                  setPassword("");
+                }}
+              >
+                {t("auth.check_email.use_different") || "Use a different email"}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                {t("auth.check_email.spam") || "Didn't get it? Check your spam folder."}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
+
     <div className="min-h-screen bg-background flex items-center justify-center px-6" dir={dir}>
       <div className="w-full max-w-md flex flex-col items-center gap-6">
         <img src={logo} alt="Foot Ticket Finder" className="w-20 h-20 object-contain" />

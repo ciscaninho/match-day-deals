@@ -16,23 +16,49 @@ interface SavedRow {
   created_at: string;
 }
 
+interface MatchRow {
+  id: string;
+  home_team: string;
+  away_team: string;
+  date: string;
+  stadium: string | null;
+  city: string | null;
+}
+
 const AlertsPage = () => {
   const { user, isPremium } = useUser();
   const { openPaywall } = usePremiumGate();
   const [rows, setRows] = useState<SavedRow[]>([]);
+  const [matches, setMatches] = useState<Record<string, MatchRow>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("saved_matches")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        setRows((data as SavedRow[]) || []);
-        setLoading(false);
-      });
+    if (!user) { setLoading(false); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("saved_matches")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (cancelled) return;
+      const savedRows = (data as SavedRow[]) || [];
+      setRows(savedRows);
+      const ids = savedRows.map((r) => r.match_id);
+      if (ids.length > 0) {
+        const { data: m } = await supabase
+          .from("matches")
+          .select("id,home_team,away_team,date,stadium,city")
+          .in("id", ids);
+        if (!cancelled) {
+          const map: Record<string, MatchRow> = {};
+          ((m as MatchRow[]) || []).forEach((row) => { map[row.id] = row; });
+          setMatches(map);
+        }
+      }
+      if (!cancelled) setLoading(false);
+    })();
+    return () => { cancelled = true; };
   }, [user]);
 
   const toggleAlert = async (row: SavedRow) => {
@@ -53,6 +79,7 @@ const AlertsPage = () => {
     setRows((rs) => rs.filter((r) => r.id !== row.id));
     await supabase.from("saved_matches").delete().eq("id", row.id);
   };
+
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -107,42 +134,53 @@ const AlertsPage = () => {
             </div>
           ) : (
             <div className="space-y-2.5">
-              {rows.map((r) => (
-                <Card key={r.id} className="border-border/50">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <TrendingDown className="w-5 h-5 text-[#2ECC71]" />
-                    <div className="flex-1 min-w-0">
-                      <Link
-                        to={`/app/matches/${r.match_id}`}
-                        className="font-bold text-sm text-foreground hover:text-[#2ECC71] truncate block"
+              {rows.map((r) => {
+                const m = matches[r.match_id];
+                return (
+                  <Card key={r.id} className="border-border/50">
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <TrendingDown className="w-5 h-5 text-[#2ECC71] shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        {m ? (
+                          <>
+                            <Link
+                              to={`/matches/${r.match_id}`}
+                              className="font-bold text-sm text-foreground hover:text-[#2ECC71] truncate block"
+                            >
+                              {m.home_team} vs {m.away_team}
+                            </Link>
+                            <p className="text-[11px] text-muted-foreground">
+                              {new Date(m.date).toLocaleDateString()}
+                              {m.stadium ? ` · ${m.stadium}` : ""}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="font-bold text-sm text-foreground truncate">Match unavailable</p>
+                        )}
+                      </div>
+                      <Button
+                        variant={r.alerts_enabled ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => toggleAlert(r)}
+                        className={r.alerts_enabled ? "bg-[#2ECC71] hover:bg-[#27ae60]" : ""}
                       >
-                        Match #{r.match_id}
-                      </Link>
-                      <p className="text-[11px] text-muted-foreground">
-                        Saved {new Date(r.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Button
-                      variant={r.alerts_enabled ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => toggleAlert(r)}
-                      className={r.alerts_enabled ? "bg-[#2ECC71] hover:bg-[#27ae60]" : ""}
-                    >
-                      <BellRing className="w-3.5 h-3.5 mr-1" />
-                      {r.alerts_enabled ? "On" : "Off"}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => remove(r)}
-                      className="text-muted-foreground"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                        <BellRing className="w-3.5 h-3.5 mr-1" />
+                        {r.alerts_enabled ? "On" : "Off"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove(r)}
+                        className="text-muted-foreground"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
+
           )}
         </div>
       </div>

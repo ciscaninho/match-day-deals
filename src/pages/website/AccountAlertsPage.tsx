@@ -8,21 +8,44 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BellRing, TrendingDown, Crown, ArrowRight, Trash2, Loader2 } from "lucide-react";
+import { BellRing, TrendingDown, Crown, ArrowRight, Trash2, Loader2, Calendar, MapPin } from "lucide-react";
 
 interface SavedRow { id: string; match_id: string; alerts_enabled: boolean; created_at: string }
+interface MatchRow { id: string; home_team: string; away_team: string; date: string; stadium: string | null; city: string | null; competition: string | null }
 
 const AccountAlertsPage = () => {
   const { user, isPremium } = useUser();
   const { openPaywall } = usePremiumGate();
   const { t } = useLanguage();
   const [rows, setRows] = useState<SavedRow[]>([]);
+  const [matches, setMatches] = useState<Record<string, MatchRow>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
-    supabase.from("saved_matches").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
-      .then(({ data }) => { setRows((data as SavedRow[]) || []); setLoading(false); });
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("saved_matches").select("*").eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (cancelled) return;
+      const savedRows = (data as SavedRow[]) || [];
+      setRows(savedRows);
+      const ids = savedRows.map((r) => r.match_id);
+      if (ids.length > 0) {
+        const { data: m } = await supabase
+          .from("matches")
+          .select("id,home_team,away_team,date,stadium,city,competition")
+          .in("id", ids);
+        if (!cancelled) {
+          const map: Record<string, MatchRow> = {};
+          ((m as MatchRow[]) || []).forEach((row) => { map[row.id] = row; });
+          setMatches(map);
+        }
+      }
+      if (!cancelled) setLoading(false);
+    })();
+    return () => { cancelled = true; };
   }, [user]);
 
   const toggleAlert = async (row: SavedRow) => {
@@ -30,7 +53,12 @@ const AccountAlertsPage = () => {
     const next = !row.alerts_enabled;
     setRows((rs) => rs.map((r) => (r.id === row.id ? { ...r, alerts_enabled: next } : r)));
     const { error } = await supabase.from("saved_matches").update({ alerts_enabled: next }).eq("id", row.id);
-    if (error) toast.error("Could not update alert.");
+    if (error) toast.error(t("alerts.update_error") || "Could not update alert.");
+  };
+
+  const remove = async (row: SavedRow) => {
+    setRows((rs) => rs.filter((r) => r.id !== row.id));
+    await supabase.from("saved_matches").delete().eq("id", row.id);
   };
 
   return (
@@ -70,21 +98,40 @@ const AccountAlertsPage = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {rows.map((r) => (
-              <Card key={r.id} className="border-slate-200">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <TrendingDown className="w-5 h-5 text-[#2ECC71]" />
-                  <div className="flex-1 min-w-0">
-                    <Link to={`/matches/${r.match_id}`} className="font-bold text-[#2C3E50] hover:text-[#2ECC71] truncate block">Match #{r.match_id}</Link>
-                    <p className="text-[11px] text-muted-foreground">Saved {new Date(r.created_at).toLocaleDateString()}</p>
-                  </div>
-                  <Button variant={r.alerts_enabled ? "default" : "outline"} size="sm" onClick={() => toggleAlert(r)} className={r.alerts_enabled ? "bg-[#2ECC71] hover:bg-[#27ae60]" : ""}>
-                    <BellRing className="w-3.5 h-3.5 mr-1" />{r.alerts_enabled ? "On" : "Off"}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            {rows.map((r) => {
+              const m = matches[r.match_id];
+              return (
+                <Card key={r.id} className="border-slate-200">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <TrendingDown className="w-5 h-5 text-[#2ECC71] shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      {m ? (
+                        <>
+                          <Link to={`/matches/${r.match_id}`} className="font-bold text-[#2C3E50] hover:text-[#2ECC71] truncate block">
+                            {m.home_team} <span className="text-muted-foreground">vs</span> {m.away_team}
+                          </Link>
+                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                            <span className="inline-flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(m.date).toLocaleDateString()}</span>
+                            {m.stadium && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" />{m.stadium}{m.city ? `, ${m.city}` : ""}</span>}
+                            {m.competition && <span>{m.competition}</span>}
+                          </div>
+                        </>
+                      ) : (
+                        <p className="font-bold text-[#2C3E50] truncate">{t("favorites.unavailable") || "Match no longer available"}</p>
+                      )}
+                    </div>
+                    <Button variant={r.alerts_enabled ? "default" : "outline"} size="sm" onClick={() => toggleAlert(r)} className={r.alerts_enabled ? "bg-[#2ECC71] hover:bg-[#27ae60]" : ""}>
+                      <BellRing className="w-3.5 h-3.5 mr-1" />{r.alerts_enabled ? (t("alerts.on") || "On") : (t("alerts.off") || "Off")}
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => remove(r)} className="text-muted-foreground shrink-0">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
+
         )}
       </section>
     </WebsiteLayout>
