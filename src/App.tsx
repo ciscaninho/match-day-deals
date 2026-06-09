@@ -73,6 +73,9 @@ import ScrollToTop from "./components/ScrollToTop";
 import { AnalyticsTracker } from "./hooks/useAnalyticsTracking";
 import GoRedirectPage from "./pages/GoRedirectPage";
 import { CookieConsent } from "./components/consent/CookieConsent";
+import NewsletterConfirmPage from "./pages/website/NewsletterConfirmPage";
+import NewsletterUnsubscribePage from "./pages/website/NewsletterUnsubscribePage";
+import AdminNewsletterPage from "./pages/admin/AdminNewsletterPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -136,6 +139,8 @@ const App = () => (
               <Route path="/ticket-policy" element={<TicketPolicyPage />} />
               <Route path="/guides" element={<GuidesIndexPage />} />
               <Route path="/guides/:slug" element={<GuideDetailPage />} />
+              <Route path="/newsletter/confirm" element={<NewsletterConfirmPage />} />
+              <Route path="/newsletter/unsubscribe" element={<NewsletterUnsubscribePage />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -171,6 +176,7 @@ const App = () => (
                   <Route path="campaigns" element={<AdminMarketingCampaignsPage />} />
                   <Route path="affiliate" element={<AdminMarketingAffiliatePage />} />
                   <Route path="knowledge" element={<AdminAssistantKnowledgePage />} />
+                  <Route path="newsletter" element={<AdminNewsletterPage />} />
                 </Route>
 
 
