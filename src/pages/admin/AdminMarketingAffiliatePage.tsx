@@ -244,8 +244,8 @@ const AdminMarketingAffiliatePage = () => {
     },
   });
 
-  // Group coverage rows by match_id (only valid links)
-  const coverageByMatch = useMemo(() => {
+  // Primary key: coverage rows by match_id (as written upstream)
+  const coverageByMatchId = useMemo(() => {
     const m = new Map<string, CoverageRow[]>();
     coverage.forEach(c => {
       if (!c.match_id) return;
@@ -256,14 +256,43 @@ const AdminMarketingAffiliatePage = () => {
     return m;
   }, [coverage]);
 
-  // Set of valid official fixture IDs for orphan detection
+  // Dual-key resolver (ADMIN ONLY): for each fixture, also pull coverage rows
+  // matching by (event_date day == fixture.date) AND both team names mentioned
+  // in event_name / labels — regardless of match_id. Recovers links where the
+  // upstream ingester wrote a wrong/empty match_id. Does NOT mutate DB and
+  // does NOT affect the public WC pages.
+  const coverageByMatch = useMemo(() => {
+    const m = new Map<string, CoverageRow[]>();
+    fixtures.forEach(f => {
+      const primary = coverageByMatchId.get(f.id) ?? [];
+      const seen = new Set(primary.map(c => c.id));
+      const fallback: CoverageRow[] = [];
+      coverage.forEach(c => {
+        if (seen.has(c.id)) return;
+        if (!sameDay(c.event_date, f.date)) return;
+        const hay = `${c.home_label ?? ""} ${c.away_label ?? ""} ${c.event_name ?? ""}`;
+        if (!teamMentioned(hay, f.home_team)) return;
+        if (!teamMentioned(hay, f.away_team)) return;
+        fallback.push(c);
+        seen.add(c.id);
+      });
+      m.set(f.id, [...primary, ...fallback]);
+    });
+    return m;
+  }, [fixtures, coverage, coverageByMatchId]);
+
   const officialIds = useMemo(() => new Set(fixtures.map(f => f.id)), [fixtures]);
 
-  // Orphan coverage rows: coverage with match_id that does NOT resolve to an official fixture,
-  // OR coverage with no match_id at all (unmatched).
+  // Orphan = coverage row not bound (via match_id OR dual-key resolver) to any fixture.
+  const resolvedCoverageIds = useMemo(() => {
+    const s = new Set<string>();
+    coverageByMatch.forEach(rows => rows.forEach(r => s.add(r.id)));
+    return s;
+  }, [coverageByMatch]);
+
   const orphanCoverage = useMemo(
-    () => coverage.filter(c => !c.match_id || !officialIds.has(c.match_id)),
-    [coverage, officialIds]
+    () => coverage.filter(c => !resolvedCoverageIds.has(c.id)),
+    [coverage, resolvedCoverageIds]
   );
 
   // Build rows driven by fixtures (creator-first) with strict per-row validation
