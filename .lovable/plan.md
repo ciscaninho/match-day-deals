@@ -1,40 +1,108 @@
+# Sprint Newsletter 1 — Brevo Integration & Lead Capture
 
-# Admin Affiliate Links — Dual-Key Resolver (admin-only)
+Brevo connector linked, sender `support@footticketfinder.com`, list auto-created on first run. Build order below.
 
-Single file changed: `src/pages/admin/AdminMarketingAffiliatePage.tsx`.
-Zero changes to public WC pages, `useWorldCupTicketCoverage`, `WorldCupTicketsSection`, `transformAffiliateUrl`, or any affiliate redirect.
-Zero DB writes, no new crawl, no remapping.
+Untouched: World Cup 2026, affiliate, payments, Marketing Hub, SEO infra.
 
-## What changes
+---
 
-1. Keep current `coverageByMatch` (primary key = `match_id`) untouched.
-2. Add `resolvedCoverageByFixture`: for each official fixture, append any coverage row not already matched where
-   - `sameDay(cov.event_date, fixture.date)` AND
-   - `teamMentioned(home_label + away_label + event_name, fixture.home_team)` AND
-   - `teamMentioned(..., fixture.away_team)`.
-3. Feed `resolvedCoverageByFixture` (instead of `coverageByMatch`) into the existing row builder. The existing `validateCoverage()` is unchanged and still runs on every resolved row — stadium / date / generic-title / URL checks stay strict.
-4. Recompute `orphanCoverage` as "rows not resolved to any fixture via either key" (was: rows with null/unknown `match_id`).
-5. Coverage drawer, Copy gating, Campaign gating, and the metrics row all read from the new resolver. No UI rewrites, just the data source swap.
+## 1. Migration — extend `newsletter_signups`
 
-## Behavior preserved
+Add columns + indexes (single migration):
 
-- Validator unchanged. Stadium mismatch still hard-fails → status = `reconcile`, Copy and Campaign remain disabled.
-- Wrong-URL risk stays 0: teams + date are still required before any row can become a candidate.
-- Public WC2026 page continues to read `wc_ticket_coverage` exactly as today.
+| Column | Type |
+|---|---|
+| `status` | text default `'pending'` (pending / confirmed / unsubscribed / bounced) |
+| `confirmation_token` | uuid unique |
+| `confirmed_at` | timestamptz |
+| `unsubscribe_token` | uuid default `gen_random_uuid()` unique |
+| `unsubscribed_at` | timestamptz |
+| `unsubscribe_reason` | text |
+| `consent_given` | boolean default false |
+| `consent_at` | timestamptz |
+| `consent_ip` | text |
+| `brevo_contact_id` | bigint |
+| `last_synced_at` | timestamptz |
 
-## Expected post-deploy metrics (admin page only)
+Plus: small `app_config` table (`key text pk, value jsonb`) to persist the auto-created `brevo_list_id` (admin-read, service-role write).
 
-Based on current DB snapshot of 72 confirmed fixtures and 65 active coverage rows:
+Tighten RLS: drop the existing anon insert policy on `newsletter_signups` (edge functions use service role going forward). Keep admin SELECT.
 
-| Metric | Before | After |
-|---|---|---|
-| Active | 6 | ~8 (only the 4 dual-key rows whose stadium also matches: Brazil×Morocco, France×Iraq, England×Ghana, Canada×Switzerland) |
-| Needs Reconciliation | 12 | ~18 (gains 6 dual-key rows with stadium conflict: NED×JPN, BEL×IRN, ECU×GER, CUR×CIV, CRO×GHA, CPV×KSA) |
-| Missing | 54 | 46 |
-| Coverage % | 8% | ~11% |
-| Fixtures recovered by resolver | — | **+10** (4 surface as Active, 6 surface as Reconcile) |
-| Orphan coverage rows | 39 | 29 |
+## 2. Edge functions (4 new, gateway-routed Brevo calls)
 
-Exact numbers will be reported from the live page after deploy.
+All use `Authorization: Bearer ${LOVABLE_API_KEY}` + `X-Connection-Api-Key: ${BREVO_API_KEY}` against `https://connector-gateway.lovable.dev/brevo/...`.
 
-Awaiting switch to build mode to apply.
+1. **`newsletter-subscribe`** (public POST, Zod-validated)
+   - Requires `consent=true`, valid email, honeypot empty.
+   - Captures IP (`x-forwarded-for`), UA, UTM, source, favourite team, language, page_path.
+   - Upsert row by email; if existing & confirmed → re-send confirmation only if pending.
+   - Ensures Brevo list exists (read `app_config.brevo_list_id`; if null → `POST /contacts/lists` with name "Foot Ticket Finder — Subscribers", folder auto, save id).
+   - Upserts Brevo contact (`POST /contacts` with `updateEnabled:true`) with attributes `FAVOURITE_TEAM, SOURCE, UTM_SOURCE/MEDIUM/CAMPAIGN/CONTENT, LANGUAGE, DOUBLE_OPT_IN=false`.
+   - Sends confirmation email via `POST /smtp/email` (sender `support@footticketfinder.com`, branded HTML, CTA → `/newsletter/confirm?token=…`, plus footer unsubscribe → `/newsletter/unsubscribe?token=…`).
+
+2. **`newsletter-confirm`** (public POST `{ token }`)
+   - Validates token, sets `status='confirmed'`, `confirmed_at=now()`.
+   - Brevo: `POST /contacts/lists/{id}/contacts/add` + `PUT /contacts/{email}` with `DOUBLE_OPT_IN=true`.
+   - Idempotent (already-confirmed returns success).
+
+3. **`newsletter-unsubscribe`** (public POST `{ token, reason? }`)
+   - Validates `unsubscribe_token`, sets `status='unsubscribed'`, `unsubscribed_at`, optional `unsubscribe_reason`.
+   - Brevo: `POST /contacts/lists/{id}/contacts/remove` + `PUT /contacts/{email}` with `emailBlacklisted:true`.
+   - Idempotent.
+
+4. **`newsletter-brevo-webhook`** (public POST, HMAC-validated against a stored secret)
+   - Handles `hard_bounce`, `unsubscribed`, `spam` events → updates `status`.
+   - Webhook URL surfaced to user post-deploy to register in Brevo dashboard.
+
+## 3. Frontend — updated `NewsletterCTA`
+
+- Add **required GDPR consent checkbox** with link to `/privacy`, unchecked by default.
+- Add hidden honeypot input.
+- Replace direct insert with `supabase.functions.invoke("newsletter-subscribe", { body })`.
+- Success state: "Check your inbox to confirm" (double opt-in copy).
+- i18n keys added to all 9 locales: `newsletter.consent_label`, `newsletter.consent_required`, `newsletter.check_inbox_title`, `newsletter.check_inbox_body`, `newsletter.privacy_link`, `newsletter.resend_*`.
+
+## 4. New CTA placements
+
+Reuse the same `NewsletterCTA` component with distinct `source` props:
+
+- **HomePage** (`src/pages/website/WebsiteHomePage.tsx`) — full section, `source="home"`.
+- **MatchesPage** (`src/pages/website/WebsiteMatchesPage.tsx`) — banner after results grid, `source="matches"`.
+- **Footer** (`src/components/website/WebsiteLayout.tsx`) — compact inline form, `source="footer"`.
+- **PricingPage** (`src/pages/marketing/PricingPage.tsx`) — block under plans, `source="pricing"`.
+- **PremiumPage / PremiumUpsellPage** — block at bottom, `source="premium"`.
+
+World Cup CTA stays as-is.
+
+## 5. New public pages
+
+- `/newsletter/confirm` — reads `?token=`, calls confirm function, renders success / already-confirmed / invalid.
+- `/newsletter/unsubscribe` — reads `?token=`, optional reason textarea, calls unsubscribe function, renders confirmation. Both routes added to `App.tsx`, both i18n'd, both linked from `MarketingLayout` for trust.
+
+## 6. Admin Newsletter Dashboard
+
+New page `src/pages/admin/AdminNewsletterPage.tsx`, behind `RequireAdmin`, linked from `AdminShell` nav under "Marketing → Newsletter".
+
+- Stat cards (deduped by email): total, confirmed, pending, unsubscribed, conversion %, last 7d / 30d signups.
+- Breakdowns: by `source` (bar), top 20 `favourite_team`, top UTM source/campaign.
+- Recent signups paginated table (email, status badge, source, team, created_at, confirmed_at).
+- CSV export of filtered list.
+- Read-only; no Brevo writes from the dashboard.
+
+## 7. GDPR
+
+- Unchecked consent checkbox blocks submission.
+- Persist `consent_given/at/ip` server-side (cannot be spoofed client-side).
+- Unsubscribe link in every email (Brevo native + our token-based).
+- Privacy policy text updated via `src/i18n/legal.ts` to mention Brevo as processor.
+
+---
+
+## Tech notes
+
+- Brevo gateway base: `https://connector-gateway.lovable.dev/brevo`. List endpoints: `POST /contacts/lists`, `POST /contacts/lists/{id}/contacts/add|remove`. Contact: `POST /contacts`, `PUT /contacts/{identifier}`. Email: `POST /smtp/email`.
+- Confirmation/unsubscribe URLs use `https://footticketfinder.com` in production (env-aware).
+- All edge functions: CORS via `npm:@supabase/supabase-js@2/cors`, Zod validation, structured error responses.
+- Tokens are UUIDs (single-use for confirm, persistent for unsubscribe).
+
+Switch to build mode to proceed in the order above.
