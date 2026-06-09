@@ -1,4 +1,5 @@
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
+import { NewsletterCTA } from "@/components/marketing/NewsletterCTA";
 import { Link } from "react-router-dom";
 import { Check, ArrowRight, Crown, BellRing, TrendingDown, Heart, Zap } from "lucide-react";
 import { usePremiumGate } from "@/components/premium/PremiumGate";
@@ -115,6 +116,12 @@ const PricingPage = () => {
                 <p className="mt-1 text-sm text-[#2C3E50]/65 leading-relaxed">{v.body}</p>
               </div>
             ))}
+          </div>
+        </PageSection>
+
+        <PageSection tone="white" size="tight">
+          <div className="max-w-2xl mx-auto">
+            <NewsletterCTA source="pricing" />
           </div>
         </PageSection>
       </div>
