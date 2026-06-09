@@ -637,17 +637,33 @@ const AdminMarketingAffiliatePage = () => {
                 const link = (c.ticket_url || c.url || "").trim();
                 const v = reconcileOpen?.validations.find(x => x.coverageId === c.id)?.validation;
                 const ok = !!v?.ok;
+                const stadiumOnly = !!v && isStadiumOnlyFailure(v);
+                const surfaceLink = ok || stadiumOnly;
+                const cardTone = ok
+                  ? "border-emerald-200 bg-emerald-50/40"
+                  : stadiumOnly
+                    ? "border-amber-200 bg-amber-50/40"
+                    : "border-rose-200 bg-rose-50/40";
+                const badgeTone = ok
+                  ? "bg-emerald-100 text-emerald-800"
+                  : stadiumOnly
+                    ? "bg-amber-100 text-amber-900"
+                    : "bg-rose-100 text-rose-800";
+                const badgeLabel = ok ? "✅ validated" : stadiumOnly ? "🟡 stadium conflict" : "🔴 rejected";
                 return (
-                  <div key={c.id} className={`rounded-lg border p-2 text-xs ${ok ? "border-emerald-200 bg-emerald-50/40" : "border-rose-200 bg-rose-50/40"}`}>
+                  <div key={c.id} className={`rounded-lg border p-2 text-xs ${cardTone}`}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="font-bold text-slate-900 truncate">{c.event_name || "—"}</div>
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        ok ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                      }`}>{ok ? "✅ validated" : "🔴 rejected"}</span>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeTone}`}>{badgeLabel}</span>
                     </div>
                     <div className="text-[11px] text-slate-600 mt-1">
                       {c.home_label || "?"} vs {c.away_label || "?"} · {c.stadium_name || "?"} · {c.city || "?"} · {fmtDate(c.event_date)}
                     </div>
+                    {stadiumOnly && (
+                      <div className="mt-1.5 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-bold text-amber-900">
+                        Teams and date validated. Stadium differs between Ticombo and official fixture.
+                      </div>
+                    )}
                     {v && (
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         <Check label="date" ok={v.checks.date} />
@@ -658,18 +674,18 @@ const AdminMarketingAffiliatePage = () => {
                       </div>
                     )}
                     {!ok && v && v.reasons.length > 0 && (
-                      <ul className="mt-1.5 text-[10px] text-rose-700 list-disc pl-4">
+                      <ul className={`mt-1.5 text-[10px] list-disc pl-4 ${stadiumOnly ? "text-amber-800" : "text-rose-700"}`}>
                         {v.reasons.map(r => <li key={r}>{REASON_LABEL[r] ?? r}</li>)}
                       </ul>
                     )}
                     <div className="text-[10px] text-slate-500 mt-1">id: {c.id} · last_sync: {c.last_sync_at || "—"}</div>
-                    {link && ok && (
+                    {link && surfaceLink && (
                       <a href={transformAffiliateUrl(link)} target="_blank" rel="noopener noreferrer"
                         className="mt-1 inline-flex items-center gap-1 text-[11px] text-violet-700 hover:underline">
                         <ExternalLink className="w-3 h-3" /> Open partner link
                       </a>
                     )}
-                    {link && !ok && (
+                    {link && !surfaceLink && (
                       <div className="mt-1 text-[10px] text-slate-500 italic">
                         Partner link hidden — validation failed. Reconcile in source data before exposing.
                       </div>
