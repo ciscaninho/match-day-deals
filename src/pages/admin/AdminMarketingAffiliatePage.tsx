@@ -315,8 +315,20 @@ const AdminMarketingAffiliatePage = () => {
       const rawUrl = best ? (best.ticket_url || best.url || "").trim() : "";
       const hasActive = !!(best && rawUrl);
 
+      // Stadium-conflict fallback: rows where ONLY stadium fails (date+teams+title+url all pass).
+      const stadiumConflictRows = covs.filter((_, i) => isStadiumOnlyFailure(validations[i].validation));
+      const sortedStadiumConflict = stadiumConflictRows.slice().sort((a, b) => {
+        const ad = a.last_sync_at ? new Date(a.last_sync_at).getTime() : 0;
+        const bd = b.last_sync_at ? new Date(b.last_sync_at).getTime() : 0;
+        return bd - ad;
+      });
+      const bestConflict = sortedStadiumConflict[0];
+      const conflictRawUrl = bestConflict ? (bestConflict.ticket_url || bestConflict.url || "").trim() : "";
+
       let status: FixtureStatus;
-      if (hasActive) status = "active";
+      let chosenUrl = "";
+      if (hasActive) { status = "active"; chosenUrl = rawUrl; }
+      else if (bestConflict && conflictRawUrl) { status = "stadium_conflict"; chosenUrl = conflictRawUrl; }
       else if (covs.length > 0) status = "reconcile";
       else status = "missing";
 
