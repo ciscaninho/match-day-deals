@@ -72,6 +72,7 @@ import { TrackPriceSheetProvider } from "./components/track/TrackPriceSheet";
 import ScrollToTop from "./components/ScrollToTop";
 import { AnalyticsTracker } from "./hooks/useAnalyticsTracking";
 import GoRedirectPage from "./pages/GoRedirectPage";
+import { CookieConsent } from "./components/consent/CookieConsent";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -203,6 +204,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AIAssistantWidget />
+            <CookieConsent />
             </TrackPriceSheetProvider>
             </PremiumGateProvider>
             </AuthGateProvider>
