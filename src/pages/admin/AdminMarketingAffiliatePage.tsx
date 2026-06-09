@@ -45,6 +45,12 @@ interface AnalyticsRow {
 
 type FixtureStatus = "active" | "missing" | "reconcile";
 
+type CoverageValidation = {
+  ok: boolean;
+  reasons: string[]; // human-readable rejection reasons
+  checks: { date: boolean; stadium: boolean; teams: boolean; nonGeneric: boolean; activeUrl: boolean };
+};
+
 type FixtureRow = {
   matchId: string;
   home: string;
@@ -61,7 +67,9 @@ type FixtureRow = {
   matchPagePath: string;
   coverageCount: number;
   reconcileCount: number;
+  validations: Array<{ coverageId: string; validation: CoverageValidation }>;
 };
+
 
 // ---------------- Helpers ----------------
 
