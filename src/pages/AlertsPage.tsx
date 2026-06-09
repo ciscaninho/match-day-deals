@@ -16,23 +16,49 @@ interface SavedRow {
   created_at: string;
 }
 
+interface MatchRow {
+  id: string;
+  home_team: string;
+  away_team: string;
+  date: string;
+  stadium: string | null;
+  city: string | null;
+}
+
 const AlertsPage = () => {
   const { user, isPremium } = useUser();
   const { openPaywall } = usePremiumGate();
   const [rows, setRows] = useState<SavedRow[]>([]);
+  const [matches, setMatches] = useState<Record<string, MatchRow>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("saved_matches")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        setRows((data as SavedRow[]) || []);
-        setLoading(false);
-      });
+    if (!user) { setLoading(false); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("saved_matches")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (cancelled) return;
+      const savedRows = (data as SavedRow[]) || [];
+      setRows(savedRows);
+      const ids = savedRows.map((r) => r.match_id);
+      if (ids.length > 0) {
+        const { data: m } = await supabase
+          .from("matches")
+          .select("id,home_team,away_team,date,stadium,city")
+          .in("id", ids);
+        if (!cancelled) {
+          const map: Record<string, MatchRow> = {};
+          ((m as MatchRow[]) || []).forEach((row) => { map[row.id] = row; });
+          setMatches(map);
+        }
+      }
+      if (!cancelled) setLoading(false);
+    })();
+    return () => { cancelled = true; };
   }, [user]);
 
   const toggleAlert = async (row: SavedRow) => {
@@ -53,6 +79,7 @@ const AlertsPage = () => {
     setRows((rs) => rs.filter((r) => r.id !== row.id));
     await supabase.from("saved_matches").delete().eq("id", row.id);
   };
+
 
   return (
     <div className="min-h-screen bg-background pb-20">
