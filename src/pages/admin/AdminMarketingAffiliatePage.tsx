@@ -454,9 +454,10 @@ const AdminMarketingAffiliatePage = () => {
   return (
     <div className="space-y-4">
       {/* Quality panel */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
         <Stat label="Confirmed fixtures" value={totalConfirmed} tone="slate" />
         <Stat label="Active affiliate" value={activeCount} tone="emerald" />
+        <Stat label="Stadium conflict" value={stadiumConflictCount} tone="amber" />
         <Stat label="Missing affiliate" value={missingCount} tone="amber" />
         <Stat label="Needs reconciliation" value={reconcileCount} tone="rose" />
         <Stat label="Coverage %" value={`${coveragePct}%`} tone="sky" />
