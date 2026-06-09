@@ -359,6 +359,7 @@ const AdminMarketingAffiliatePage = () => {
   const activeCount = fixtureRows.filter(r => r.status === "active").length;
   const missingCount = fixtureRows.filter(r => r.status === "missing").length;
   const reconcileCount = fixtureRows.filter(r => r.status === "reconcile").length;
+  const stadiumConflictCount = fixtureRows.filter(r => r.status === "stadium_conflict").length;
   const orphanCount = orphanCoverage.length;
   const coveragePct = totalConfirmed > 0
     ? Math.min(100, Math.round((activeCount / totalConfirmed) * 100))
