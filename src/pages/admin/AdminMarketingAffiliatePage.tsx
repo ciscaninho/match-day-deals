@@ -523,6 +523,7 @@ const AdminMarketingAffiliatePage = () => {
             className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900">
             <option value="">All statuses</option>
             <option value="active">🟢 Active affiliate link</option>
+            <option value="stadium_conflict">🟡 Stadium conflict</option>
             <option value="missing">🟠 Missing affiliate link</option>
             <option value="reconcile">🔴 Needs reconciliation</option>
           </select>
