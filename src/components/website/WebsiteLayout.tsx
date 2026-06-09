@@ -8,6 +8,7 @@ import { getFooterCopy } from "@/i18n/footer";
 import { getGuide } from "@/i18n/guidesContent";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { getWorldCup2026Copy } from "@/i18n/worldCup2026";
+import { NewsletterCTA } from "@/components/marketing/NewsletterCTA";
 
 interface Props {
   children: ReactNode;
@@ -185,6 +186,13 @@ export const WebsiteLayout = ({ children }: Props) => {
                     </a>
                   ))}
                 </div>
+              </div>
+
+              <div className="mt-6">
+                <h4 className="text-[11px] font-bold uppercase tracking-widest text-white/90 mb-3">
+                  {tf("newsletter.footer_heading", "Get ticket release alerts")}
+                </h4>
+                <NewsletterCTA source="footer" variant="inline" />
               </div>
             </div>
 
