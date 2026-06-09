@@ -24,6 +24,7 @@ interface CoverageRow {
   is_available: boolean | null;
   provider: string | null;
   quality_score: string | null;
+  last_sync_at: string | null;
 }
 
 interface MatchRow {
@@ -56,13 +57,16 @@ type CombinedRow = {
   country: string;
   competition: string;
   group: string | null;
-  startingPrice: number | null;
-  currency: string | null;
   status: "active" | "inactive";
   affiliateUrl: string;
   rawUrl: string;
   matchPagePath: string | null;
+  hasOfficialMatch: boolean;
+  lastSyncAt: string | null;
 };
+
+const GENERIC_NAME_RE =
+  /^\s*(match\s+\d+\s+group\s+[a-l]|group\s+stage\s+match|world\s+cup\s+match|knockout\s+match)/i;
 
 const slugify = (s: string) =>
   s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -96,6 +100,7 @@ const AdminMarketingAffiliatePage = () => {
   const [groupFilter, setGroupFilter] = useState<string>("");
   const [cityFilter, setCityFilter] = useState<string>("");
   const [activeOnly, setActiveOnly] = useState(true);
+  const [showUnmatched, setShowUnmatched] = useState(false);
 
   const { data: coverage = [], isLoading } = useQuery({
     queryKey: ["affiliate_coverage_all"],
@@ -103,7 +108,7 @@ const AdminMarketingAffiliatePage = () => {
     queryFn: async (): Promise<CoverageRow[]> => {
       const { data, error } = await supabase
         .from("wc_ticket_coverage" as never)
-        .select("id,match_id,stadium_slug,stadium_name,city,country,event_name,event_date,home_label,away_label,ticket_url,url,starting_price,currency,active,is_available,provider,quality_score")
+        .select("id,match_id,stadium_slug,stadium_name,city,country,event_name,event_date,home_label,away_label,ticket_url,url,starting_price,currency,active,is_available,provider,quality_score,last_sync_at")
         .is("archived_at", null)
         .order("event_date", { ascending: true })
         .limit(2000);
@@ -154,15 +159,20 @@ const AdminMarketingAffiliatePage = () => {
     return m;
   }, [matches]);
 
-  const rows: CombinedRow[] = useMemo(() => {
+  // Build all rows from coverage, prioritizing official fixture data
+  const allRows: CombinedRow[] = useMemo(() => {
     return coverage.map(c => {
       const m = c.match_id ? matchMap.get(c.match_id) : undefined;
       const rawUrl = (c.ticket_url || c.url || "").trim();
+      const hasOfficial = !!m;
       const home = m?.home_team || c.home_label || "—";
-      const away = m?.away_team || c.away_label || (c.event_name || "Stadium link");
+      const away = m?.away_team || c.away_label || "—";
+      // OFFICIAL FIXTURES FIRST — never show generic Ticombo names if official match exists
       const matchLabel = m
         ? `${m.home_team} vs ${m.away_team}`
-        : c.event_name || `${c.stadium_name || "Stadium"}`;
+        : (c.event_name && !GENERIC_NAME_RE.test(c.event_name)
+            ? c.event_name
+            : (c.stadium_name ? `${c.stadium_name} — fixture TBD` : "Unmatched Ticombo listing"));
       return {
         key: c.id,
         matchId: c.match_id,
@@ -175,36 +185,77 @@ const AdminMarketingAffiliatePage = () => {
         country: m?.country || c.country || "—",
         competition: m?.competition || "FIFA World Cup 2026",
         group: m?.group_code || null,
-        startingPrice: c.starting_price,
-        currency: c.currency,
         status: (c.active && c.is_available !== false) ? "active" : "inactive",
         affiliateUrl: rawUrl ? transformAffiliateUrl(rawUrl) : "",
         rawUrl,
         matchPagePath: c.match_id ? `/matches/${c.match_id}` : null,
+        hasOfficialMatch: hasOfficial,
+        lastSyncAt: c.last_sync_at,
       };
     });
   }, [coverage, matchMap]);
 
+  // DEDUPLICATION — one card per official fixture
+  const dedupedRows: CombinedRow[] = useMemo(() => {
+    const byMatch = new Map<string, CombinedRow[]>();
+    const unmatched: CombinedRow[] = [];
+    for (const r of allRows) {
+      if (r.matchId) {
+        const arr = byMatch.get(r.matchId) ?? [];
+        arr.push(r);
+        byMatch.set(r.matchId, arr);
+      } else {
+        unmatched.push(r);
+      }
+    }
+    const winners: CombinedRow[] = [];
+    byMatch.forEach(arr => {
+      const sorted = arr.slice().sort((a, b) => {
+        // 1) active + has URL first
+        const aw = (a.status === "active" && a.affiliateUrl) ? 1 : 0;
+        const bw = (b.status === "active" && b.affiliateUrl) ? 1 : 0;
+        if (aw !== bw) return bw - aw;
+        // 2) latest sync date
+        const ad = a.lastSyncAt ? new Date(a.lastSyncAt).getTime() : 0;
+        const bd = b.lastSyncAt ? new Date(b.lastSyncAt).getTime() : 0;
+        return bd - ad;
+      });
+      winners.push(sorted[0]);
+    });
+    return [...winners, ...unmatched];
+  }, [allRows]);
+
+  // Counters for quality panel
+  const hiddenDuplicates = allRows.filter(r => r.matchId).length - dedupedRows.filter(r => r.matchId).length;
+  const unmatchedCount = dedupedRows.filter(r => !r.matchId).length;
+  const officialVisible = dedupedRows.filter(r => r.matchId).length;
+  const activeWithLink = dedupedRows.filter(r => r.matchId && r.status === "active" && r.affiliateUrl).length;
+  const totalOfficialMatches = matches.length;
+  const coveragePct = totalOfficialMatches > 0 ? Math.round((activeWithLink / totalOfficialMatches) * 100) : 0;
+
   const groups = useMemo(
-    () => [...new Set(rows.map(r => r.group).filter(Boolean) as string[])].sort(),
-    [rows]
+    () => [...new Set(dedupedRows.map(r => r.group).filter(Boolean) as string[])].sort(),
+    [dedupedRows]
   );
   const cities = useMemo(
-    () => [...new Set(rows.map(r => r.city).filter(c => c && c !== "—"))].sort(),
-    [rows]
+    () => [...new Set(dedupedRows.map(r => r.city).filter(c => c && c !== "—"))].sort(),
+    [dedupedRows]
   );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return rows.filter(r => {
+    return dedupedRows.filter(r => {
+      // Hide unmatched Ticombo rows unless explicitly toggled
+      if (!showUnmatched && !r.hasOfficialMatch) return false;
       if (activeOnly && (r.status !== "active" || !r.affiliateUrl)) return false;
       if (groupFilter && r.group !== groupFilter) return false;
       if (cityFilter && r.city !== cityFilter) return false;
       if (!q) return true;
-      return [r.home, r.away, r.stadium, r.city, r.country, r.competition, r.group, r.matchLabel]
+      // SEARCH: home, away, label, stadium, city, country, group
+      return [r.home, r.away, r.matchLabel, r.stadium, r.city, r.country, r.group, `group ${r.group ?? ""}`]
         .filter(Boolean).join(" ").toLowerCase().includes(q);
     });
-  }, [rows, query, groupFilter, cityFilter, activeOnly]);
+  }, [dedupedRows, query, groupFilter, cityFilter, activeOnly, showUnmatched]);
 
   const topOpportunities = useMemo(() => {
     const counts = new Map<string, number>();
@@ -215,7 +266,7 @@ const AdminMarketingAffiliatePage = () => {
     return [...counts.entries()]
       .map(([matchId, score]) => {
         const m = matchMap.get(matchId);
-        const row = rows.find(r => r.matchId === matchId);
+        const row = dedupedRows.find(r => r.matchId === matchId);
         return {
           matchId,
           score,
@@ -223,10 +274,10 @@ const AdminMarketingAffiliatePage = () => {
           row,
         };
       })
-      .filter(x => !!x.row)
+      .filter(x => !!x.row && x.row!.hasOfficialMatch)
       .sort((a, b) => b.score - a.score)
       .slice(0, 6);
-  }, [analytics, matchMap, rows]);
+  }, [analytics, matchMap, dedupedRows]);
 
   const createCampaign = async (r: CombinedRow) => {
     const matchSlug = slugify(`${r.home}_${r.away}`);
@@ -274,16 +325,15 @@ const AdminMarketingAffiliatePage = () => {
     URL.revokeObjectURL(url);
   };
 
-  const activeWithLink = rows.filter(r => r.status === "active" && r.affiliateUrl).length;
-
   return (
     <div className="space-y-4">
-      {/* Header stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <Stat label="Total links" value={rows.length} />
-        <Stat label="Active w/ link" value={activeWithLink} />
-        <Stat label="Linked to fixtures" value={rows.filter(r => r.matchId).length} />
-        <Stat label="Stadium-only links" value={rows.filter(r => !r.matchId).length} />
+      {/* Quality panel */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        <Stat label="Official visible" value={officialVisible} tone="emerald" />
+        <Stat label="Hidden duplicates" value={hiddenDuplicates} tone="slate" />
+        <Stat label="Unmatched Ticombo" value={unmatchedCount} tone="amber" />
+        <Stat label="Active affiliate" value={activeWithLink} tone="violet" />
+        <Stat label="Coverage %" value={`${coveragePct}%`} tone="sky" />
       </div>
 
       {/* Top opportunities */}
@@ -330,7 +380,7 @@ const AdminMarketingAffiliatePage = () => {
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Search team, stadium, city, group…"
+              placeholder="Search team, stadium, city, country, group…"
               className="w-full rounded-md border border-slate-300 bg-white pl-7 pr-2 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
           </div>
@@ -354,13 +404,17 @@ const AdminMarketingAffiliatePage = () => {
             <input type="checkbox" checked={activeOnly} onChange={e => setActiveOnly(e.target.checked)} />
             Active link only
           </label>
+          <label className="inline-flex items-center gap-1.5 text-xs text-slate-700">
+            <input type="checkbox" checked={showUnmatched} onChange={e => setShowUnmatched(e.target.checked)} />
+            Show unmatched rows
+          </label>
           <span className="ml-auto text-[11px] text-slate-500">
-            {isLoading ? "Loading…" : `${filtered.length} / ${rows.length} rows`}
+            {isLoading ? "Loading…" : `${filtered.length} / ${dedupedRows.length} rows`}
           </span>
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table — price column hidden (price freeze) */}
       <section className="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
@@ -371,28 +425,29 @@ const AdminMarketingAffiliatePage = () => {
                 <th className="text-left px-2 py-2">Stadium</th>
                 <th className="text-left px-2 py-2">City</th>
                 <th className="text-left px-2 py-2">Group</th>
-                <th className="text-left px-2 py-2">From</th>
                 <th className="text-left px-2 py-2">Status</th>
                 <th className="text-right px-2 py-2">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="p-4 text-center text-slate-500">No links match these filters.</td></tr>
+                <tr><td colSpan={7} className="p-4 text-center text-slate-500">No links match these filters.</td></tr>
               )}
               {filtered.map(r => (
                 <tr key={r.key} className="hover:bg-slate-50">
                   <td className="px-2 py-2 font-bold text-slate-900">
-                    <div className="truncate max-w-[260px]">{r.matchLabel}</div>
+                    <div className="truncate max-w-[260px] flex items-center gap-1.5">
+                      {r.matchLabel}
+                      {!r.hasOfficialMatch && (
+                        <span className="inline-block rounded px-1 py-px text-[9px] font-bold bg-amber-100 text-amber-800">unmatched</span>
+                      )}
+                    </div>
                     <div className="text-[10px] text-slate-500 truncate max-w-[260px]">{r.competition}</div>
                   </td>
                   <td className="px-2 py-2 text-slate-700">{fmtDate(r.date)}</td>
                   <td className="px-2 py-2 text-slate-700 truncate max-w-[180px]">{r.stadium}</td>
                   <td className="px-2 py-2 text-slate-700">{r.city}</td>
                   <td className="px-2 py-2 text-slate-700">{r.group || "—"}</td>
-                  <td className="px-2 py-2 text-slate-700">
-                    {r.startingPrice ? `${r.startingPrice} ${r.currency || ""}` : "—"}
-                  </td>
                   <td className="px-2 py-2">
                     <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${
                       r.status === "active"
@@ -430,8 +485,16 @@ const AdminMarketingAffiliatePage = () => {
   );
 };
 
-const Stat = ({ label, value }: { label: string; value: number | string }) => (
-  <div className="rounded-lg border border-slate-200 bg-white px-3 py-3">
+const toneMap: Record<string, string> = {
+  emerald: "border-emerald-200 bg-emerald-50",
+  violet: "border-violet-200 bg-violet-50",
+  amber: "border-amber-200 bg-amber-50",
+  sky: "border-sky-200 bg-sky-50",
+  slate: "border-slate-200 bg-white",
+};
+
+const Stat = ({ label, value, tone = "slate" }: { label: string; value: number | string; tone?: string }) => (
+  <div className={`rounded-lg border px-3 py-3 ${toneMap[tone] ?? toneMap.slate}`}>
     <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{label}</div>
     <div className="text-xl font-extrabold text-slate-900 mt-0.5">{value}</div>
   </div>
