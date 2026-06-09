@@ -43,7 +43,11 @@ interface AnalyticsRow {
   event_type: string;
 }
 
-type FixtureStatus = "active" | "missing" | "reconcile";
+type FixtureStatus = "active" | "missing" | "reconcile" | "stadium_conflict";
+
+// Returns true iff the ONLY failing check is stadium (date/teams/non-generic/active URL all pass).
+const isStadiumOnlyFailure = (v: CoverageValidation): boolean =>
+  !v.ok && v.checks.date && v.checks.teams && v.checks.nonGeneric && v.checks.activeUrl && !v.checks.stadium;
 
 type CoverageValidation = {
   ok: boolean;
@@ -311,8 +315,20 @@ const AdminMarketingAffiliatePage = () => {
       const rawUrl = best ? (best.ticket_url || best.url || "").trim() : "";
       const hasActive = !!(best && rawUrl);
 
+      // Stadium-conflict fallback: rows where ONLY stadium fails (date+teams+title+url all pass).
+      const stadiumConflictRows = covs.filter((_, i) => isStadiumOnlyFailure(validations[i].validation));
+      const sortedStadiumConflict = stadiumConflictRows.slice().sort((a, b) => {
+        const ad = a.last_sync_at ? new Date(a.last_sync_at).getTime() : 0;
+        const bd = b.last_sync_at ? new Date(b.last_sync_at).getTime() : 0;
+        return bd - ad;
+      });
+      const bestConflict = sortedStadiumConflict[0];
+      const conflictRawUrl = bestConflict ? (bestConflict.ticket_url || bestConflict.url || "").trim() : "";
+
       let status: FixtureStatus;
-      if (hasActive) status = "active";
+      let chosenUrl = "";
+      if (hasActive) { status = "active"; chosenUrl = rawUrl; }
+      else if (bestConflict && conflictRawUrl) { status = "stadium_conflict"; chosenUrl = conflictRawUrl; }
       else if (covs.length > 0) status = "reconcile";
       else status = "missing";
 
@@ -328,7 +344,7 @@ const AdminMarketingAffiliatePage = () => {
         group: f.group_code,
         competition: f.competition,
         status,
-        affiliateUrl: hasActive ? transformAffiliateUrl(rawUrl) : "",
+        affiliateUrl: chosenUrl ? transformAffiliateUrl(chosenUrl) : "",
         matchPagePath: `/matches/${f.id}`,
         coverageCount: covs.length,
         reconcileCount: covs.length - validRows.length,
@@ -343,6 +359,7 @@ const AdminMarketingAffiliatePage = () => {
   const activeCount = fixtureRows.filter(r => r.status === "active").length;
   const missingCount = fixtureRows.filter(r => r.status === "missing").length;
   const reconcileCount = fixtureRows.filter(r => r.status === "reconcile").length;
+  const stadiumConflictCount = fixtureRows.filter(r => r.status === "stadium_conflict").length;
   const orphanCount = orphanCoverage.length;
   const coveragePct = totalConfirmed > 0
     ? Math.min(100, Math.round((activeCount / totalConfirmed) * 100))
@@ -437,9 +454,10 @@ const AdminMarketingAffiliatePage = () => {
   return (
     <div className="space-y-4">
       {/* Quality panel */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
         <Stat label="Confirmed fixtures" value={totalConfirmed} tone="slate" />
         <Stat label="Active affiliate" value={activeCount} tone="emerald" />
+        <Stat label="Stadium conflict" value={stadiumConflictCount} tone="amber" />
         <Stat label="Missing affiliate" value={missingCount} tone="amber" />
         <Stat label="Needs reconciliation" value={reconcileCount} tone="rose" />
         <Stat label="Coverage %" value={`${coveragePct}%`} tone="sky" />
@@ -505,6 +523,7 @@ const AdminMarketingAffiliatePage = () => {
             className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900">
             <option value="">All statuses</option>
             <option value="active">🟢 Active affiliate link</option>
+            <option value="stadium_conflict">🟡 Stadium conflict</option>
             <option value="missing">🟠 Missing affiliate link</option>
             <option value="reconcile">🔴 Needs reconciliation</option>
           </select>
@@ -559,22 +578,22 @@ const AdminMarketingAffiliatePage = () => {
                   <td className="px-2 py-2">
                     <div className="flex items-center justify-end gap-1">
                       <button
-                        disabled={r.status !== "active" || !r.affiliateUrl}
+                        disabled={!(r.status === "active" || r.status === "stadium_conflict") || !r.affiliateUrl}
                         onClick={() => copyText(r.affiliateUrl)}
-                        title={r.status !== "active" ? "Disabled — coverage failed validation" : "Copy tracked affiliate URL"}
+                        title={!(r.status === "active" || r.status === "stadium_conflict") ? "Disabled — coverage failed validation" : (r.status === "stadium_conflict" ? "Stadium conflict — teams and date validated" : "Copy tracked affiliate URL")}
                         className="inline-flex items-center gap-1 rounded-md bg-slate-900 text-white px-2 py-1 text-[10px] font-bold hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Copy className="w-3 h-3" /> Copy
                       </button>
-                      {r.status === "active" && r.affiliateUrl && (
+                      {(r.status === "active" || r.status === "stadium_conflict") && r.affiliateUrl && (
                         <a href={r.affiliateUrl} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center rounded-md border border-slate-300 bg-white px-1.5 py-1 text-[10px] text-slate-700 hover:bg-slate-50">
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       )}
                       <button
-                        disabled={r.status !== "active"}
+                        disabled={!(r.status === "active" || r.status === "stadium_conflict")}
                         onClick={() => createCampaign(r)}
-                        title={r.status !== "active" ? "Disabled — no validated affiliate link" : "Create quick TikTok campaign"}
+                        title={!(r.status === "active" || r.status === "stadium_conflict") ? "Disabled — no validated affiliate link" : "Create quick TikTok campaign"}
                         className="inline-flex items-center gap-1 rounded-md border border-violet-300 bg-violet-50 text-violet-800 px-2 py-1 text-[10px] font-bold hover:bg-violet-100 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Plus className="w-3 h-3" /> Campaign
                       </button>
@@ -618,17 +637,33 @@ const AdminMarketingAffiliatePage = () => {
                 const link = (c.ticket_url || c.url || "").trim();
                 const v = reconcileOpen?.validations.find(x => x.coverageId === c.id)?.validation;
                 const ok = !!v?.ok;
+                const stadiumOnly = !!v && isStadiumOnlyFailure(v);
+                const surfaceLink = ok || stadiumOnly;
+                const cardTone = ok
+                  ? "border-emerald-200 bg-emerald-50/40"
+                  : stadiumOnly
+                    ? "border-amber-200 bg-amber-50/40"
+                    : "border-rose-200 bg-rose-50/40";
+                const badgeTone = ok
+                  ? "bg-emerald-100 text-emerald-800"
+                  : stadiumOnly
+                    ? "bg-amber-100 text-amber-900"
+                    : "bg-rose-100 text-rose-800";
+                const badgeLabel = ok ? "✅ validated" : stadiumOnly ? "🟡 stadium conflict" : "🔴 rejected";
                 return (
-                  <div key={c.id} className={`rounded-lg border p-2 text-xs ${ok ? "border-emerald-200 bg-emerald-50/40" : "border-rose-200 bg-rose-50/40"}`}>
+                  <div key={c.id} className={`rounded-lg border p-2 text-xs ${cardTone}`}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="font-bold text-slate-900 truncate">{c.event_name || "—"}</div>
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        ok ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                      }`}>{ok ? "✅ validated" : "🔴 rejected"}</span>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeTone}`}>{badgeLabel}</span>
                     </div>
                     <div className="text-[11px] text-slate-600 mt-1">
                       {c.home_label || "?"} vs {c.away_label || "?"} · {c.stadium_name || "?"} · {c.city || "?"} · {fmtDate(c.event_date)}
                     </div>
+                    {stadiumOnly && (
+                      <div className="mt-1.5 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-bold text-amber-900">
+                        Teams and date validated. Stadium differs between Ticombo and official fixture.
+                      </div>
+                    )}
                     {v && (
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         <Check label="date" ok={v.checks.date} />
@@ -639,18 +674,18 @@ const AdminMarketingAffiliatePage = () => {
                       </div>
                     )}
                     {!ok && v && v.reasons.length > 0 && (
-                      <ul className="mt-1.5 text-[10px] text-rose-700 list-disc pl-4">
+                      <ul className={`mt-1.5 text-[10px] list-disc pl-4 ${stadiumOnly ? "text-amber-800" : "text-rose-700"}`}>
                         {v.reasons.map(r => <li key={r}>{REASON_LABEL[r] ?? r}</li>)}
                       </ul>
                     )}
                     <div className="text-[10px] text-slate-500 mt-1">id: {c.id} · last_sync: {c.last_sync_at || "—"}</div>
-                    {link && ok && (
+                    {link && surfaceLink && (
                       <a href={transformAffiliateUrl(link)} target="_blank" rel="noopener noreferrer"
                         className="mt-1 inline-flex items-center gap-1 text-[11px] text-violet-700 hover:underline">
                         <ExternalLink className="w-3 h-3" /> Open partner link
                       </a>
                     )}
-                    {link && !ok && (
+                    {link && !surfaceLink && (
                       <div className="mt-1 text-[10px] text-slate-500 italic">
                         Partner link hidden — validation failed. Reconcile in source data before exposing.
                       </div>
@@ -671,6 +706,11 @@ const StatusBadge = ({ status }: { status: FixtureStatus }) => {
   if (status === "active") return (
     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-bold">
       🟢 Active
+    </span>
+  );
+  if (status === "stadium_conflict") return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-900 px-2 py-0.5 text-[10px] font-bold" title="Teams and date validated. Stadium differs between Ticombo and official fixture.">
+      🟡 Stadium Conflict
     </span>
   );
   if (status === "missing") return (
