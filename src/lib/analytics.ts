@@ -236,3 +236,18 @@ export const trackEvent = (event: AnalyticsEventType, props: AnalyticsEventProps
     /* swallow */
   }
 };
+
+// When the user grants analytics consent later, retro-fire a page_view so the
+// current page isn't missed (initial page_view was suppressed before consent).
+if (typeof window !== "undefined") {
+  try {
+    window.addEventListener("ftf:consent-changed", () => {
+      if (hasConsent("analytics") && !initialized) {
+        initAnalytics();
+        trackEvent("page_view");
+      }
+    });
+  } catch {
+    /* swallow */
+  }
+}
