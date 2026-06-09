@@ -43,7 +43,11 @@ interface AnalyticsRow {
   event_type: string;
 }
 
-type FixtureStatus = "active" | "missing" | "reconcile";
+type FixtureStatus = "active" | "missing" | "reconcile" | "stadium_conflict";
+
+// Returns true iff the ONLY failing check is stadium (date/teams/non-generic/active URL all pass).
+const isStadiumOnlyFailure = (v: CoverageValidation): boolean =>
+  !v.ok && v.checks.date && v.checks.teams && v.checks.nonGeneric && v.checks.activeUrl && !v.checks.stadium;
 
 type CoverageValidation = {
   ok: boolean;
