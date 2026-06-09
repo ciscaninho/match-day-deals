@@ -163,6 +163,11 @@ const getLanguage = (): string => {
 let initialized = false;
 export const initAnalytics = () => {
   if (initialized || typeof window === "undefined") return;
+  // Gate on user consent — GDPR requires opt-in for analytics cookies & persistent IDs.
+  // We intentionally avoid touching localStorage (visitor id, UTM) until consent is granted.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { hasConsent } = require("@/lib/consent") as typeof import("@/lib/consent");
+  if (!hasConsent("analytics")) return;
   initialized = true;
   // Capture fresh UTM on landing.
   captureUtmFromUrl();
@@ -173,10 +178,14 @@ export const initAnalytics = () => {
 
 /**
  * Fire an analytics event. Never awaits, never throws.
+ * No-op until the user has granted the `analytics` consent category.
  */
 export const trackEvent = (event: AnalyticsEventType, props: AnalyticsEventProps = {}): void => {
   try {
     if (typeof window === "undefined") return;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { hasConsent } = require("@/lib/consent") as typeof import("@/lib/consent");
+    if (!hasConsent("analytics")) return;
     initAnalytics();
 
     const utm = getStoredUtm();
