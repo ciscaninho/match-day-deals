@@ -692,6 +692,11 @@ const StatusBadge = ({ status }: { status: FixtureStatus }) => {
       🟢 Active
     </span>
   );
+  if (status === "stadium_conflict") return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-900 px-2 py-0.5 text-[10px] font-bold" title="Teams and date validated. Stadium differs between Ticombo and official fixture.">
+      🟡 Stadium Conflict
+    </span>
+  );
   if (status === "missing") return (
     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-[10px] font-bold">
       🟠 Missing link
