@@ -134,42 +134,53 @@ const AlertsPage = () => {
             </div>
           ) : (
             <div className="space-y-2.5">
-              {rows.map((r) => (
-                <Card key={r.id} className="border-border/50">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <TrendingDown className="w-5 h-5 text-[#2ECC71]" />
-                    <div className="flex-1 min-w-0">
-                      <Link
-                        to={`/app/matches/${r.match_id}`}
-                        className="font-bold text-sm text-foreground hover:text-[#2ECC71] truncate block"
+              {rows.map((r) => {
+                const m = matches[r.match_id];
+                return (
+                  <Card key={r.id} className="border-border/50">
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <TrendingDown className="w-5 h-5 text-[#2ECC71] shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        {m ? (
+                          <>
+                            <Link
+                              to={`/matches/${r.match_id}`}
+                              className="font-bold text-sm text-foreground hover:text-[#2ECC71] truncate block"
+                            >
+                              {m.home_team} vs {m.away_team}
+                            </Link>
+                            <p className="text-[11px] text-muted-foreground">
+                              {new Date(m.date).toLocaleDateString()}
+                              {m.stadium ? ` · ${m.stadium}` : ""}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="font-bold text-sm text-foreground truncate">Match unavailable</p>
+                        )}
+                      </div>
+                      <Button
+                        variant={r.alerts_enabled ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => toggleAlert(r)}
+                        className={r.alerts_enabled ? "bg-[#2ECC71] hover:bg-[#27ae60]" : ""}
                       >
-                        Match #{r.match_id}
-                      </Link>
-                      <p className="text-[11px] text-muted-foreground">
-                        Saved {new Date(r.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Button
-                      variant={r.alerts_enabled ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => toggleAlert(r)}
-                      className={r.alerts_enabled ? "bg-[#2ECC71] hover:bg-[#27ae60]" : ""}
-                    >
-                      <BellRing className="w-3.5 h-3.5 mr-1" />
-                      {r.alerts_enabled ? "On" : "Off"}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => remove(r)}
-                      className="text-muted-foreground"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                        <BellRing className="w-3.5 h-3.5 mr-1" />
+                        {r.alerts_enabled ? "On" : "Off"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove(r)}
+                        className="text-muted-foreground"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
+
           )}
         </div>
       </div>
