@@ -47,42 +47,14 @@ interface UserContextType extends UserState {
 
 const UserContext = createContext<UserContextType | null>(null);
 
-const INITIAL_NOTIFICATIONS: Notification[] = [
-  {
-    id: "n1",
-    matchId: "1",
-    type: "on_sale",
-    title: "Tickets now on sale!",
-    message: "FC Barcelona vs Real Madrid tickets are now available.",
-    read: false,
-    date: "2026-04-15T10:00:00",
-  },
-  {
-    id: "n2",
-    matchId: "4",
-    type: "tickets_soon",
-    title: "Tickets available soon",
-    message: "AC Milan vs Inter Milan tickets release on April 20.",
-    read: false,
-    date: "2026-04-14T09:00:00",
-  },
-  {
-    id: "n3",
-    matchId: "6",
-    type: "resale_available",
-    title: "Resale available",
-    message: "Liverpool vs Man United — resale tickets are now listed.",
-    read: true,
-    date: "2026-04-12T14:00:00",
-  },
-];
-
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, setState] = useState<UserState>({
     isPremium: false,
-    points: 25,
-    followedMatches: ["1", "6"],
-    notifications: INITIAL_NOTIFICATIONS,
+    points: 0,
+    followedMatches: [],
+    // Notifications are DB-backed; until a notifications system is implemented,
+    // this stays empty. No mock data.
+    notifications: [],
     pollAnswers: [],
     lastCheckIn: null,
   });
@@ -102,6 +74,40 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     });
     return () => authSub.unsubscribe();
   }, []);
+
+  // --- Followed matches: DB-backed (saved_matches) ---
+  const loadFollowed = useCallback(async (uid: string) => {
+    const { data } = await supabase
+      .from("saved_matches")
+      .select("match_id")
+      .eq("user_id", uid);
+    const ids = (data || []).map((r: { match_id: string }) => r.match_id);
+    setState((s) => ({ ...s, followedMatches: ids }));
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setState((s) => ({ ...s, followedMatches: [] }));
+      return;
+    }
+    loadFollowed(user.id);
+    const channel = supabase
+      .channel(`saved_matches:user:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "saved_matches",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => loadFollowed(user.id),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, loadFollowed]);
 
   const refreshSubscription = useCallback(async () => {
     if (!user) {
@@ -127,7 +133,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     setState((s) => ({ ...s, isPremium: active }));
   }, [user]);
 
-  // Refetch subscription when user changes
   useEffect(() => {
     refreshSubscription();
   }, [refreshSubscription]);
@@ -155,52 +160,73 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const maxFollowed = state.isPremium ? Infinity : 3;
 
-  // Kept for legacy code paths only — premium status is derived from DB.
   const togglePremium = useCallback(() => {
     setState((s) => ({ ...s, isPremium: !s.isPremium }));
   }, []);
 
   const followMatch = useCallback(
     (matchId: string): boolean => {
-      let success = false;
+      if (!user) return false;
+      let allowed = false;
       setState((s) => {
         if (s.followedMatches.includes(matchId)) return s;
         const max = s.isPremium ? Infinity : 3;
         if (s.followedMatches.length >= max) return s;
-        success = true;
-        return {
-          ...s,
-          followedMatches: [...s.followedMatches, matchId],
-          points: s.points + 5,
-        };
+        allowed = true;
+        return { ...s, followedMatches: [...s.followedMatches, matchId] };
       });
-      return success;
+      if (!allowed) return false;
+      supabase
+        .from("saved_matches")
+        .insert({ user_id: user.id, match_id: matchId, alerts_enabled: true })
+        .then(({ error }) => {
+          if (error && !String(error.message).toLowerCase().includes("duplicate")) {
+            // Revert optimistic add on failure
+            setState((s) => ({
+              ...s,
+              followedMatches: s.followedMatches.filter((id) => id !== matchId),
+            }));
+          }
+        });
+      return true;
     },
-    []
+    [user]
   );
 
   const unfollowMatch = useCallback((matchId: string) => {
+    if (!user) return;
     setState((s) => ({
       ...s,
       followedMatches: s.followedMatches.filter((id) => id !== matchId),
     }));
-  }, []);
+    supabase
+      .from("saved_matches")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("match_id", matchId)
+      .then(({ error }) => {
+        if (error) {
+          // Revert on failure
+          setState((s) =>
+            s.followedMatches.includes(matchId)
+              ? s
+              : { ...s, followedMatches: [...s.followedMatches, matchId] }
+          );
+        }
+      });
+  }, [user]);
 
   const isFollowing = useCallback(
     (matchId: string) => state.followedMatches.includes(matchId),
     [state.followedMatches]
   );
 
-  const markNotificationRead = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      notifications: s.notifications.map((n) =>
-        n.id === id ? { ...n, read: true } : n
-      ),
-    }));
+  // Notifications: no mock data. APIs preserved for callers; no-ops until backed.
+  const markNotificationRead = useCallback((_id: string) => {
+    // Intentionally a no-op until a real notifications system exists.
   }, []);
 
-  const unreadCount = state.notifications.filter((n) => !n.read).length;
+  const unreadCount = 0;
 
   const addPoints = useCallback((amount: number) => {
     setState((s) => ({ ...s, points: s.points + amount }));
@@ -235,33 +261,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     (pollId: string) => !!state.pollAnswers.find((a) => a.pollId === pollId),
     [state.pollAnswers]
   );
-
-  // Simulate a new notification after 30s for followed matches
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (state.followedMatches.includes("4")) {
-        setState((s) => {
-          if (s.notifications.find((n) => n.id === "n4")) return s;
-          return {
-            ...s,
-            notifications: [
-              {
-                id: "n4",
-                matchId: "4",
-                type: "on_sale",
-                title: "Tickets now on sale!",
-                message: "AC Milan vs Inter Milan tickets just went on sale!",
-                read: false,
-                date: new Date().toISOString(),
-              },
-              ...s.notifications,
-            ],
-          };
-        });
-      }
-    }, 30000);
-    return () => clearTimeout(timer);
-  }, [state.followedMatches]);
 
   return (
     <UserContext.Provider
