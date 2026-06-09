@@ -19,7 +19,7 @@
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 
-const BASE_URL = "https://match-day-deals.lovable.app";
+const BASE_URL = "https://footticketfinder.com";
 
 const SUPABASE_URL =
   process.env.VITE_SUPABASE_URL ?? "https://efhbpagnaaafdmvlwqbp.supabase.co";
