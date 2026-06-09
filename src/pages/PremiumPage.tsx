@@ -1,6 +1,7 @@
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { BottomNav } from "@/components/BottomNav";
+import { NewsletterCTA } from "@/components/marketing/NewsletterCTA";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -207,6 +208,10 @@ const PremiumPage = () => {
         <p className="text-[11px] text-muted-foreground/80 text-center px-6 pt-2">
           {t("premium.benefits.adFree")} · {t("premium.benefits.officialAccess")}
         </p>
+
+        <div className="max-w-md mx-auto px-4 pt-6 pb-4">
+          <NewsletterCTA source="premium" />
+        </div>
       </div>
 
       <BottomNav />
