@@ -578,22 +578,22 @@ const AdminMarketingAffiliatePage = () => {
                   <td className="px-2 py-2">
                     <div className="flex items-center justify-end gap-1">
                       <button
-                        disabled={r.status !== "active" || !r.affiliateUrl}
+                        disabled={!(r.status === "active" || r.status === "stadium_conflict") || !r.affiliateUrl}
                         onClick={() => copyText(r.affiliateUrl)}
-                        title={r.status !== "active" ? "Disabled — coverage failed validation" : "Copy tracked affiliate URL"}
+                        title={!(r.status === "active" || r.status === "stadium_conflict") ? "Disabled — coverage failed validation" : (r.status === "stadium_conflict" ? "Stadium conflict — teams and date validated" : "Copy tracked affiliate URL")}
                         className="inline-flex items-center gap-1 rounded-md bg-slate-900 text-white px-2 py-1 text-[10px] font-bold hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Copy className="w-3 h-3" /> Copy
                       </button>
-                      {r.status === "active" && r.affiliateUrl && (
+                      {(r.status === "active" || r.status === "stadium_conflict") && r.affiliateUrl && (
                         <a href={r.affiliateUrl} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center rounded-md border border-slate-300 bg-white px-1.5 py-1 text-[10px] text-slate-700 hover:bg-slate-50">
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       )}
                       <button
-                        disabled={r.status !== "active"}
+                        disabled={!(r.status === "active" || r.status === "stadium_conflict")}
                         onClick={() => createCampaign(r)}
-                        title={r.status !== "active" ? "Disabled — no validated affiliate link" : "Create quick TikTok campaign"}
+                        title={!(r.status === "active" || r.status === "stadium_conflict") ? "Disabled — no validated affiliate link" : "Create quick TikTok campaign"}
                         className="inline-flex items-center gap-1 rounded-md border border-violet-300 bg-violet-50 text-violet-800 px-2 py-1 text-[10px] font-bold hover:bg-violet-100 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Plus className="w-3 h-3" /> Campaign
                       </button>
