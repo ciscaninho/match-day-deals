@@ -672,4 +672,11 @@ const Stat = ({ label, value, tone = "slate" }: { label: string; value: number |
   </div>
 );
 
+const Check = ({ label, ok }: { label: string; ok: boolean }) => (
+  <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold ${
+    ok ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"
+  }`}>{ok ? "✓" : "✗"} {label}</span>
+);
+
 export default AdminMarketingAffiliatePage;
+
