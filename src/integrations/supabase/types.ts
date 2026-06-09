@@ -291,6 +291,24 @@ export type Database = {
         }
         Relationships: []
       }
+      app_config: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       assistant_knowledge: {
         Row: {
           body: string
@@ -959,42 +977,75 @@ export type Database = {
       }
       newsletter_signups: {
         Row: {
+          brevo_contact_id: number | null
           campaign_id: string | null
+          confirmation_token: string | null
+          confirmed_at: string | null
+          consent_at: string | null
+          consent_given: boolean
+          consent_ip: string | null
           created_at: string
           email: string
           favourite_team: string | null
           id: string
           language: string | null
+          last_synced_at: string | null
           page_path: string | null
           source: string | null
+          status: string
+          unsubscribe_reason: string | null
+          unsubscribe_token: string | null
+          unsubscribed_at: string | null
           utm_campaign: string | null
           utm_content: string | null
           utm_medium: string | null
           utm_source: string | null
         }
         Insert: {
+          brevo_contact_id?: number | null
           campaign_id?: string | null
+          confirmation_token?: string | null
+          confirmed_at?: string | null
+          consent_at?: string | null
+          consent_given?: boolean
+          consent_ip?: string | null
           created_at?: string
           email: string
           favourite_team?: string | null
           id?: string
           language?: string | null
+          last_synced_at?: string | null
           page_path?: string | null
           source?: string | null
+          status?: string
+          unsubscribe_reason?: string | null
+          unsubscribe_token?: string | null
+          unsubscribed_at?: string | null
           utm_campaign?: string | null
           utm_content?: string | null
           utm_medium?: string | null
           utm_source?: string | null
         }
         Update: {
+          brevo_contact_id?: number | null
           campaign_id?: string | null
+          confirmation_token?: string | null
+          confirmed_at?: string | null
+          consent_at?: string | null
+          consent_given?: boolean
+          consent_ip?: string | null
           created_at?: string
           email?: string
           favourite_team?: string | null
           id?: string
           language?: string | null
+          last_synced_at?: string | null
           page_path?: string | null
           source?: string | null
+          status?: string
+          unsubscribe_reason?: string | null
+          unsubscribe_token?: string | null
+          unsubscribed_at?: string | null
           utm_campaign?: string | null
           utm_content?: string | null
           utm_medium?: string | null

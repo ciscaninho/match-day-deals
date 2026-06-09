@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { MapPin, Calendar, ArrowRight, Filter } from "lucide-react";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
+import { NewsletterCTA } from "@/components/marketing/NewsletterCTA";
 import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
 import { SmartSearch } from "@/components/SmartSearch";
@@ -167,6 +168,12 @@ const WebsiteMatchesPage = () => {
             ))}
           </div>
         )}
+      </section>
+
+      <section className="py-12 bg-slate-50">
+        <div className="max-w-2xl mx-auto px-5">
+          <NewsletterCTA source="matches" />
+        </div>
       </section>
     </WebsiteLayout>
   );

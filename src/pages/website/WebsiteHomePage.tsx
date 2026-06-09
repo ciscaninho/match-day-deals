@@ -19,6 +19,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
+import { NewsletterCTA } from "@/components/marketing/NewsletterCTA";
 import { useMatches } from "@/hooks/useMatches";
 import { useSEO } from "@/lib/seo";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -382,6 +383,12 @@ const WebsiteHomePage = () => {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="py-12 bg-slate-50">
+        <div className="max-w-2xl mx-auto px-5">
+          <NewsletterCTA source="home" />
         </div>
       </section>
     </WebsiteLayout>
