@@ -1030,6 +1030,61 @@ export type Database = {
           },
         ]
       }
+      league_season_clubs: {
+        Row: {
+          club_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          previous_league_id: string | null
+          season_id: string
+          status: Database["public"]["Enums"]["season_club_status"]
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          previous_league_id?: string | null
+          season_id: string
+          status?: Database["public"]["Enums"]["season_club_status"]
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          previous_league_id?: string | null
+          season_id?: string
+          status?: Database["public"]["Enums"]["season_club_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_season_clubs_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "league_season_clubs_previous_league_id_fkey"
+            columns: ["previous_league_id"]
+            isOneToOne: false
+            referencedRelation: "league_publication"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "league_season_clubs_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_campaigns: {
         Row: {
           archived_at: string | null
@@ -1548,6 +1603,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      seasons: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          is_current: boolean
+          is_published: boolean
+          league_id: string
+          notes: string | null
+          season_name: string
+          season_slug: string
+          start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_current?: boolean
+          is_published?: boolean
+          league_id: string
+          notes?: string | null
+          season_name: string
+          season_slug: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_current?: boolean
+          is_published?: boolean
+          league_id?: string
+          notes?: string | null
+          season_name?: string
+          season_slug?: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seasons_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "league_publication"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stadium_aliases: {
         Row: {
@@ -3061,6 +3166,16 @@ export type Database = {
         Args: { p_country_id: string }
         Returns: string
       }
+      fn_duplicate_season: {
+        Args: {
+          p_end_date?: string
+          p_new_season_name: string
+          p_new_season_slug: string
+          p_source_season_id: string
+          p_start_date?: string
+        }
+        Returns: string
+      }
       fn_merge_clubs_master: {
         Args: {
           p_canonical_id: string
@@ -3075,6 +3190,7 @@ export type Database = {
         Returns: string
       }
       fn_resolve_country_id: { Args: { p_name: string }; Returns: string }
+      fn_season_validation_report: { Args: never; Returns: Json }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
@@ -3120,6 +3236,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      season_club_status: "promoted" | "relegated" | "stayed" | "wildcard"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3248,6 +3365,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      season_club_status: ["promoted", "relegated", "stayed", "wildcard"],
     },
   },
 } as const
