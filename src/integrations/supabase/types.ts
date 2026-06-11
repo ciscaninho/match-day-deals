@@ -414,6 +414,76 @@ export type Database = {
         }
         Relationships: []
       }
+      club_merge_candidates: {
+        Row: {
+          club_a_id: string
+          club_b_id: string
+          confidence: string
+          created_at: string
+          id: string
+          name_similarity: number | null
+          notes: string | null
+          recommended_canonical_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          signals: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          club_a_id: string
+          club_b_id: string
+          confidence: string
+          created_at?: string
+          id?: string
+          name_similarity?: number | null
+          notes?: string | null
+          recommended_canonical_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          signals?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          club_a_id?: string
+          club_b_id?: string
+          confidence?: string
+          created_at?: string
+          id?: string
+          name_similarity?: number | null
+          notes?: string | null
+          recommended_canonical_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          signals?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_merge_candidates_club_a_id_fkey"
+            columns: ["club_a_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_merge_candidates_club_b_id_fkey"
+            columns: ["club_b_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_merge_candidates_recommended_canonical_id_fkey"
+            columns: ["recommended_canonical_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_merge_decisions: {
         Row: {
           club_a_id: string | null
@@ -2945,6 +3015,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_merge_high_confidence_clubs: { Args: never; Returns: Json }
+      detect_club_duplicates: { Args: never; Returns: Json }
       fn_clubs_duplicate_candidates: {
         Args: never
         Returns: {
@@ -2997,6 +3069,14 @@ export type Database = {
         }
         Returns: Json
       }
+      merge_clubs_master: {
+        Args: {
+          p_canonical_id: string
+          p_duplicate_id: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
       merge_stadium_records: {
         Args: {
           p_canonical_slug: string
@@ -3005,6 +3085,7 @@ export type Database = {
         }
         Returns: Json
       }
+      pick_canonical_club: { Args: { _a: string; _b: string }; Returns: string }
       slugify: { Args: { p: string }; Returns: string }
       unaccent: { Args: { "": string }; Returns: string }
     }
