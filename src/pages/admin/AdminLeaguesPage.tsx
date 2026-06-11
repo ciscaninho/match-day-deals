@@ -11,42 +11,21 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Trophy, ChevronRight, ChevronDown, Globe2, MapPin, AlertTriangle,
-  ArrowRightLeft, Loader2, Search, Building2, Users,
+  Trophy, ChevronRight, ChevronDown, Shield, MapPin, AlertTriangle,
+  ArrowRightLeft, Loader2, Search, Building2, Users, Globe2, X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatLeagueLabel } from "@/lib/leagueLabels";
 import { matchesQuery } from "@/lib/normalize";
 
-// ---------- Continent map ----------
-const CONTINENT_BY_COUNTRY: Record<string, string> = {
-  // Europe
-  England: "Europe", Scotland: "Europe", Wales: "Europe", "Northern Ireland": "Europe",
-  Spain: "Europe", Italy: "Europe", Germany: "Europe", France: "Europe", Portugal: "Europe",
-  Netherlands: "Europe", Belgium: "Europe", Turkey: "Europe", Greece: "Europe", Russia: "Europe",
-  Ukraine: "Europe", Poland: "Europe", Austria: "Europe", Switzerland: "Europe", Denmark: "Europe",
-  Sweden: "Europe", Norway: "Europe", Finland: "Europe", Croatia: "Europe", Serbia: "Europe",
-  Romania: "Europe", "Czech Republic": "Europe", Czechia: "Europe", Hungary: "Europe",
-  Ireland: "Europe", Bulgaria: "Europe", Slovakia: "Europe", Slovenia: "Europe",
-  // South America
-  Brazil: "South America", Argentina: "South America", Uruguay: "South America",
-  Chile: "South America", Colombia: "South America", Peru: "South America", Ecuador: "South America",
-  Paraguay: "South America", Venezuela: "South America", Bolivia: "South America",
-  // North America
-  "United States": "North America", USA: "North America", Mexico: "North America",
-  Canada: "North America", "Costa Rica": "North America",
-  // Asia
-  Japan: "Asia", "South Korea": "Asia", China: "Asia", "Saudi Arabia": "Asia", UAE: "Asia",
-  Qatar: "Asia", Iran: "Asia", Iraq: "Asia", India: "Asia", Thailand: "Asia", Vietnam: "Asia",
-  Indonesia: "Asia", Malaysia: "Asia", Singapore: "Asia", Israel: "Asia",
-  // Africa
-  Morocco: "Africa", Egypt: "Africa", Algeria: "Africa", Tunisia: "Africa", Nigeria: "Africa",
-  "South Africa": "Africa", Senegal: "Africa", Ghana: "Africa", Cameroon: "Africa", "Ivory Coast": "Africa",
-  // Oceania
-  Australia: "Oceania", "New Zealand": "Oceania",
+// ---------- Types ----------
+type Confederation = { id: string; name: string; slug: string };
+type Country = { id: string; name: string; slug: string; iso3: string | null; confederation_id: string | null };
+type League = {
+  id: string; league_name: string; slug: string | null; country: string;
+  country_id: string | null; confederation_id: string | null;
+  league_type: string; tier_level: number | null; is_active: boolean;
+  publication_status: string;
 };
-const continentOf = (country: string | null | undefined) => CONTINENT_BY_COUNTRY[country ?? ""] || "Other";
-
 type Club = {
   slug: string; club_name: string; league: string | null; country: string | null;
   stadium_name: string | null; stadium_slug: string | null; logo_url: string | null;
@@ -55,6 +34,9 @@ type Stadium = {
   slug: string; stadium_name: string; league: string | null; country: string | null;
   clubs: string[] | null;
 };
+
+const CONF_ORDER = ["UEFA", "CONMEBOL", "CONCACAF", "AFC", "CAF", "OFC"];
+const UNASSIGNED = "__unassigned__";
 
 // ---------- Move-club dialog ----------
 const MoveClubDialog = ({
@@ -78,8 +60,9 @@ const MoveClubDialog = ({
       onMoved();
       onClose();
       setTarget("");
-    } catch (e: any) { toast.error(e.message || "Move failed"); }
-    finally { setBusy(false); }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Move failed");
+    } finally { setBusy(false); }
   };
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -99,7 +82,6 @@ const MoveClubDialog = ({
               <datalist id="leagues-datalist">
                 {allLeagues.map((l) => <option key={l} value={l} />)}
               </datalist>
-              <p className="text-[10px] text-muted-foreground mt-1">Stadium link follows the club automatically (no change needed).</p>
             </div>
           </div>
         )}
@@ -114,20 +96,34 @@ const MoveClubDialog = ({
   );
 };
 
+// ---------- Quality filter chip ----------
+type FilterKind =
+  | "none"
+  | "leagues_without_country"
+  | "clubs_without_league"
+  | "clubs_without_country"
+  | "stadiums_without_country";
+
 // ---------- Page ----------
 export const AdminLeaguesPage = () => {
   const { t } = useLanguage();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
-  const [openContinents, setOpenContinents] = useState<Set<string>>(new Set(["Europe"]));
+  const [openConfs, setOpenConfs] = useState<Set<string>>(new Set(["UEFA"]));
   const [openCountries, setOpenCountries] = useState<Set<string>>(new Set());
   const [openLeagues, setOpenLeagues] = useState<Set<string>>(new Set());
   const [moving, setMoving] = useState<Club | null>(null);
+  const [filter, setFilter] = useState<FilterKind>("none");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-leagues-hierarchy"],
+    queryKey: ["admin-leagues-hierarchy-v2"],
     queryFn: async () => {
-      const [clubsRes, stadiumsRes] = await Promise.all([
+      const [confRes, countriesRes, leaguesRes, clubsRes, stadiumsRes] = await Promise.all([
+        supabase.from("confederations" as never).select("id,name,slug").order("name"),
+        supabase.from("countries" as never).select("id,name,slug,iso3,confederation_id"),
+        supabase.from("league_publication")
+          .select("id,league_name,slug,country,country_id,confederation_id,league_type,tier_level,is_active,publication_status")
+          .is("archived_at", null),
         supabase.from("club_ticketing_profiles")
           .select("slug,club_name,league,country,stadium_name,stadium_slug,logo_url")
           .is("archived_at", null),
@@ -136,74 +132,161 @@ export const AdminLeaguesPage = () => {
           .is("archived_at", null),
       ]);
       return {
+        confederations: ((confRes.data ?? []) as unknown as Confederation[]),
+        countries: ((countriesRes.data ?? []) as unknown as Country[]),
+        leagues: ((leaguesRes.data ?? []) as unknown as League[]),
         clubs: (clubsRes.data || []) as Club[],
         stadiums: (stadiumsRes.data || []) as Stadium[],
       };
     },
   });
 
+  // Indexes
+  const idx = useMemo(() => {
+    const confById = new Map<string, Confederation>();
+    (data?.confederations ?? []).forEach((c) => confById.set(c.id, c));
+    const countryById = new Map<string, Country>();
+    const countryByLowerName = new Map<string, Country>();
+    (data?.countries ?? []).forEach((c) => {
+      countryById.set(c.id, c);
+      countryByLowerName.set(c.name.toLowerCase(), c);
+    });
+    return { confById, countryById, countryByLowerName };
+  }, [data]);
+
+  // Resolve a country name string against the canonical catalog (with light normalization)
+  const resolveCountry = (name: string | null | undefined): Country | null => {
+    if (!name) return null;
+    const key = name.trim().toLowerCase();
+    const direct = idx.countryByLowerName.get(key);
+    if (direct) return direct;
+    const aliasMap: Record<string, string> = {
+      "espagne": "spain", "usa": "united states", "u.s.a.": "united states",
+      "états-unis": "united states", "etats-unis": "united states",
+      "angleterre": "england", "écosse": "scotland", "ecosse": "scotland",
+      "allemagne": "germany", "italie": "italy", "pays-bas": "netherlands",
+      "holland": "netherlands", "belgique": "belgium", "ireland": "republic of ireland",
+    };
+    const aliased = aliasMap[key];
+    return aliased ? idx.countryByLowerName.get(aliased) ?? null : null;
+  };
+
+  // Quality buckets
+  const buckets = useMemo(() => {
+    const leagues = data?.leagues ?? [];
+    const clubs = data?.clubs ?? [];
+    const stadiums = data?.stadiums ?? [];
+    return {
+      leaguesWithoutCountry: leagues.filter((l) => !l.country_id && l.league_type !== "continental"),
+      clubsWithoutLeague: clubs.filter((c) => !c.league || !c.league.trim()),
+      clubsWithoutCountry: clubs.filter((c) => !resolveCountry(c.country)),
+      stadiumsWithoutCountry: stadiums.filter((s) => !resolveCountry(s.country)),
+    };
+  }, [data, idx]);
+
+  // Tree: confederation → country → league → { clubs, stadiums, leagueRow? }
+  type LeafNode = { clubs: Club[]; stadiums: Stadium[]; league?: League };
   const tree = useMemo(() => {
-    const clubs = data?.clubs || [];
-    const stadiums = data?.stadiums || [];
-    // continent → country → league → { clubs[], stadiums[] }
-    const root = new Map<string, Map<string, Map<string, { clubs: Club[]; stadiums: Stadium[] }>>>();
-    const ensure = (continent: string, country: string, league: string) => {
-      if (!root.has(continent)) root.set(continent, new Map());
-      const c = root.get(continent)!;
+    const root = new Map<string, Map<string, Map<string, LeafNode>>>();
+    const ensure = (conf: string, country: string, league: string): LeafNode => {
+      if (!root.has(conf)) root.set(conf, new Map());
+      const c = root.get(conf)!;
       if (!c.has(country)) c.set(country, new Map());
       const co = c.get(country)!;
       if (!co.has(league)) co.set(league, { clubs: [], stadiums: [] });
       return co.get(league)!;
     };
-    clubs.forEach((c) => {
-      const node = ensure(continentOf(c.country), c.country || "Unknown", c.league || "— No league —");
+    const confLabel = (id: string | null | undefined) =>
+      id ? idx.confById.get(id)?.name ?? UNASSIGNED : UNASSIGNED;
+
+    // Seed every league
+    (data?.leagues ?? []).forEach((l) => {
+      const confName = l.league_type === "continental" ? "UEFA" : confLabel(l.confederation_id);
+      const countryName = l.country_id ? idx.countryById.get(l.country_id)?.name ?? l.country : l.country;
+      const node = ensure(confName, countryName || UNASSIGNED, l.league_name);
+      node.league = l;
+    });
+
+    // Attach clubs
+    (data?.clubs ?? []).forEach((c) => {
+      const country = resolveCountry(c.country);
+      const confName = country?.confederation_id ? confLabel(country.confederation_id) : UNASSIGNED;
+      const countryName = country?.name ?? c.country ?? UNASSIGNED;
+      const node = ensure(confName, countryName, c.league || "— No league —");
       node.clubs.push(c);
     });
-    stadiums.forEach((s) => {
-      const node = ensure(continentOf(s.country), s.country || "Unknown", s.league || "— No league —");
+
+    // Attach stadiums (only if not already represented by a club's league/country)
+    (data?.stadiums ?? []).forEach((s) => {
+      const country = resolveCountry(s.country);
+      const confName = country?.confederation_id ? confLabel(country.confederation_id) : UNASSIGNED;
+      const countryName = country?.name ?? s.country ?? UNASSIGNED;
+      const node = ensure(confName, countryName, s.league || "— No league —");
       node.stadiums.push(s);
     });
+
     return root;
-  }, [data]);
+  }, [data, idx]);
 
   const allLeagues = useMemo(() => {
     const set = new Set<string>();
+    (data?.leagues ?? []).forEach((l) => set.add(l.league_name));
     (data?.clubs || []).forEach((c) => c.league && set.add(c.league));
-    (data?.stadiums || []).forEach((s) => s.league && set.add(s.league));
     return Array.from(set).sort();
   }, [data]);
 
-  // Inconsistencies: stadiums whose league differs from clubs that play there
-  const stadiumsWithoutClubs = useMemo(
-    () => (data?.stadiums || []).filter((s) => !(s.clubs && s.clubs.length > 0)),
-    [data],
-  );
-  const clubsWithoutLeague = useMemo(
-    () => (data?.clubs || []).filter((c) => !c.league),
-    [data],
-  );
-  const clubsWithoutStadium = useMemo(
-    () => (data?.clubs || []).filter((c) => !c.stadium_slug),
-    [data],
-  );
-
   const toggle = (set: Set<string>, key: string, setter: (s: Set<string>) => void) => {
     const next = new Set(set);
-    next.has(key) ? next.delete(key) : next.add(key);
+    if (next.has(key)) next.delete(key); else next.add(key);
     setter(next);
   };
-
   const matchesSearch = (s: string) => matchesQuery(s, q);
 
-  const continentOrder = ["Europe", "South America", "North America", "Africa", "Asia", "Oceania", "Other"];
+  const confOrder = [...CONF_ORDER, UNASSIGNED];
+
+  // ---------- Filter overlay list ----------
+  const filterList = useMemo(() => {
+    switch (filter) {
+      case "leagues_without_country":
+        return {
+          title: "Leagues without a country",
+          rows: buckets.leaguesWithoutCountry.map((l) => ({
+            key: l.id, label: l.league_name, sub: `${l.country} · ${l.league_type}`,
+          })),
+        };
+      case "clubs_without_league":
+        return {
+          title: "Clubs without a league",
+          rows: buckets.clubsWithoutLeague.map((c) => ({
+            key: c.slug, label: c.club_name, sub: c.country || "—",
+          })),
+        };
+      case "clubs_without_country":
+        return {
+          title: "Clubs without a recognized country",
+          rows: buckets.clubsWithoutCountry.map((c) => ({
+            key: c.slug, label: c.club_name, sub: c.country || "(no country)",
+          })),
+        };
+      case "stadiums_without_country":
+        return {
+          title: "Stadiums without a recognized country",
+          rows: buckets.stadiumsWithoutCountry.map((s) => ({
+            key: s.slug, label: s.stadium_name, sub: s.country || "(no country)",
+          })),
+        };
+      default:
+        return null;
+    }
+  }, [filter, buckets]);
 
   return (
     <div className="space-y-5">
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-xl font-extrabold text-foreground">{t("admin.nav.leagues")}</h1>
+          <h1 className="text-xl font-extrabold text-foreground">Leagues</h1>
           <p className="text-xs text-muted-foreground">
-            Continent → Country → League · {data?.clubs.length ?? 0} clubs · {data?.stadiums.length ?? 0} stadiums
+            Confederation → Country → League · {data?.leagues.length ?? 0} leagues · {data?.clubs.length ?? 0} clubs · {data?.stadiums.length ?? 0} stadiums
           </p>
         </div>
         <div className="relative w-full sm:w-72">
@@ -212,61 +295,89 @@ export const AdminLeaguesPage = () => {
         </div>
       </header>
 
-      {/* Inconsistency buckets */}
-      <div className="grid sm:grid-cols-3 gap-3">
-        <Card className="border-amber-200">
-          <CardContent className="p-3">
-            <p className="text-[10px] uppercase font-bold text-amber-700 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Clubs without league</p>
-            <p className="text-2xl font-extrabold text-foreground">{clubsWithoutLeague.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-amber-200">
-          <CardContent className="p-3">
-            <p className="text-[10px] uppercase font-bold text-amber-700 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Clubs without stadium</p>
-            <p className="text-2xl font-extrabold text-foreground">{clubsWithoutStadium.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-amber-200">
-          <CardContent className="p-3">
-            <p className="text-[10px] uppercase font-bold text-amber-700 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Stadiums without clubs</p>
-            <p className="text-2xl font-extrabold text-foreground">{stadiumsWithoutClubs.length}</p>
-          </CardContent>
-        </Card>
+      {/* Data Quality Panel */}
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+        <QualityCard icon={Shield} label="Confederations" value={data?.confederations.length ?? 0} tone="neutral" />
+        <QualityCard icon={Globe2} label="Countries" value={data?.countries.length ?? 0} tone="neutral" />
+        <QualityCard icon={Trophy} label="Leagues" value={data?.leagues.length ?? 0} tone="neutral" />
+        <QualityCard icon={AlertTriangle} label="Leagues w/o country" value={buckets.leaguesWithoutCountry.length}
+          tone={buckets.leaguesWithoutCountry.length ? "warn" : "ok"}
+          active={filter === "leagues_without_country"}
+          onClick={() => setFilter(filter === "leagues_without_country" ? "none" : "leagues_without_country")} />
+        <QualityCard icon={AlertTriangle} label="Clubs w/o league" value={buckets.clubsWithoutLeague.length}
+          tone={buckets.clubsWithoutLeague.length ? "warn" : "ok"}
+          active={filter === "clubs_without_league"}
+          onClick={() => setFilter(filter === "clubs_without_league" ? "none" : "clubs_without_league")} />
+        <QualityCard icon={AlertTriangle} label="Clubs w/o country" value={buckets.clubsWithoutCountry.length}
+          tone={buckets.clubsWithoutCountry.length ? "warn" : "ok"}
+          active={filter === "clubs_without_country"}
+          onClick={() => setFilter(filter === "clubs_without_country" ? "none" : "clubs_without_country")} />
+        <QualityCard icon={AlertTriangle} label="Stadiums w/o country" value={buckets.stadiumsWithoutCountry.length}
+          tone={buckets.stadiumsWithoutCountry.length ? "warn" : "ok"}
+          active={filter === "stadiums_without_country"}
+          onClick={() => setFilter(filter === "stadiums_without_country" ? "none" : "stadiums_without_country")} />
       </div>
 
+      {/* Filter list panel */}
+      {filterList && (
+        <Card className="border-amber-300">
+          <CardContent className="p-0">
+            <div className="flex items-center justify-between p-3 border-b bg-amber-50">
+              <p className="text-sm font-extrabold text-amber-900">{filterList.title} · {filterList.rows.length}</p>
+              <Button variant="ghost" size="sm" onClick={() => setFilter("none")} className="h-7 px-2">
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
+            <div className="max-h-96 overflow-auto divide-y">
+              {filterList.rows.length === 0 && <p className="p-3 text-xs text-muted-foreground">All clean ✓</p>}
+              {filterList.rows.map((r) => (
+                <div key={r.key} className="px-3 py-2 flex items-center justify-between text-xs">
+                  <span className="font-bold text-foreground truncate mr-3">{r.label}</span>
+                  <span className="text-muted-foreground shrink-0">{r.sub}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">{t("admin.loading")}</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (
         <div className="space-y-2">
-          {continentOrder.filter((c) => tree.has(c)).map((continent) => {
-            const countries = tree.get(continent)!;
-            const isContOpen = openContinents.has(continent);
-            const totalClubs = Array.from(countries.values()).reduce((acc, m) => acc + Array.from(m.values()).reduce((a, n) => a + n.clubs.length, 0), 0);
+          {confOrder.filter((c) => tree.has(c)).map((conf) => {
+            const countries = tree.get(conf)!;
+            const isOpen = openConfs.has(conf);
+            const totalLeagues = Array.from(countries.values()).reduce((acc, m) => acc + m.size, 0);
+            const totalClubs = Array.from(countries.values()).reduce(
+              (acc, m) => acc + Array.from(m.values()).reduce((a, n) => a + n.clubs.length, 0), 0);
+            const confLabel = conf === UNASSIGNED ? "Unassigned" : conf;
             return (
-              <Card key={continent} className="overflow-hidden">
-                <button onClick={() => toggle(openContinents, continent, setOpenContinents)}
+              <Card key={conf} className="overflow-hidden">
+                <button onClick={() => toggle(openConfs, conf, setOpenConfs)}
                   className="w-full flex items-center gap-2 p-3 hover:bg-muted/40 transition text-left">
-                  {isContOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                  <Globe2 className="w-4 h-4 text-emerald-600" />
-                  <p className="font-extrabold text-foreground flex-1">{continent}</p>
-                  <Badge variant="outline" className="text-[10px]">{countries.size} countries · {totalClubs} clubs</Badge>
+                  {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  <Shield className="w-4 h-4 text-emerald-600" />
+                  <p className="font-extrabold text-foreground flex-1">{confLabel}</p>
+                  <Badge variant="outline" className="text-[10px]">{countries.size} countries · {totalLeagues} leagues · {totalClubs} clubs</Badge>
                 </button>
-                {isContOpen && (
+                {isOpen && (
                   <div className="border-t bg-muted/10">
                     {Array.from(countries.entries())
                       .filter(([country, leagues]) => matchesSearch(country) || Array.from(leagues.keys()).some(matchesSearch))
                       .sort(([a], [b]) => a.localeCompare(b))
                       .map(([country, leagues]) => {
-                        const ckey = `${continent}/${country}`;
+                        const ckey = `${conf}/${country}`;
                         const isCountryOpen = openCountries.has(ckey);
                         const countryClubs = Array.from(leagues.values()).reduce((a, n) => a + n.clubs.length, 0);
+                        const countryLabel = country === UNASSIGNED ? "(unassigned country)" : country;
                         return (
                           <div key={ckey}>
                             <button onClick={() => toggle(openCountries, ckey, setOpenCountries)}
                               className="w-full flex items-center gap-2 px-3 py-2 pl-8 hover:bg-muted/30 transition text-left border-t">
                               {isCountryOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                               <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
-                              <p className="font-bold text-sm text-foreground flex-1">{country}</p>
+                              <p className="font-bold text-sm text-foreground flex-1">{countryLabel}</p>
                               <span className="text-[10px] text-muted-foreground">{leagues.size} leagues · {countryClubs} clubs</span>
                             </button>
                             {isCountryOpen && (
@@ -282,7 +393,13 @@ export const AdminLeaguesPage = () => {
                                           className="w-full flex items-center gap-2 px-3 py-2 pl-14 hover:bg-muted/20 transition text-left">
                                           {isLeagueOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                                           <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                                          <p className="font-semibold text-sm text-foreground flex-1">{formatLeagueLabel(league, country)}</p>
+                                          <p className="font-semibold text-sm text-foreground flex-1">{league}</p>
+                                          {node.league?.tier_level && (
+                                            <Badge variant="outline" className="text-[10px]">T{node.league.tier_level}</Badge>
+                                          )}
+                                          {node.league?.league_type && node.league.league_type !== "domestic" && (
+                                            <Badge variant="outline" className="text-[10px] capitalize">{node.league.league_type}</Badge>
+                                          )}
                                           <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1"><Users className="w-3 h-3" />{node.clubs.length}</span>
                                           <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1"><Building2 className="w-3 h-3" />{node.stadiums.length}</span>
                                         </button>
@@ -320,9 +437,7 @@ export const AdminLeaguesPage = () => {
                                                       <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                                                       <div className="flex-1 min-w-0">
                                                         <p className="text-xs font-bold text-foreground truncate">{s.stadium_name}</p>
-                                                        <p className="text-[10px] text-muted-foreground truncate">
-                                                          {s.clubs && s.clubs.length > 0 ? s.clubs.join(", ") : <span className="text-amber-700">no clubs linked</span>}
-                                                        </p>
+                                                        <p className="text-[10px] text-muted-foreground truncate">{s.clubs?.join(", ") || "no clubs"}</p>
                                                       </div>
                                                     </Link>
                                                   ))}
@@ -352,9 +467,40 @@ export const AdminLeaguesPage = () => {
         allLeagues={allLeagues}
         open={!!moving}
         onClose={() => setMoving(null)}
-        onMoved={() => qc.invalidateQueries({ queryKey: ["admin-leagues-hierarchy"] })}
+        onMoved={() => qc.invalidateQueries({ queryKey: ["admin-leagues-hierarchy-v2"] })}
       />
     </div>
+  );
+};
+
+// ---------- Quality card ----------
+const QualityCard = ({
+  icon: Icon, label, value, tone, active, onClick,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string; value: number;
+  tone: "neutral" | "warn" | "ok";
+  active?: boolean;
+  onClick?: () => void;
+}) => {
+  const toneCls = tone === "warn"
+    ? "border-amber-200 hover:border-amber-400"
+    : tone === "ok"
+    ? "border-emerald-200"
+    : "border-slate-200";
+  const activeCls = active ? "ring-2 ring-amber-500 border-amber-500" : "";
+  const valueCls = tone === "warn" ? "text-amber-700" : tone === "ok" ? "text-emerald-700" : "text-slate-900";
+  const Wrap = onClick ? "button" : "div";
+  return (
+    <Wrap
+      onClick={onClick}
+      className={`text-left rounded-xl border bg-white p-3 transition ${toneCls} ${activeCls} ${onClick ? "cursor-pointer hover:shadow-sm" : ""}`}
+    >
+      <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+        <Icon className="w-3 h-3" />{label}
+      </div>
+      <div className={`text-xl font-extrabold mt-0.5 ${valueCls}`}>{value.toLocaleString()}</div>
+    </Wrap>
   );
 };
 
