@@ -1093,6 +1093,7 @@ export type Database = {
       matches: {
         Row: {
           archived_at: string | null
+          away_club_id: string | null
           away_logo: string | null
           away_short: string
           away_team: string
@@ -1110,6 +1111,7 @@ export type Database = {
           fixture_confidence: string
           fixture_origin: string
           group_code: string | null
+          home_club_id: string | null
           home_logo: string | null
           home_short: string
           home_team: string
@@ -1142,6 +1144,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          away_club_id?: string | null
           away_logo?: string | null
           away_short: string
           away_team: string
@@ -1159,6 +1162,7 @@ export type Database = {
           fixture_confidence?: string
           fixture_origin?: string
           group_code?: string | null
+          home_club_id?: string | null
           home_logo?: string | null
           home_short: string
           home_team: string
@@ -1191,6 +1195,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          away_club_id?: string | null
           away_logo?: string | null
           away_short?: string
           away_team?: string
@@ -1208,6 +1213,7 @@ export type Database = {
           fixture_confidence?: string
           fixture_origin?: string
           group_code?: string | null
+          home_club_id?: string | null
           home_logo?: string | null
           home_short?: string
           home_team?: string
@@ -1238,7 +1244,22 @@ export type Database = {
           updated_at?: string
           verified?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "matches_away_club_id_fkey"
+            columns: ["away_club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_home_club_id_fkey"
+            columns: ["home_club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       matches_wc2026_backup_20260605: {
         Row: {
@@ -3036,6 +3057,10 @@ export type Database = {
           same_stadium: boolean
         }[]
       }
+      fn_country_slug_suffix: {
+        Args: { p_country_id: string }
+        Returns: string
+      }
       fn_merge_clubs_master: {
         Args: {
           p_canonical_id: string
@@ -3045,6 +3070,10 @@ export type Database = {
         Returns: Json
       }
       fn_normalize_club_name: { Args: { p: string }; Returns: string }
+      fn_resolve_club_id: {
+        Args: { p_country?: string; p_team: string }
+        Returns: string
+      }
       fn_resolve_country_id: { Args: { p_name: string }; Returns: string }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
