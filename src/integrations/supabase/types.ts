@@ -564,56 +564,166 @@ export type Database = {
         }
         Relationships: []
       }
+      confederations: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      countries: {
+        Row: {
+          confederation_id: string | null
+          created_at: string
+          flag_url: string | null
+          id: string
+          iso2: string | null
+          iso3: string | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          confederation_id?: string | null
+          created_at?: string
+          flag_url?: string | null
+          id?: string
+          iso2?: string | null
+          iso3?: string | null
+          name: string
+          slug: string
+        }
+        Update: {
+          confederation_id?: string | null
+          created_at?: string
+          flag_url?: string | null
+          id?: string
+          iso2?: string | null
+          iso3?: string | null
+          name?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "countries_confederation_id_fkey"
+            columns: ["confederation_id"]
+            isOneToOne: false
+            referencedRelation: "confederations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       league_publication: {
         Row: {
           aliases: string[]
           archived_at: string | null
           archived_reason: string | null
+          confederation_id: string | null
           continent: string | null
           country: string
+          country_id: string | null
           created_at: string
           division_level: number | null
+          gender: string
           id: string
+          is_active: boolean
           league_name: string
+          league_type: string
           logo_url: string | null
           notes: string | null
           publication_status: string
+          seo_content: string | null
+          seo_description: string | null
+          seo_h1: string | null
+          seo_title: string | null
           slug: string | null
+          tier_level: number | null
           updated_at: string
         }
         Insert: {
           aliases?: string[]
           archived_at?: string | null
           archived_reason?: string | null
+          confederation_id?: string | null
           continent?: string | null
           country: string
+          country_id?: string | null
           created_at?: string
           division_level?: number | null
+          gender?: string
           id?: string
+          is_active?: boolean
           league_name: string
+          league_type?: string
           logo_url?: string | null
           notes?: string | null
           publication_status?: string
+          seo_content?: string | null
+          seo_description?: string | null
+          seo_h1?: string | null
+          seo_title?: string | null
           slug?: string | null
+          tier_level?: number | null
           updated_at?: string
         }
         Update: {
           aliases?: string[]
           archived_at?: string | null
           archived_reason?: string | null
+          confederation_id?: string | null
           continent?: string | null
           country?: string
+          country_id?: string | null
           created_at?: string
           division_level?: number | null
+          gender?: string
           id?: string
+          is_active?: boolean
           league_name?: string
+          league_type?: string
           logo_url?: string | null
           notes?: string | null
           publication_status?: string
+          seo_content?: string | null
+          seo_description?: string | null
+          seo_h1?: string | null
+          seo_title?: string | null
           slug?: string | null
+          tier_level?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "league_publication_confederation_id_fkey"
+            columns: ["confederation_id"]
+            isOneToOne: false
+            referencedRelation: "confederations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "league_publication_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       marketing_campaigns: {
         Row: {
@@ -2590,6 +2700,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      fn_resolve_country_id: { Args: { p_name: string }; Returns: string }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
