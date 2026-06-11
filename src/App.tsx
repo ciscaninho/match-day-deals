@@ -31,6 +31,7 @@ import StadiumMediaSyncPage from "./pages/admin/StadiumMediaSyncPage";
 import AdminShell from "./pages/admin/AdminShell";
 import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminClubsPage from "./pages/admin/AdminClubsPage";
+import AdminClubsMasterPage from "./pages/admin/AdminClubsMasterPage";
 import AdminStadiumsPage from "./pages/admin/AdminStadiumsPage";
 import AdminMatchesPage from "./pages/admin/AdminMatchesPage";
 import AdminMatchReviewPage from "./pages/admin/AdminMatchReviewPage";
@@ -158,6 +159,7 @@ const App = () => (
               <Route path="/admin" element={<RequireAdmin><AdminShell /></RequireAdmin>}>
                 <Route index element={<AdminOverviewPage />} />
                 <Route path="clubs" element={<AdminClubsPage />} />
+                <Route path="clubs-master" element={<AdminClubsMasterPage />} />
                 <Route path="stadiums" element={<AdminStadiumsPage />} />
                 <Route path="matches" element={<AdminMatchesPage />} />
                 <Route path="match-review" element={<AdminMatchReviewPage />} />

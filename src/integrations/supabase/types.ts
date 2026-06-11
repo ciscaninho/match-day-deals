@@ -414,6 +414,60 @@ export type Database = {
         }
         Relationships: []
       }
+      club_stadiums: {
+        Row: {
+          club_id: string
+          created_at: string
+          from_date: string | null
+          id: string
+          is_current: boolean
+          notes: string | null
+          role: string
+          stadium_id: string
+          to_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          from_date?: string | null
+          id?: string
+          is_current?: boolean
+          notes?: string | null
+          role?: string
+          stadium_id: string
+          to_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          from_date?: string | null
+          id?: string
+          is_current?: boolean
+          notes?: string | null
+          role?: string
+          stadium_id?: string
+          to_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_stadiums_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_stadiums_stadium_id_fkey"
+            columns: ["stadium_id"]
+            isOneToOne: false
+            referencedRelation: "stadiums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_ticketing_profiles: {
         Row: {
           aliases: string[]
@@ -426,6 +480,7 @@ export type Database = {
           ballot_system: boolean
           best_matches: string | null
           city: string | null
+          club_id: string | null
           club_name: string
           country: string | null
           created_at: string
@@ -475,6 +530,7 @@ export type Database = {
           ballot_system?: boolean
           best_matches?: string | null
           city?: string | null
+          club_id?: string | null
           club_name: string
           country?: string | null
           created_at?: string
@@ -524,6 +580,7 @@ export type Database = {
           ballot_system?: boolean
           best_matches?: string | null
           city?: string | null
+          club_id?: string | null
           club_name?: string
           country?: string | null
           created_at?: string
@@ -562,7 +619,109 @@ export type Database = {
           updated_at?: string
           verification_status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "club_ticketing_profiles_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: true
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clubs: {
+        Row: {
+          aliases: string[]
+          archived_at: string | null
+          archived_reason: string | null
+          club_name: string
+          club_type: string
+          country_id: string | null
+          created_at: string
+          crest_url: string | null
+          founded_year: number | null
+          gender: string
+          hero_image_url: string | null
+          home_stadium_id: string | null
+          id: string
+          official_website: string | null
+          primary_league_id: string | null
+          publication_status: string
+          seo_description: string | null
+          seo_title: string | null
+          short_name: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          aliases?: string[]
+          archived_at?: string | null
+          archived_reason?: string | null
+          club_name: string
+          club_type?: string
+          country_id?: string | null
+          created_at?: string
+          crest_url?: string | null
+          founded_year?: number | null
+          gender?: string
+          hero_image_url?: string | null
+          home_stadium_id?: string | null
+          id?: string
+          official_website?: string | null
+          primary_league_id?: string | null
+          publication_status?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          short_name?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          aliases?: string[]
+          archived_at?: string | null
+          archived_reason?: string | null
+          club_name?: string
+          club_type?: string
+          country_id?: string | null
+          created_at?: string
+          crest_url?: string | null
+          founded_year?: number | null
+          gender?: string
+          hero_image_url?: string | null
+          home_stadium_id?: string | null
+          id?: string
+          official_website?: string | null
+          primary_league_id?: string | null
+          publication_status?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          short_name?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clubs_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clubs_home_stadium_id_fkey"
+            columns: ["home_stadium_id"]
+            isOneToOne: false
+            referencedRelation: "stadiums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clubs_primary_league_id_fkey"
+            columns: ["primary_league_id"]
+            isOneToOne: false
+            referencedRelation: "league_publication"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       confederations: {
         Row: {
@@ -1863,6 +2022,7 @@ export type Database = {
           clubs: string[]
           continent: string | null
           country: string
+          country_id: string | null
           created_at: string
           description: string | null
           enrichment_status: string
@@ -1879,7 +2039,7 @@ export type Database = {
           image_url: string | null
           is_world_cup_host: boolean
           latitude: number | null
-          league: string
+          league: string | null
           league_slug: string | null
           longitude: number | null
           matchday_advice: string | null
@@ -1918,6 +2078,7 @@ export type Database = {
           clubs?: string[]
           continent?: string | null
           country: string
+          country_id?: string | null
           created_at?: string
           description?: string | null
           enrichment_status?: string
@@ -1934,7 +2095,7 @@ export type Database = {
           image_url?: string | null
           is_world_cup_host?: boolean
           latitude?: number | null
-          league: string
+          league?: string | null
           league_slug?: string | null
           longitude?: number | null
           matchday_advice?: string | null
@@ -1973,6 +2134,7 @@ export type Database = {
           clubs?: string[]
           continent?: string | null
           country?: string
+          country_id?: string | null
           created_at?: string
           description?: string | null
           enrichment_status?: string
@@ -1989,7 +2151,7 @@ export type Database = {
           image_url?: string | null
           is_world_cup_host?: boolean
           latitude?: number | null
-          league?: string
+          league?: string | null
           league_slug?: string | null
           longitude?: number | null
           matchday_advice?: string | null
@@ -2017,6 +2179,13 @@ export type Database = {
             columns: ["archived_into_stadium_id"]
             isOneToOne: false
             referencedRelation: "stadiums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stadiums_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
             referencedColumns: ["id"]
           },
         ]
@@ -2732,6 +2901,8 @@ export type Database = {
         }
         Returns: Json
       }
+      slugify: { Args: { p: string }; Returns: string }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
