@@ -168,6 +168,7 @@ const App = () => (
                 <Route path="assistant" element={<AdminAssistantPage />} />
                 <Route path="map" element={<AdminWorldMapPage />} />
                 <Route path="audit" element={<AdminAuditPage />} />
+                <Route path="insights" element={<AdminInsightsPage />} />
                 <Route path="world-cup-2026" element={<AdminWorldCup2026Page />} />
                 <Route path="world-cup-2026/:tab" element={<AdminWorldCup2026Page />} />
 
