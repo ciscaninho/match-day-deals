@@ -76,6 +76,7 @@ import { CookieConsent } from "./components/consent/CookieConsent";
 import NewsletterConfirmPage from "./pages/website/NewsletterConfirmPage";
 import NewsletterUnsubscribePage from "./pages/website/NewsletterUnsubscribePage";
 import AdminNewsletterPage from "./pages/admin/AdminNewsletterPage";
+import AdminInsightsPage from "./pages/admin/AdminInsightsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
