@@ -15,6 +15,7 @@ const AdminShell = () => {
 
   const nav = [
     { to: "/admin", end: true, label: t("admin.nav.overview"), icon: LayoutDashboard },
+    { to: "/admin/insights", label: "Insights", icon: BarChart3 },
     { to: "/admin/clubs", label: t("admin.nav.clubs"), icon: Users },
     { to: "/admin/stadiums", label: t("admin.nav.stadiums"), icon: MapPin },
     { to: "/admin/matches", label: t("admin.nav.matches"), icon: CalendarDays },
