@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import {
   LayoutDashboard, Users, MapPin, CalendarDays, Trophy, Ticket, Image as ImageIcon,
   Map as MapIcon, Inbox, Sparkles, Settings as SettingsIcon, Shield, Ticket as TicketLogo,
-  ShieldCheck, ListChecks, Globe, Megaphone, BarChart3,
+  ShieldCheck, ListChecks, Globe, Megaphone, BarChart3, CalendarRange,
 } from "lucide-react";
 
 const AdminShell = () => {
