@@ -76,6 +76,7 @@ import { CookieConsent } from "./components/consent/CookieConsent";
 import NewsletterConfirmPage from "./pages/website/NewsletterConfirmPage";
 import NewsletterUnsubscribePage from "./pages/website/NewsletterUnsubscribePage";
 import AdminNewsletterPage from "./pages/admin/AdminNewsletterPage";
+import AdminInsightsPage from "./pages/admin/AdminInsightsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -167,6 +168,7 @@ const App = () => (
                 <Route path="assistant" element={<AdminAssistantPage />} />
                 <Route path="map" element={<AdminWorldMapPage />} />
                 <Route path="audit" element={<AdminAuditPage />} />
+                <Route path="insights" element={<AdminInsightsPage />} />
                 <Route path="world-cup-2026" element={<AdminWorldCup2026Page />} />
                 <Route path="world-cup-2026/:tab" element={<AdminWorldCup2026Page />} />
 
