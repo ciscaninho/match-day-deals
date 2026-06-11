@@ -18,6 +18,7 @@ const AdminShell = () => {
     { to: "/admin/insights", label: "Insights", icon: BarChart3 },
     { to: "/admin/clubs", label: t("admin.nav.clubs"), icon: Users },
     { to: "/admin/clubs-master", label: t("admin.nav.clubsMaster"), icon: Users },
+    { to: "/admin/clubs-master/review", label: t("admin.nav.clubsReview"), icon: ShieldCheck },
     { to: "/admin/stadiums", label: t("admin.nav.stadiums"), icon: MapPin },
     { to: "/admin/matches", label: t("admin.nav.matches"), icon: CalendarDays },
     { to: "/admin/match-review", label: t("admin.nav.match_review"), icon: ListChecks },
