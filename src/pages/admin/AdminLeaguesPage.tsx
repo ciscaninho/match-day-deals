@@ -307,54 +307,47 @@ export const AdminLeaguesPage = () => {
   useLanguage();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
-  const [verifiedOnly, setVerifiedOnly] = useState(true);
   const [openCountries, setOpenCountries] = useState<Set<string>>(new Set());
   const [openLeagues, setOpenLeagues] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<ClubRow | null>(null);
+  const [moving, setMoving] = useState<ClubRow | null>(null);
   const [merging, setMerging] = useState<LeagueRow | null>(null);
   const [expectedFor, setExpectedFor] = useState<LeagueRow | null>(null);
   const [activeFilter, setActiveFilter] = useState<null | "no_country" | "no_league" | "no_stadium" | "empty_league" | "oversize_league" | "occupancy_mismatch">(null);
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["admin-leagues-lm35"],
     queryFn: async () => {
-      const [countriesRes, leaguesRes, clubsRes, ticketingRes, stadiumsRes] = await Promise.all([
+      const [countriesRes, leaguesRes, clubsRes, stadiumsRes] = await Promise.all([
         supabase.from("countries").select("id,name").order("name"),
         supabase.from("league_publication").select("id,league_name,slug,country_id,country,is_active,publication_status,archived_at,expected_club_count"),
         supabase.from("clubs").select("id,slug,club_name,display_name,official_name,short_name,country_id,primary_league_id,home_stadium_id,publication_status,club_type,crest_url,conference,archived_at"),
-        supabase.from("club_ticketing_profiles").select("club_id").is("archived_at", null),
         supabase.from("stadiums").select("id,stadium_name,country_id").is("archived_at", null).order("stadium_name"),
       ]);
       if (countriesRes.error) throw countriesRes.error;
       if (leaguesRes.error) throw leaguesRes.error;
       if (clubsRes.error) throw clubsRes.error;
-      if (ticketingRes.error) throw ticketingRes.error;
       if (stadiumsRes.error) throw stadiumsRes.error;
       return {
         countries: (countriesRes.data || []) as CountryRow[],
         leagues: (leaguesRes.data || []) as LeagueRow[],
         clubs: (clubsRes.data || []) as ClubRow[],
-        ticketing: (ticketingRes.data || []) as TicketingRow[],
         stadiums: (stadiumsRes.data || []) as StadiumRow[],
       };
     },
   });
 
-  const verifiedSet = useMemo(() => {
-    const s = new Set<string>();
-    data?.ticketing.forEach((t) => t.club_id && s.add(t.club_id));
-    return s;
+  const stadiumNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    data?.stadiums.forEach((s) => m.set(s.id, s.stadium_name));
+    return m;
   }, [data]);
 
-  // Apply verified-only filter to clubs
+  // LM3.3: source of truth = ALL active clubs (no ticketing filter).
   const filteredClubs = useMemo(() => {
     if (!data) return [];
-    return data.clubs.filter((c) => {
-      if (c.archived_at) return false;
-      if (verifiedOnly && !verifiedSet.has(c.id)) return false;
-      return true;
-    });
-  }, [data, verifiedOnly, verifiedSet]);
+    return data.clubs.filter((c) => !c.archived_at);
+  }, [data]);
 
   // All non-archived clubs by league (used for occupancy regardless of verifiedOnly)
   const clubsCountByLeague = useMemo(() => {
