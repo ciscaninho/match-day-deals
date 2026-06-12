@@ -740,6 +740,12 @@ export const AdminLeaguesPage = () => {
         onClose={() => setMerging(null)}
         onMerged={refresh}
       />
+      <ExpectedCountDialog
+        league={expectedFor}
+        open={!!expectedFor}
+        onClose={() => setExpectedFor(null)}
+        onSaved={refresh}
+      />
     </div>
   );
 };
