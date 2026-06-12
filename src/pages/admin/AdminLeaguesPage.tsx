@@ -125,6 +125,7 @@ const EditClubDialog = ({
         primary_league_id: form.primary_league_id || null,
         home_stadium_id: form.home_stadium_id || null,
         publication_status: form.publication_status,
+        conference: form.conference || null,
         updated_at: new Date().toISOString(),
       }).eq("id", club.id);
       if (error) throw error;
