@@ -583,7 +583,7 @@ export const AdminLeaguesPage = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <StatCard
           icon={<AlertTriangle className="w-4 h-4" />}
           label={`Empty leagues (${verifiedOnly ? "verified" : "all"})`} value={stats.emptyLeagues.length}
@@ -593,10 +593,17 @@ export const AdminLeaguesPage = () => {
         />
         <StatCard
           icon={<AlertTriangle className="w-4 h-4" />}
-          label="Oversize leagues (>25)" value={stats.oversize.length}
+          label="Oversize leagues" value={stats.oversize.length}
           tone={stats.oversize.length > 0 ? "warn" : undefined}
           active={activeFilter === "oversize_league"}
           onClick={() => setActiveFilter(activeFilter === "oversize_league" ? null : "oversize_league")}
+        />
+        <StatCard
+          icon={<AlertTriangle className="w-4 h-4" />}
+          label="Occupancy mismatch" value={stats.occupancyMismatch.length}
+          tone={stats.occupancyMismatch.length > 0 ? "warn" : undefined}
+          active={activeFilter === "occupancy_mismatch"}
+          onClick={() => setActiveFilter(activeFilter === "occupancy_mismatch" ? null : "occupancy_mismatch")}
         />
       </div>
 
