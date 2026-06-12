@@ -38,6 +38,7 @@ import AdminMatchesPage from "./pages/admin/AdminMatchesPage";
 import AdminMatchReviewPage from "./pages/admin/AdminMatchReviewPage";
 import AdminLeaguesPage from "./pages/admin/AdminLeaguesPage";
 import AdminSeasonsPage from "./pages/admin/AdminSeasonsPage";
+import AdminDataQualityPage from "./pages/admin/AdminDataQualityPage";
 import AdminTicketingPage from "./pages/admin/AdminTicketingPage";
 import AdminTicketingLeaguesPage from "./pages/admin/AdminTicketingLeaguesPage";
 import AdminAssistantPage from "./pages/admin/AdminAssistantPage";
@@ -168,6 +169,7 @@ const App = () => (
                 <Route path="match-review" element={<AdminMatchReviewPage />} />
                 <Route path="leagues" element={<AdminLeaguesPage />} />
                 <Route path="seasons" element={<AdminSeasonsPage />} />
+                <Route path="data-quality" element={<AdminDataQualityPage />} />
                 <Route path="ticketing" element={<AdminTicketingPage />} />
                 <Route path="ticketing/leagues" element={<AdminTicketingLeaguesPage />} />
                 <Route path="suggestions" element={<AdminSuggestionsPage />} />
