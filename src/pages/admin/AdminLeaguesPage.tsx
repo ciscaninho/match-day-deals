@@ -449,7 +449,20 @@ export const AdminLeaguesPage = () => {
     } else if (activeFilter === "oversize_league") {
       arr = arr.map((c) => ({
         ...c,
-        leagues: c.leagues.filter((ln) => ln.clubs.length > 25),
+        leagues: c.leagues.filter((ln) => {
+          const exp = ln.league.expected_club_count ?? 0;
+          return exp > 0 ? (clubsCountByLeague.get(ln.league.id) || 0) > exp : ln.clubs.length > 25;
+        }),
+        unassignedClubs: [],
+      })).filter((c) => c.leagues.length > 0);
+    } else if (activeFilter === "occupancy_mismatch") {
+      arr = arr.map((c) => ({
+        ...c,
+        leagues: c.leagues.filter((ln) => {
+          const exp = ln.league.expected_club_count;
+          if (!exp) return false;
+          return (clubsCountByLeague.get(ln.league.id) || 0) !== exp;
+        }),
         unassignedClubs: [],
       })).filter((c) => c.leagues.length > 0);
     } else if (activeFilter === "no_country") {
