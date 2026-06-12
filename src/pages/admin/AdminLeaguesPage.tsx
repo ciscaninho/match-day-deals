@@ -656,10 +656,28 @@ export const AdminLeaguesPage = () => {
                                   {lOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                                   <Trophy className="w-3.5 h-3.5 text-amber-500" />
                                   <span className="font-semibold text-sm truncate">{league.league_name}</span>
-                                  <Badge variant="outline" className="text-[10px]">{clubs.length}</Badge>
+                                  {(() => {
+                                    const actual = clubsCountByLeague.get(league.id) || 0;
+                                    const exp = league.expected_club_count;
+                                    if (!exp) {
+                                      return <Badge variant="outline" className="text-[10px]">{actual}</Badge>;
+                                    }
+                                    const diff = actual - exp;
+                                    const tone = diff === 0
+                                      ? "bg-emerald-600 text-white"
+                                      : "bg-amber-500 text-white";
+                                    return (
+                                      <Badge className={`text-[10px] ${tone}`} title={`Actual ${actual} / Expected ${exp}`}>
+                                        {actual} / {exp}{diff !== 0 ? ` (${diff > 0 ? "+" : ""}${diff})` : ""}
+                                      </Badge>
+                                    );
+                                  })()}
                                   {league.publication_status === "published" && <Badge className="text-[10px] bg-emerald-600">Live</Badge>}
                                 </button>
                                 <div className="flex items-center gap-1 shrink-0">
+                                  <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={() => setExpectedFor(league)} title="Set expected club count">
+                                    <Pencil className="w-3.5 h-3.5" /> Expected
+                                  </Button>
                                   <Button size="sm" variant="ghost" className="h-7 gap-1 text-amber-700" onClick={() => setMerging(league)}>
                                     <GitMerge className="w-3.5 h-3.5" /> Merge
                                   </Button>
