@@ -771,6 +771,7 @@ export type Database = {
           archived_reason: string | null
           club_name: string
           club_type: string
+          conference: string | null
           country_id: string | null
           created_at: string
           crest_url: string | null
@@ -798,6 +799,7 @@ export type Database = {
           archived_reason?: string | null
           club_name: string
           club_type?: string
+          conference?: string | null
           country_id?: string | null
           created_at?: string
           crest_url?: string | null
@@ -825,6 +827,7 @@ export type Database = {
           archived_reason?: string | null
           club_name?: string
           club_type?: string
+          conference?: string | null
           country_id?: string | null
           created_at?: string
           crest_url?: string | null
@@ -951,6 +954,7 @@ export type Database = {
           country_id: string | null
           created_at: string
           division_level: number | null
+          expected_club_count: number | null
           gender: string
           id: string
           is_active: boolean
@@ -977,6 +981,7 @@ export type Database = {
           country_id?: string | null
           created_at?: string
           division_level?: number | null
+          expected_club_count?: number | null
           gender?: string
           id?: string
           is_active?: boolean
@@ -1003,6 +1008,7 @@ export type Database = {
           country_id?: string | null
           created_at?: string
           division_level?: number | null
+          expected_club_count?: number | null
           gender?: string
           id?: string
           is_active?: boolean
