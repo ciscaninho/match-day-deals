@@ -355,6 +355,16 @@ export const AdminLeaguesPage = () => {
     });
   }, [data, verifiedOnly, verifiedSet]);
 
+  // All non-archived clubs by league (used for occupancy regardless of verifiedOnly)
+  const clubsCountByLeague = useMemo(() => {
+    const m = new Map<string, number>();
+    data?.clubs.forEach((c) => {
+      if (c.archived_at) return;
+      if (c.primary_league_id) m.set(c.primary_league_id, (m.get(c.primary_league_id) || 0) + 1);
+    });
+    return m;
+  }, [data]);
+
   // Stats
   const stats = useMemo(() => {
     if (!data) return null;
@@ -365,18 +375,22 @@ export const AdminLeaguesPage = () => {
     const noLeague = operationalClubs.filter((c) => !c.primary_league_id);
     const noStadium = operationalClubs.filter((c) => !c.home_stadium_id);
 
-    const clubsByLeague = new Map<string, number>();
-    operationalClubs.forEach((c) => {
-      if (c.primary_league_id) clubsByLeague.set(c.primary_league_id, (clubsByLeague.get(c.primary_league_id) || 0) + 1);
+    const emptyLeagues = activeLeagues.filter((l) => (clubsCountByLeague.get(l.id) || 0) === 0);
+    const oversize = activeLeagues.filter((l) => {
+      const actual = clubsCountByLeague.get(l.id) || 0;
+      const exp = l.expected_club_count ?? 0;
+      return exp > 0 ? actual > exp : actual > 25;
     });
-    const emptyLeagues = activeLeagues.filter((l) => (clubsByLeague.get(l.id) || 0) === 0);
-    const oversize = activeLeagues.filter((l) => (clubsByLeague.get(l.id) || 0) > 25);
+    const occupancyMismatch = activeLeagues.filter((l) => {
+      if (!l.expected_club_count) return false;
+      return (clubsCountByLeague.get(l.id) || 0) !== l.expected_club_count;
+    });
 
     return {
       countries: data.countries.length,
       leagues: activeLeagues.length,
       verified: verifiedClubs.length,
-      noCountry, noLeague, noStadium, emptyLeagues, oversize,
+      noCountry, noLeague, noStadium, emptyLeagues, oversize, occupancyMismatch,
     };
   }, [data, verifiedSet, verifiedOnly]);
 
