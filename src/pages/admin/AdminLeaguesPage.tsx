@@ -811,4 +811,56 @@ const ClubRowItem = ({
   </div>
 );
 
+const ExpectedCountDialog = ({
+  league, open, onClose, onSaved,
+}: { league: LeagueRow | null; open: boolean; onClose: () => void; onSaved: () => void }) => {
+  const [value, setValue] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    setValue(league?.expected_club_count != null ? String(league.expected_club_count) : "");
+  }, [league]);
+  const save = async () => {
+    if (!league) return;
+    setBusy(true);
+    try {
+      const parsed = value.trim() === "" ? null : Number(value);
+      if (parsed !== null && (!Number.isFinite(parsed) || parsed < 0 || parsed > 200)) {
+        toast.error("Enter a number between 0 and 200, or leave blank.");
+        setBusy(false);
+        return;
+      }
+      const { error } = await supabase.from("league_publication")
+        .update({ expected_club_count: parsed, updated_at: new Date().toISOString() })
+        .eq("id", league.id);
+      if (error) throw error;
+      toast.success(`Expected count saved for ${league.league_name}`);
+      onSaved(); onClose();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
+    } finally { setBusy(false); }
+  };
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><Trophy className="w-4 h-4" /> Expected club count</DialogTitle>
+          <DialogDescription>How many clubs should this league contain in a normal season?</DialogDescription>
+        </DialogHeader>
+        {league && (
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">{league.league_name}</p>
+            <Input type="number" min={0} max={200} value={value} onChange={(e) => setValue(e.target.value)} placeholder="e.g. 20" />
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
+          <Button onClick={save} disabled={busy} className="gap-2">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default AdminLeaguesPage;
