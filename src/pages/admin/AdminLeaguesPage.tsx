@@ -35,6 +35,7 @@ type LeagueRow = {
   is_active: boolean;
   publication_status: string;
   archived_at: string | null;
+  expected_club_count: number | null;
 };
 
 type ClubRow = {
@@ -50,6 +51,7 @@ type ClubRow = {
   publication_status: string;
   club_type: string | null;
   crest_url: string | null;
+  conference: string | null;
   archived_at: string | null;
 };
 
