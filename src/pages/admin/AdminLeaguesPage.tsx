@@ -575,7 +575,7 @@ export const AdminLeaguesPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <StatCard
           icon={<AlertTriangle className="w-4 h-4" />}
-          label={`Empty leagues (${verifiedOnly ? "verified" : "all"})`} value={stats.emptyLeagues.length}
+          label="Empty leagues" value={stats.emptyLeagues.length}
           tone={stats.emptyLeagues.length > 0 ? "warn" : undefined}
           active={activeFilter === "empty_league"}
           onClick={() => setActiveFilter(activeFilter === "empty_league" ? null : "empty_league")}
