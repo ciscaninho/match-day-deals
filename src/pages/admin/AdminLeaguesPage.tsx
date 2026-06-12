@@ -319,8 +319,8 @@ export const AdminLeaguesPage = () => {
     queryFn: async () => {
       const [countriesRes, leaguesRes, clubsRes, ticketingRes, stadiumsRes] = await Promise.all([
         supabase.from("countries").select("id,name").order("name"),
-        supabase.from("league_publication").select("id,league_name,slug,country_id,country,is_active,publication_status,archived_at"),
-        supabase.from("clubs").select("id,slug,club_name,display_name,official_name,short_name,country_id,primary_league_id,home_stadium_id,publication_status,club_type,crest_url,archived_at"),
+        supabase.from("league_publication").select("id,league_name,slug,country_id,country,is_active,publication_status,archived_at,expected_club_count"),
+        supabase.from("clubs").select("id,slug,club_name,display_name,official_name,short_name,country_id,primary_league_id,home_stadium_id,publication_status,club_type,crest_url,conference,archived_at"),
         supabase.from("club_ticketing_profiles").select("club_id").is("archived_at", null),
         supabase.from("stadiums").select("id,stadium_name,country_id").is("archived_at", null).order("stadium_name"),
       ]);
