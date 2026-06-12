@@ -312,7 +312,7 @@ export const AdminLeaguesPage = () => {
   const [openLeagues, setOpenLeagues] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<ClubRow | null>(null);
   const [merging, setMerging] = useState<LeagueRow | null>(null);
-  const [activeFilter, setActiveFilter] = useState<null | "no_country" | "no_league" | "no_stadium" | "empty_league" | "oversize_league">(null);
+  const [activeFilter, setActiveFilter] = useState<null | "no_country" | "no_league" | "no_stadium" | "empty_league" | "oversize_league" | "occupancy_mismatch">(null);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["admin-leagues-lm35"],
