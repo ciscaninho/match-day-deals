@@ -91,18 +91,6 @@
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ga-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ga-md1-3v4</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-gb-md1-1v2</loc>
     <lastmod>2026-06-05</lastmod>
     <changefreq>daily</changefreq>
@@ -781,12 +769,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://footticketfinder.com/world-cup-2026/stadiums/mercedes-benz-stadium</loc>
-    <lastmod>2026-06-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://footticketfinder.com/world-cup-2026/stadiums/lincoln-financial-field</loc>
     <lastmod>2026-06-11</lastmod>
     <changefreq>weekly</changefreq>
@@ -799,62 +781,68 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://footticketfinder.com/world-cup-2026/stadiums/bmo-field</loc>
-    <lastmod>2026-06-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://footticketfinder.com/world-cup-2026/stadiums/levis-stadium</loc>
     <lastmod>2026-06-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://footticketfinder.com/guides/how-to-buy-tickets-safely</loc>
+    <loc>https://footticketfinder.com/world-cup-2026/stadiums/bmo-field</loc>
     <lastmod>2026-06-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://footticketfinder.com/world-cup-2026/stadiums/mercedes-benz-stadium</loc>
+    <lastmod>2026-06-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://footticketfinder.com/guides/how-to-buy-tickets-safely</loc>
+    <lastmod>2026-06-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/matchday-travel-checklist</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-06-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/league-coverage</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-06-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/stadium-experience</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-06-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/comment-acheter-billets-football-en-securite</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-06-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/checklist-matchday-voyage</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-06-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/guides-championnats</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-06-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/guides-experience-stade</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-06-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
