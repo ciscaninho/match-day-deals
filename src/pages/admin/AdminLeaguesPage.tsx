@@ -548,7 +548,7 @@ export const AdminLeaguesPage = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatCard icon={<Globe2 className="w-4 h-4" />} label="Countries" value={stats.countries} />
         <StatCard icon={<Trophy className="w-4 h-4" />} label="Leagues" value={stats.leagues} />
-        <StatCard icon={<Shield className="w-4 h-4" />} label="Verified clubs" value={stats.verified} />
+        <StatCard icon={<Shield className="w-4 h-4" />} label="Clubs" value={stats.clubs} />
         <StatCard
           icon={<AlertTriangle className="w-4 h-4" />}
           label="No country" value={stats.noCountry.length}
