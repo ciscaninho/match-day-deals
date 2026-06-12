@@ -199,6 +199,17 @@ const EditClubDialog = ({
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label className="text-[11px] uppercase font-bold text-muted-foreground">Conference (MLS only)</Label>
+              <Select value={form.conference || UNASSIGNED} onValueChange={(v) => setForm({ ...form, conference: v === UNASSIGNED ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={UNASSIGNED}>— None —</SelectItem>
+                  <SelectItem value="East">East</SelectItem>
+                  <SelectItem value="West">West</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
         <DialogFooter>
