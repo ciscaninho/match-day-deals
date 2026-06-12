@@ -740,6 +740,13 @@ export const AdminLeaguesPage = () => {
         onClose={() => setExpectedFor(null)}
         onSaved={refresh}
       />
+      <MoveClubDialog
+        club={moving}
+        leagues={data.leagues}
+        open={!!moving}
+        onClose={() => setMoving(null)}
+        onMoved={refresh}
+      />
     </div>
   );
 };
