@@ -611,7 +611,7 @@ export const AdminLeaguesPage = () => {
         <CardContent className="p-2">
           {tree.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
-              No results. {verifiedOnly && "Try turning off Verified clubs only."}
+              No results.
             </div>
           ) : (
             <div className="space-y-1">
