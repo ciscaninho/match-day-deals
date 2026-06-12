@@ -858,4 +858,74 @@ const ExpectedCountDialog = ({
   );
 };
 
+const MoveClubDialog = ({
+  club, leagues, open, onClose, onMoved,
+}: {
+  club: ClubRow | null;
+  leagues: LeagueRow[];
+  open: boolean;
+  onClose: () => void;
+  onMoved: () => void;
+}) => {
+  const [targetId, setTargetId] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { setTargetId(club?.primary_league_id || ""); }, [club]);
+
+  const eligible = useMemo(
+    () => leagues
+      .filter((l) => !l.archived_at && (!club?.country_id || l.country_id === club.country_id))
+      .sort((a, b) => a.league_name.localeCompare(b.league_name)),
+    [leagues, club],
+  );
+
+  const run = async () => {
+    if (!club) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.from("clubs")
+        .update({ primary_league_id: targetId || null, updated_at: new Date().toISOString() })
+        .eq("id", club.id);
+      if (error) throw error;
+      toast.success(`Moved ${club.display_name || club.club_name}`);
+      onMoved(); onClose();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Move failed");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><GitMerge className="w-4 h-4" /> Move club</DialogTitle>
+          <DialogDescription>Reassign this club to another league in the same country.</DialogDescription>
+        </DialogHeader>
+        {club && (
+          <div className="space-y-3">
+            <div className="rounded-lg border bg-muted/40 p-3">
+              <p className="font-bold text-sm">{club.display_name || club.club_name}</p>
+            </div>
+            <div>
+              <Label className="text-[11px] uppercase font-bold text-muted-foreground">Move to league</Label>
+              <Select value={targetId || UNASSIGNED} onValueChange={(v) => setTargetId(v === UNASSIGNED ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder="Choose league" /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value={UNASSIGNED}>— None —</SelectItem>
+                  {eligible.map((l) => <SelectItem key={l.id} value={l.id}>{l.league_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
+          <Button onClick={run} disabled={busy} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Move
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default AdminLeaguesPage;
