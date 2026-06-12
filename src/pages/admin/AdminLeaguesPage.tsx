@@ -113,7 +113,7 @@ const EditClubDialog = ({
     }
     setBusy(true);
     try {
-      const payload: Record<string, unknown> = {
+      const { error } = await supabase.from("clubs").update({
         display_name: form.display_name.trim(),
         official_name: form.official_name.trim() || form.display_name.trim(),
         club_name: form.display_name.trim(),
@@ -122,8 +122,7 @@ const EditClubDialog = ({
         home_stadium_id: form.home_stadium_id || null,
         publication_status: form.publication_status,
         updated_at: new Date().toISOString(),
-      };
-      const { error } = await supabase.from("clubs").update(payload).eq("id", club.id);
+      }).eq("id", club.id);
       if (error) throw error;
       toast.success("Club updated");
       onSaved();
@@ -232,7 +231,6 @@ const MergeLeagueDialog = ({
     if (!source || !targetId) return;
     setBusy(true);
     try {
-      // @ts-expect-error custom RPC may not be in generated types yet
       const { data, error } = await supabase.rpc("fn_merge_leagues", {
         p_target_id: targetId, p_source_id: source.id, p_reason: null,
       });
@@ -473,7 +471,6 @@ export const AdminLeaguesPage = () => {
   const archiveLeague = async (l: LeagueRow) => {
     if (!confirm(`Archive league "${l.league_name}"? It will be hidden from operations.`)) return;
     try {
-      // @ts-expect-error custom RPC
       const { error } = await supabase.rpc("fn_archive_league", { p_league_id: l.id, p_reason: null });
       if (error) throw error;
       toast.success(`Archived ${l.league_name}`);
