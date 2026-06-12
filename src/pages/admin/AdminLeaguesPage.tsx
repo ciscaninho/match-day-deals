@@ -363,8 +363,7 @@ export const AdminLeaguesPage = () => {
   const stats = useMemo(() => {
     if (!data) return null;
     const activeLeagues = data.leagues.filter((l) => !l.archived_at);
-    const verifiedClubs = data.clubs.filter((c) => !c.archived_at && verifiedSet.has(c.id));
-    const operationalClubs = verifiedOnly ? verifiedClubs : data.clubs.filter((c) => !c.archived_at);
+    const operationalClubs = data.clubs.filter((c) => !c.archived_at);
     const noCountry = operationalClubs.filter((c) => !c.country_id);
     const noLeague = operationalClubs.filter((c) => !c.primary_league_id);
     const noStadium = operationalClubs.filter((c) => !c.home_stadium_id);
@@ -383,10 +382,10 @@ export const AdminLeaguesPage = () => {
     return {
       countries: data.countries.length,
       leagues: activeLeagues.length,
-      verified: verifiedClubs.length,
+      clubs: operationalClubs.length,
       noCountry, noLeague, noStadium, emptyLeagues, oversize, occupancyMismatch,
     };
-  }, [data, verifiedSet, verifiedOnly, clubsCountByLeague]);
+  }, [data, clubsCountByLeague]);
 
   // Build hierarchy: country -> league -> clubs
   const tree = useMemo(() => {
