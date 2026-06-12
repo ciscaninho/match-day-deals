@@ -82,10 +82,11 @@ const EditClubDialog = ({
     primary_league_id: "" as string,
     home_stadium_id: "" as string,
     publication_status: "draft",
+    conference: "" as string,
   });
   const [busy, setBusy] = useState(false);
 
-  useMemo(() => {
+  useEffect(() => {
     if (club) {
       setForm({
         display_name: club.display_name || club.club_name || "",
@@ -94,6 +95,7 @@ const EditClubDialog = ({
         primary_league_id: club.primary_league_id || "",
         home_stadium_id: club.home_stadium_id || "",
         publication_status: club.publication_status || "draft",
+        conference: club.conference || "",
       });
     }
   }, [club]);
