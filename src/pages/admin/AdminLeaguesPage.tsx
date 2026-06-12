@@ -392,7 +392,7 @@ export const AdminLeaguesPage = () => {
       verified: verifiedClubs.length,
       noCountry, noLeague, noStadium, emptyLeagues, oversize, occupancyMismatch,
     };
-  }, [data, verifiedSet, verifiedOnly]);
+  }, [data, verifiedSet, verifiedOnly, clubsCountByLeague]);
 
   // Build hierarchy: country -> league -> clubs
   const tree = useMemo(() => {
