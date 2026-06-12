@@ -307,54 +307,47 @@ export const AdminLeaguesPage = () => {
   useLanguage();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
-  const [verifiedOnly, setVerifiedOnly] = useState(true);
   const [openCountries, setOpenCountries] = useState<Set<string>>(new Set());
   const [openLeagues, setOpenLeagues] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<ClubRow | null>(null);
+  const [moving, setMoving] = useState<ClubRow | null>(null);
   const [merging, setMerging] = useState<LeagueRow | null>(null);
   const [expectedFor, setExpectedFor] = useState<LeagueRow | null>(null);
   const [activeFilter, setActiveFilter] = useState<null | "no_country" | "no_league" | "no_stadium" | "empty_league" | "oversize_league" | "occupancy_mismatch">(null);
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["admin-leagues-lm35"],
     queryFn: async () => {
-      const [countriesRes, leaguesRes, clubsRes, ticketingRes, stadiumsRes] = await Promise.all([
+      const [countriesRes, leaguesRes, clubsRes, stadiumsRes] = await Promise.all([
         supabase.from("countries").select("id,name").order("name"),
         supabase.from("league_publication").select("id,league_name,slug,country_id,country,is_active,publication_status,archived_at,expected_club_count"),
         supabase.from("clubs").select("id,slug,club_name,display_name,official_name,short_name,country_id,primary_league_id,home_stadium_id,publication_status,club_type,crest_url,conference,archived_at"),
-        supabase.from("club_ticketing_profiles").select("club_id").is("archived_at", null),
         supabase.from("stadiums").select("id,stadium_name,country_id").is("archived_at", null).order("stadium_name"),
       ]);
       if (countriesRes.error) throw countriesRes.error;
       if (leaguesRes.error) throw leaguesRes.error;
       if (clubsRes.error) throw clubsRes.error;
-      if (ticketingRes.error) throw ticketingRes.error;
       if (stadiumsRes.error) throw stadiumsRes.error;
       return {
         countries: (countriesRes.data || []) as CountryRow[],
         leagues: (leaguesRes.data || []) as LeagueRow[],
         clubs: (clubsRes.data || []) as ClubRow[],
-        ticketing: (ticketingRes.data || []) as TicketingRow[],
         stadiums: (stadiumsRes.data || []) as StadiumRow[],
       };
     },
   });
 
-  const verifiedSet = useMemo(() => {
-    const s = new Set<string>();
-    data?.ticketing.forEach((t) => t.club_id && s.add(t.club_id));
-    return s;
+  const stadiumNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    data?.stadiums.forEach((s) => m.set(s.id, s.stadium_name));
+    return m;
   }, [data]);
 
-  // Apply verified-only filter to clubs
+  // LM3.3: source of truth = ALL active clubs (no ticketing filter).
   const filteredClubs = useMemo(() => {
     if (!data) return [];
-    return data.clubs.filter((c) => {
-      if (c.archived_at) return false;
-      if (verifiedOnly && !verifiedSet.has(c.id)) return false;
-      return true;
-    });
-  }, [data, verifiedOnly, verifiedSet]);
+    return data.clubs.filter((c) => !c.archived_at);
+  }, [data]);
 
   // All non-archived clubs by league (used for occupancy regardless of verifiedOnly)
   const clubsCountByLeague = useMemo(() => {
@@ -370,8 +363,7 @@ export const AdminLeaguesPage = () => {
   const stats = useMemo(() => {
     if (!data) return null;
     const activeLeagues = data.leagues.filter((l) => !l.archived_at);
-    const verifiedClubs = data.clubs.filter((c) => !c.archived_at && verifiedSet.has(c.id));
-    const operationalClubs = verifiedOnly ? verifiedClubs : data.clubs.filter((c) => !c.archived_at);
+    const operationalClubs = data.clubs.filter((c) => !c.archived_at);
     const noCountry = operationalClubs.filter((c) => !c.country_id);
     const noLeague = operationalClubs.filter((c) => !c.primary_league_id);
     const noStadium = operationalClubs.filter((c) => !c.home_stadium_id);
@@ -390,10 +382,10 @@ export const AdminLeaguesPage = () => {
     return {
       countries: data.countries.length,
       leagues: activeLeagues.length,
-      verified: verifiedClubs.length,
+      clubs: operationalClubs.length,
       noCountry, noLeague, noStadium, emptyLeagues, oversize, occupancyMismatch,
     };
-  }, [data, verifiedSet, verifiedOnly, clubsCountByLeague]);
+  }, [data, clubsCountByLeague]);
 
   // Build hierarchy: country -> league -> clubs
   const tree = useMemo(() => {
@@ -542,13 +534,9 @@ export const AdminLeaguesPage = () => {
           <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
             <Trophy className="w-6 h-6 text-amber-500" /> Football Operations
           </h1>
-          <p className="text-sm text-muted-foreground">Country → League → Verified Clubs</p>
+          <p className="text-sm text-muted-foreground">Country → League → Clubs</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5">
-            <Switch id="verifiedOnly" checked={verifiedOnly} onCheckedChange={setVerifiedOnly} />
-            <Label htmlFor="verifiedOnly" className="text-xs font-bold cursor-pointer">Verified clubs only</Label>
-          </div>
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="pl-9 w-56" />
@@ -560,7 +548,7 @@ export const AdminLeaguesPage = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatCard icon={<Globe2 className="w-4 h-4" />} label="Countries" value={stats.countries} />
         <StatCard icon={<Trophy className="w-4 h-4" />} label="Leagues" value={stats.leagues} />
-        <StatCard icon={<Shield className="w-4 h-4" />} label="Verified clubs" value={stats.verified} />
+        <StatCard icon={<Shield className="w-4 h-4" />} label="Clubs" value={stats.clubs} />
         <StatCard
           icon={<AlertTriangle className="w-4 h-4" />}
           label="No country" value={stats.noCountry.length}
@@ -587,7 +575,7 @@ export const AdminLeaguesPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <StatCard
           icon={<AlertTriangle className="w-4 h-4" />}
-          label={`Empty leagues (${verifiedOnly ? "verified" : "all"})`} value={stats.emptyLeagues.length}
+          label="Empty leagues" value={stats.emptyLeagues.length}
           tone={stats.emptyLeagues.length > 0 ? "warn" : undefined}
           active={activeFilter === "empty_league"}
           onClick={() => setActiveFilter(activeFilter === "empty_league" ? null : "empty_league")}
@@ -623,7 +611,7 @@ export const AdminLeaguesPage = () => {
         <CardContent className="p-2">
           {tree.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
-              No results. {verifiedOnly && "Try turning off Verified clubs only."}
+              No results.
             </div>
           ) : (
             <div className="space-y-1">
@@ -673,7 +661,6 @@ export const AdminLeaguesPage = () => {
                                       </Badge>
                                     );
                                   })()}
-                                  {league.publication_status === "published" && <Badge className="text-[10px] bg-emerald-600">Live</Badge>}
                                 </button>
                                 <div className="flex items-center gap-1 shrink-0">
                                   <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={() => setExpectedFor(league)} title="Set expected club count">
@@ -690,13 +677,14 @@ export const AdminLeaguesPage = () => {
                               {lOpen && (
                                 <div className="px-3 pb-2 space-y-1">
                                   {clubs.length === 0 ? (
-                                    <p className="text-[11px] text-muted-foreground italic pl-6 py-1">No clubs in this league{verifiedOnly ? " (verified only)" : ""}.</p>
+                                    <p className="text-[11px] text-muted-foreground italic pl-6 py-1">No clubs in this league.</p>
                                   ) : clubs.map((c) => (
                                     <ClubRowItem
                                       key={c.id}
                                       club={c}
-                                      verified={verifiedSet.has(c.id)}
+                                      stadiumName={c.home_stadium_id ? stadiumNameById.get(c.home_stadium_id) : undefined}
                                       onEdit={() => setEditing(c)}
+                                      onMove={() => setMoving(c)}
                                     />
                                   ))}
                                 </div>
@@ -710,7 +698,13 @@ export const AdminLeaguesPage = () => {
                               <AlertTriangle className="w-3 h-3" /> Clubs without a league ({country.unassignedClubs.length})
                             </p>
                             {country.unassignedClubs.map((c) => (
-                              <ClubRowItem key={c.id} club={c} verified={verifiedSet.has(c.id)} onEdit={() => setEditing(c)} />
+                              <ClubRowItem
+                                key={c.id}
+                                club={c}
+                                stadiumName={c.home_stadium_id ? stadiumNameById.get(c.home_stadium_id) : undefined}
+                                onEdit={() => setEditing(c)}
+                                onMove={() => setMoving(c)}
+                              />
                             ))}
                           </div>
                         )}
@@ -746,6 +740,13 @@ export const AdminLeaguesPage = () => {
         onClose={() => setExpectedFor(null)}
         onSaved={refresh}
       />
+      <MoveClubDialog
+        club={moving}
+        leagues={data.leagues}
+        open={!!moving}
+        onClose={() => setMoving(null)}
+        onMoved={refresh}
+      />
     </div>
   );
 };
@@ -777,37 +778,31 @@ const StatCard = ({
 );
 
 const ClubRowItem = ({
-  club, verified, onEdit,
-}: { club: ClubRow; verified: boolean; onEdit: () => void }) => (
+  club, stadiumName, onEdit, onMove,
+}: { club: ClubRow; stadiumName?: string; onEdit: () => void; onMove: () => void }) => (
   <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded hover:bg-muted/60 group">
-    <div className="flex items-center gap-2 min-w-0">
+    <div className="flex items-center gap-2.5 min-w-0 flex-1">
       {club.crest_url ? (
-        <img src={club.crest_url} alt="" className="w-5 h-5 rounded object-contain" loading="lazy" />
+        <img src={club.crest_url} alt="" className="w-6 h-6 rounded object-contain shrink-0" loading="lazy" />
       ) : (
-        <div className="w-5 h-5 rounded bg-muted flex items-center justify-center">
+        <div className="w-6 h-6 rounded bg-muted flex items-center justify-center shrink-0">
           <Shield className="w-3 h-3 text-muted-foreground" />
         </div>
       )}
-      <div className="min-w-0">
-        <p className="text-sm font-semibold truncate">{club.display_name || club.club_name}</p>
-        {club.official_name && club.official_name !== (club.display_name || club.club_name) && (
-          <p className="text-[10px] text-muted-foreground truncate">{club.official_name}</p>
-        )}
+      <p className="text-sm font-semibold truncate min-w-0 flex-1">{club.display_name || club.club_name}</p>
+      <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground min-w-0 max-w-[40%]">
+        <MapPin className="w-3 h-3 shrink-0" />
+        <span className="truncate">{stadiumName || "—"}</span>
       </div>
-      {verified ? (
-        <Badge className="text-[9px] bg-emerald-600 shrink-0">Verified</Badge>
-      ) : (
-        <Badge variant="outline" className="text-[9px] shrink-0">Identity</Badge>
-      )}
-      {!club.home_stadium_id && (
-        <Badge variant="outline" className="text-[9px] text-amber-600 border-amber-400 shrink-0">
-          <MapPin className="w-2.5 h-2.5 mr-0.5" /> no stadium
-        </Badge>
-      )}
     </div>
-    <Button size="sm" variant="ghost" className="h-7 gap-1 opacity-0 group-hover:opacity-100 transition" onClick={onEdit}>
-      <Pencil className="w-3 h-3" /> Edit
-    </Button>
+    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition">
+      <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={onMove} title="Move to another league">
+        <GitMerge className="w-3 h-3" /> Move
+      </Button>
+      <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={onEdit}>
+        <Pencil className="w-3 h-3" /> Edit
+      </Button>
+    </div>
   </div>
 );
 
@@ -856,6 +851,76 @@ const ExpectedCountDialog = ({
           <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
           <Button onClick={save} disabled={busy} className="gap-2">
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const MoveClubDialog = ({
+  club, leagues, open, onClose, onMoved,
+}: {
+  club: ClubRow | null;
+  leagues: LeagueRow[];
+  open: boolean;
+  onClose: () => void;
+  onMoved: () => void;
+}) => {
+  const [targetId, setTargetId] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { setTargetId(club?.primary_league_id || ""); }, [club]);
+
+  const eligible = useMemo(
+    () => leagues
+      .filter((l) => !l.archived_at && (!club?.country_id || l.country_id === club.country_id))
+      .sort((a, b) => a.league_name.localeCompare(b.league_name)),
+    [leagues, club],
+  );
+
+  const run = async () => {
+    if (!club) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.from("clubs")
+        .update({ primary_league_id: targetId || null, updated_at: new Date().toISOString() })
+        .eq("id", club.id);
+      if (error) throw error;
+      toast.success(`Moved ${club.display_name || club.club_name}`);
+      onMoved(); onClose();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Move failed");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><GitMerge className="w-4 h-4" /> Move club</DialogTitle>
+          <DialogDescription>Reassign this club to another league in the same country.</DialogDescription>
+        </DialogHeader>
+        {club && (
+          <div className="space-y-3">
+            <div className="rounded-lg border bg-muted/40 p-3">
+              <p className="font-bold text-sm">{club.display_name || club.club_name}</p>
+            </div>
+            <div>
+              <Label className="text-[11px] uppercase font-bold text-muted-foreground">Move to league</Label>
+              <Select value={targetId || UNASSIGNED} onValueChange={(v) => setTargetId(v === UNASSIGNED ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder="Choose league" /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value={UNASSIGNED}>— None —</SelectItem>
+                  {eligible.map((l) => <SelectItem key={l.id} value={l.id}>{l.league_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
+          <Button onClick={run} disabled={busy} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Move
           </Button>
         </DialogFooter>
       </DialogContent>
