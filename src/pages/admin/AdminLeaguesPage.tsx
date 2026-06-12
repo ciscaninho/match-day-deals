@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -35,6 +35,7 @@ type LeagueRow = {
   is_active: boolean;
   publication_status: string;
   archived_at: string | null;
+  expected_club_count: number | null;
 };
 
 type ClubRow = {
@@ -50,6 +51,7 @@ type ClubRow = {
   publication_status: string;
   club_type: string | null;
   crest_url: string | null;
+  conference: string | null;
   archived_at: string | null;
 };
 
@@ -80,10 +82,11 @@ const EditClubDialog = ({
     primary_league_id: "" as string,
     home_stadium_id: "" as string,
     publication_status: "draft",
+    conference: "" as string,
   });
   const [busy, setBusy] = useState(false);
 
-  useMemo(() => {
+  useEffect(() => {
     if (club) {
       setForm({
         display_name: club.display_name || club.club_name || "",
@@ -92,6 +95,7 @@ const EditClubDialog = ({
         primary_league_id: club.primary_league_id || "",
         home_stadium_id: club.home_stadium_id || "",
         publication_status: club.publication_status || "draft",
+        conference: club.conference || "",
       });
     }
   }, [club]);
@@ -121,6 +125,7 @@ const EditClubDialog = ({
         primary_league_id: form.primary_league_id || null,
         home_stadium_id: form.home_stadium_id || null,
         publication_status: form.publication_status,
+        conference: form.conference || null,
         updated_at: new Date().toISOString(),
       }).eq("id", club.id);
       if (error) throw error;
@@ -191,6 +196,17 @@ const EditClubDialog = ({
                 <SelectContent className="max-h-72">
                   <SelectItem value={UNASSIGNED}>— None —</SelectItem>
                   {eligibleStadiums.map((s) => <SelectItem key={s.id} value={s.id}>{s.stadium_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-[11px] uppercase font-bold text-muted-foreground">Conference (MLS only)</Label>
+              <Select value={form.conference || UNASSIGNED} onValueChange={(v) => setForm({ ...form, conference: v === UNASSIGNED ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={UNASSIGNED}>— None —</SelectItem>
+                  <SelectItem value="East">East</SelectItem>
+                  <SelectItem value="West">West</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -296,15 +312,16 @@ export const AdminLeaguesPage = () => {
   const [openLeagues, setOpenLeagues] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<ClubRow | null>(null);
   const [merging, setMerging] = useState<LeagueRow | null>(null);
-  const [activeFilter, setActiveFilter] = useState<null | "no_country" | "no_league" | "no_stadium" | "empty_league" | "oversize_league">(null);
+  const [expectedFor, setExpectedFor] = useState<LeagueRow | null>(null);
+  const [activeFilter, setActiveFilter] = useState<null | "no_country" | "no_league" | "no_stadium" | "empty_league" | "oversize_league" | "occupancy_mismatch">(null);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["admin-leagues-lm35"],
     queryFn: async () => {
       const [countriesRes, leaguesRes, clubsRes, ticketingRes, stadiumsRes] = await Promise.all([
         supabase.from("countries").select("id,name").order("name"),
-        supabase.from("league_publication").select("id,league_name,slug,country_id,country,is_active,publication_status,archived_at"),
-        supabase.from("clubs").select("id,slug,club_name,display_name,official_name,short_name,country_id,primary_league_id,home_stadium_id,publication_status,club_type,crest_url,archived_at"),
+        supabase.from("league_publication").select("id,league_name,slug,country_id,country,is_active,publication_status,archived_at,expected_club_count"),
+        supabase.from("clubs").select("id,slug,club_name,display_name,official_name,short_name,country_id,primary_league_id,home_stadium_id,publication_status,club_type,crest_url,conference,archived_at"),
         supabase.from("club_ticketing_profiles").select("club_id").is("archived_at", null),
         supabase.from("stadiums").select("id,stadium_name,country_id").is("archived_at", null).order("stadium_name"),
       ]);
@@ -339,6 +356,16 @@ export const AdminLeaguesPage = () => {
     });
   }, [data, verifiedOnly, verifiedSet]);
 
+  // All non-archived clubs by league (used for occupancy regardless of verifiedOnly)
+  const clubsCountByLeague = useMemo(() => {
+    const m = new Map<string, number>();
+    data?.clubs.forEach((c) => {
+      if (c.archived_at) return;
+      if (c.primary_league_id) m.set(c.primary_league_id, (m.get(c.primary_league_id) || 0) + 1);
+    });
+    return m;
+  }, [data]);
+
   // Stats
   const stats = useMemo(() => {
     if (!data) return null;
@@ -349,20 +376,24 @@ export const AdminLeaguesPage = () => {
     const noLeague = operationalClubs.filter((c) => !c.primary_league_id);
     const noStadium = operationalClubs.filter((c) => !c.home_stadium_id);
 
-    const clubsByLeague = new Map<string, number>();
-    operationalClubs.forEach((c) => {
-      if (c.primary_league_id) clubsByLeague.set(c.primary_league_id, (clubsByLeague.get(c.primary_league_id) || 0) + 1);
+    const emptyLeagues = activeLeagues.filter((l) => (clubsCountByLeague.get(l.id) || 0) === 0);
+    const oversize = activeLeagues.filter((l) => {
+      const actual = clubsCountByLeague.get(l.id) || 0;
+      const exp = l.expected_club_count ?? 0;
+      return exp > 0 ? actual > exp : actual > 25;
     });
-    const emptyLeagues = activeLeagues.filter((l) => (clubsByLeague.get(l.id) || 0) === 0);
-    const oversize = activeLeagues.filter((l) => (clubsByLeague.get(l.id) || 0) > 25);
+    const occupancyMismatch = activeLeagues.filter((l) => {
+      if (!l.expected_club_count) return false;
+      return (clubsCountByLeague.get(l.id) || 0) !== l.expected_club_count;
+    });
 
     return {
       countries: data.countries.length,
       leagues: activeLeagues.length,
       verified: verifiedClubs.length,
-      noCountry, noLeague, noStadium, emptyLeagues, oversize,
+      noCountry, noLeague, noStadium, emptyLeagues, oversize, occupancyMismatch,
     };
-  }, [data, verifiedSet, verifiedOnly]);
+  }, [data, verifiedSet, verifiedOnly, clubsCountByLeague]);
 
   // Build hierarchy: country -> league -> clubs
   const tree = useMemo(() => {
@@ -419,7 +450,20 @@ export const AdminLeaguesPage = () => {
     } else if (activeFilter === "oversize_league") {
       arr = arr.map((c) => ({
         ...c,
-        leagues: c.leagues.filter((ln) => ln.clubs.length > 25),
+        leagues: c.leagues.filter((ln) => {
+          const exp = ln.league.expected_club_count ?? 0;
+          return exp > 0 ? (clubsCountByLeague.get(ln.league.id) || 0) > exp : ln.clubs.length > 25;
+        }),
+        unassignedClubs: [],
+      })).filter((c) => c.leagues.length > 0);
+    } else if (activeFilter === "occupancy_mismatch") {
+      arr = arr.map((c) => ({
+        ...c,
+        leagues: c.leagues.filter((ln) => {
+          const exp = ln.league.expected_club_count;
+          if (!exp) return false;
+          return (clubsCountByLeague.get(ln.league.id) || 0) !== exp;
+        }),
         unassignedClubs: [],
       })).filter((c) => c.leagues.length > 0);
     } else if (activeFilter === "no_country") {
@@ -540,7 +584,7 @@ export const AdminLeaguesPage = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <StatCard
           icon={<AlertTriangle className="w-4 h-4" />}
           label={`Empty leagues (${verifiedOnly ? "verified" : "all"})`} value={stats.emptyLeagues.length}
@@ -550,10 +594,17 @@ export const AdminLeaguesPage = () => {
         />
         <StatCard
           icon={<AlertTriangle className="w-4 h-4" />}
-          label="Oversize leagues (>25)" value={stats.oversize.length}
+          label="Oversize leagues" value={stats.oversize.length}
           tone={stats.oversize.length > 0 ? "warn" : undefined}
           active={activeFilter === "oversize_league"}
           onClick={() => setActiveFilter(activeFilter === "oversize_league" ? null : "oversize_league")}
+        />
+        <StatCard
+          icon={<AlertTriangle className="w-4 h-4" />}
+          label="Occupancy mismatch" value={stats.occupancyMismatch.length}
+          tone={stats.occupancyMismatch.length > 0 ? "warn" : undefined}
+          active={activeFilter === "occupancy_mismatch"}
+          onClick={() => setActiveFilter(activeFilter === "occupancy_mismatch" ? null : "occupancy_mismatch")}
         />
       </div>
 
@@ -606,10 +657,28 @@ export const AdminLeaguesPage = () => {
                                   {lOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                                   <Trophy className="w-3.5 h-3.5 text-amber-500" />
                                   <span className="font-semibold text-sm truncate">{league.league_name}</span>
-                                  <Badge variant="outline" className="text-[10px]">{clubs.length}</Badge>
+                                  {(() => {
+                                    const actual = clubsCountByLeague.get(league.id) || 0;
+                                    const exp = league.expected_club_count;
+                                    if (!exp) {
+                                      return <Badge variant="outline" className="text-[10px]">{actual}</Badge>;
+                                    }
+                                    const diff = actual - exp;
+                                    const tone = diff === 0
+                                      ? "bg-emerald-600 text-white"
+                                      : "bg-amber-500 text-white";
+                                    return (
+                                      <Badge className={`text-[10px] ${tone}`} title={`Actual ${actual} / Expected ${exp}`}>
+                                        {actual} / {exp}{diff !== 0 ? ` (${diff > 0 ? "+" : ""}${diff})` : ""}
+                                      </Badge>
+                                    );
+                                  })()}
                                   {league.publication_status === "published" && <Badge className="text-[10px] bg-emerald-600">Live</Badge>}
                                 </button>
                                 <div className="flex items-center gap-1 shrink-0">
+                                  <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={() => setExpectedFor(league)} title="Set expected club count">
+                                    <Pencil className="w-3.5 h-3.5" /> Expected
+                                  </Button>
                                   <Button size="sm" variant="ghost" className="h-7 gap-1 text-amber-700" onClick={() => setMerging(league)}>
                                     <GitMerge className="w-3.5 h-3.5" /> Merge
                                   </Button>
@@ -670,6 +739,12 @@ export const AdminLeaguesPage = () => {
         open={!!merging}
         onClose={() => setMerging(null)}
         onMerged={refresh}
+      />
+      <ExpectedCountDialog
+        league={expectedFor}
+        open={!!expectedFor}
+        onClose={() => setExpectedFor(null)}
+        onSaved={refresh}
       />
     </div>
   );
@@ -735,5 +810,57 @@ const ClubRowItem = ({
     </Button>
   </div>
 );
+
+const ExpectedCountDialog = ({
+  league, open, onClose, onSaved,
+}: { league: LeagueRow | null; open: boolean; onClose: () => void; onSaved: () => void }) => {
+  const [value, setValue] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    setValue(league?.expected_club_count != null ? String(league.expected_club_count) : "");
+  }, [league]);
+  const save = async () => {
+    if (!league) return;
+    setBusy(true);
+    try {
+      const parsed = value.trim() === "" ? null : Number(value);
+      if (parsed !== null && (!Number.isFinite(parsed) || parsed < 0 || parsed > 200)) {
+        toast.error("Enter a number between 0 and 200, or leave blank.");
+        setBusy(false);
+        return;
+      }
+      const { error } = await supabase.from("league_publication")
+        .update({ expected_club_count: parsed, updated_at: new Date().toISOString() })
+        .eq("id", league.id);
+      if (error) throw error;
+      toast.success(`Expected count saved for ${league.league_name}`);
+      onSaved(); onClose();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
+    } finally { setBusy(false); }
+  };
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><Trophy className="w-4 h-4" /> Expected club count</DialogTitle>
+          <DialogDescription>How many clubs should this league contain in a normal season?</DialogDescription>
+        </DialogHeader>
+        {league && (
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">{league.league_name}</p>
+            <Input type="number" min={0} max={200} value={value} onChange={(e) => setValue(e.target.value)} placeholder="e.g. 20" />
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
+          <Button onClick={save} disabled={busy} className="gap-2">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export default AdminLeaguesPage;
