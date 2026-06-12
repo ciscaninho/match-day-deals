@@ -771,37 +771,31 @@ const StatCard = ({
 );
 
 const ClubRowItem = ({
-  club, verified, onEdit,
-}: { club: ClubRow; verified: boolean; onEdit: () => void }) => (
+  club, stadiumName, onEdit, onMove,
+}: { club: ClubRow; stadiumName?: string; onEdit: () => void; onMove: () => void }) => (
   <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded hover:bg-muted/60 group">
-    <div className="flex items-center gap-2 min-w-0">
+    <div className="flex items-center gap-2.5 min-w-0 flex-1">
       {club.crest_url ? (
-        <img src={club.crest_url} alt="" className="w-5 h-5 rounded object-contain" loading="lazy" />
+        <img src={club.crest_url} alt="" className="w-6 h-6 rounded object-contain shrink-0" loading="lazy" />
       ) : (
-        <div className="w-5 h-5 rounded bg-muted flex items-center justify-center">
+        <div className="w-6 h-6 rounded bg-muted flex items-center justify-center shrink-0">
           <Shield className="w-3 h-3 text-muted-foreground" />
         </div>
       )}
-      <div className="min-w-0">
-        <p className="text-sm font-semibold truncate">{club.display_name || club.club_name}</p>
-        {club.official_name && club.official_name !== (club.display_name || club.club_name) && (
-          <p className="text-[10px] text-muted-foreground truncate">{club.official_name}</p>
-        )}
+      <p className="text-sm font-semibold truncate min-w-0 flex-1">{club.display_name || club.club_name}</p>
+      <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground min-w-0 max-w-[40%]">
+        <MapPin className="w-3 h-3 shrink-0" />
+        <span className="truncate">{stadiumName || "—"}</span>
       </div>
-      {verified ? (
-        <Badge className="text-[9px] bg-emerald-600 shrink-0">Verified</Badge>
-      ) : (
-        <Badge variant="outline" className="text-[9px] shrink-0">Identity</Badge>
-      )}
-      {!club.home_stadium_id && (
-        <Badge variant="outline" className="text-[9px] text-amber-600 border-amber-400 shrink-0">
-          <MapPin className="w-2.5 h-2.5 mr-0.5" /> no stadium
-        </Badge>
-      )}
     </div>
-    <Button size="sm" variant="ghost" className="h-7 gap-1 opacity-0 group-hover:opacity-100 transition" onClick={onEdit}>
-      <Pencil className="w-3 h-3" /> Edit
-    </Button>
+    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition">
+      <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={onMove} title="Move to another league">
+        <GitMerge className="w-3 h-3" /> Move
+      </Button>
+      <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={onEdit}>
+        <Pencil className="w-3 h-3" /> Edit
+      </Button>
+    </div>
   </div>
 );
 
