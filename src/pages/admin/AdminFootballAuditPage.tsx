@@ -325,19 +325,19 @@ const AdminFootballAuditPage = () => {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card><CardContent className="p-4">
+        <Card className="bg-white border-slate-200 text-slate-900"><CardContent className="p-4">
           <div className="text-xs font-semibold text-slate-500 uppercase">Countries</div>
           <div className="text-2xl font-extrabold text-slate-900 mt-1">{kpis.validatedCountries} / {kpis.totalCountries}</div>
         </CardContent></Card>
-        <Card><CardContent className="p-4">
+        <Card className="bg-white border-slate-200 text-slate-900"><CardContent className="p-4">
           <div className="text-xs font-semibold text-slate-500 uppercase">Leagues</div>
           <div className="text-2xl font-extrabold text-slate-900 mt-1">{kpis.validatedLeagues} / {kpis.totalLeagues}</div>
         </CardContent></Card>
-        <Card><CardContent className="p-4">
+        <Card className="bg-white border-slate-200 text-slate-900"><CardContent className="p-4">
           <div className="text-xs font-semibold text-slate-500 uppercase">Clubs</div>
           <div className="text-2xl font-extrabold text-slate-900 mt-1">{kpis.validatedClubs} / {kpis.totalClubs}</div>
         </CardContent></Card>
-        <Card><CardContent className="p-4">
+        <Card className="bg-white border-slate-200 text-slate-900"><CardContent className="p-4">
           <div className="text-xs font-semibold text-slate-500 uppercase">Progress</div>
           <div className="text-2xl font-extrabold text-slate-900 mt-1">{progress}%</div>
           <div className="h-1.5 bg-slate-200 rounded mt-2 overflow-hidden">
@@ -348,7 +348,7 @@ const AdminFootballAuditPage = () => {
 
       {/* ISSUES */}
       {issues.length > 0 && (
-        <Card>
+        <Card className="bg-white border-slate-200 text-slate-900">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <AlertTriangle className="w-4 h-4 text-amber-600" />
@@ -373,7 +373,7 @@ const AdminFootballAuditPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
         {/* COUNTRY PANEL */}
-        <Card className="self-start">
+        <Card className="self-start bg-white border-slate-200 text-slate-900">
           <CardContent className="p-3">
             <div className="flex items-center gap-2 mb-2 px-1">
               <Globe2 className="w-4 h-4 text-slate-500" />
@@ -407,7 +407,7 @@ const AdminFootballAuditPage = () => {
         {/* RIGHT */}
         <div className="space-y-4 min-w-0">
           {/* LEAGUE LIST */}
-          <Card>
+          <Card className="bg-white border-slate-200 text-slate-900">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Trophy className="w-4 h-4 text-slate-500" />
@@ -454,7 +454,7 @@ const AdminFootballAuditPage = () => {
           </Card>
 
           {/* CLUB TABLE */}
-          <Card>
+          <Card className="bg-white border-slate-200 text-slate-900">
             <CardContent className="p-4">
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <ListChecks className="w-4 h-4 text-slate-500" />
