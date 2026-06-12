@@ -790,6 +790,9 @@ export type Database = {
           short_name: string | null
           slug: string
           updated_at: string
+          validated_at: string | null
+          validated_by: string | null
+          validation_status: string
         }
         Insert: {
           aliases?: string[]
@@ -818,6 +821,9 @@ export type Database = {
           short_name?: string | null
           slug: string
           updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_status?: string
         }
         Update: {
           aliases?: string[]
@@ -846,6 +852,9 @@ export type Database = {
           short_name?: string | null
           slug?: string
           updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_status?: string
         }
         Relationships: [
           {
