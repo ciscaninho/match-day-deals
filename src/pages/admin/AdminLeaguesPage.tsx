@@ -534,13 +534,9 @@ export const AdminLeaguesPage = () => {
           <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
             <Trophy className="w-6 h-6 text-amber-500" /> Football Operations
           </h1>
-          <p className="text-sm text-muted-foreground">Country → League → Verified Clubs</p>
+          <p className="text-sm text-muted-foreground">Country → League → Clubs</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5">
-            <Switch id="verifiedOnly" checked={verifiedOnly} onCheckedChange={setVerifiedOnly} />
-            <Label htmlFor="verifiedOnly" className="text-xs font-bold cursor-pointer">Verified clubs only</Label>
-          </div>
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="pl-9 w-56" />
