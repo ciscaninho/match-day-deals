@@ -774,11 +774,13 @@ export type Database = {
           country_id: string | null
           created_at: string
           crest_url: string | null
+          display_name: string | null
           founded_year: number | null
           gender: string
           hero_image_url: string | null
           home_stadium_id: string | null
           id: string
+          official_name: string | null
           official_website: string | null
           primary_league_id: string | null
           publication_status: string
@@ -799,11 +801,13 @@ export type Database = {
           country_id?: string | null
           created_at?: string
           crest_url?: string | null
+          display_name?: string | null
           founded_year?: number | null
           gender?: string
           hero_image_url?: string | null
           home_stadium_id?: string | null
           id?: string
+          official_name?: string | null
           official_website?: string | null
           primary_league_id?: string | null
           publication_status?: string
@@ -824,11 +828,13 @@ export type Database = {
           country_id?: string | null
           created_at?: string
           crest_url?: string | null
+          display_name?: string | null
           founded_year?: number | null
           gender?: string
           hero_image_url?: string | null
           home_stadium_id?: string | null
           id?: string
+          official_name?: string | null
           official_website?: string | null
           primary_league_id?: string | null
           publication_status?: string
@@ -3143,6 +3149,10 @@ export type Database = {
     Functions: {
       auto_merge_high_confidence_clubs: { Args: never; Returns: Json }
       detect_club_duplicates: { Args: never; Returns: Json }
+      fn_archive_league: {
+        Args: { p_league_id: string; p_reason?: string }
+        Returns: Json
+      }
       fn_clubs_duplicate_candidates: {
         Args: never
         Returns: {
@@ -3184,6 +3194,10 @@ export type Database = {
         }
         Returns: Json
       }
+      fn_merge_leagues: {
+        Args: { p_reason?: string; p_source_id: string; p_target_id: string }
+        Returns: Json
+      }
       fn_normalize_club_name: { Args: { p: string }; Returns: string }
       fn_resolve_club_id: {
         Args: { p_country?: string; p_team: string }
@@ -3191,6 +3205,7 @@ export type Database = {
       }
       fn_resolve_country_id: { Args: { p_name: string }; Returns: string }
       fn_season_validation_report: { Args: never; Returns: Json }
+      fn_unarchive_league: { Args: { p_league_id: string }; Returns: Json }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
