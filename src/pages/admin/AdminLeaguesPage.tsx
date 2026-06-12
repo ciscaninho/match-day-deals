@@ -661,7 +661,6 @@ export const AdminLeaguesPage = () => {
                                       </Badge>
                                     );
                                   })()}
-                                  {league.publication_status === "published" && <Badge className="text-[10px] bg-emerald-600">Live</Badge>}
                                 </button>
                                 <div className="flex items-center gap-1 shrink-0">
                                   <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={() => setExpectedFor(league)} title="Set expected club count">
@@ -678,13 +677,14 @@ export const AdminLeaguesPage = () => {
                               {lOpen && (
                                 <div className="px-3 pb-2 space-y-1">
                                   {clubs.length === 0 ? (
-                                    <p className="text-[11px] text-muted-foreground italic pl-6 py-1">No clubs in this league{verifiedOnly ? " (verified only)" : ""}.</p>
+                                    <p className="text-[11px] text-muted-foreground italic pl-6 py-1">No clubs in this league.</p>
                                   ) : clubs.map((c) => (
                                     <ClubRowItem
                                       key={c.id}
                                       club={c}
-                                      verified={verifiedSet.has(c.id)}
+                                      stadiumName={c.home_stadium_id ? stadiumNameById.get(c.home_stadium_id) : undefined}
                                       onEdit={() => setEditing(c)}
+                                      onMove={() => setMoving(c)}
                                     />
                                   ))}
                                 </div>
@@ -698,7 +698,13 @@ export const AdminLeaguesPage = () => {
                               <AlertTriangle className="w-3 h-3" /> Clubs without a league ({country.unassignedClubs.length})
                             </p>
                             {country.unassignedClubs.map((c) => (
-                              <ClubRowItem key={c.id} club={c} verified={verifiedSet.has(c.id)} onEdit={() => setEditing(c)} />
+                              <ClubRowItem
+                                key={c.id}
+                                club={c}
+                                stadiumName={c.home_stadium_id ? stadiumNameById.get(c.home_stadium_id) : undefined}
+                                onEdit={() => setEditing(c)}
+                                onMove={() => setMoving(c)}
+                              />
                             ))}
                           </div>
                         )}
