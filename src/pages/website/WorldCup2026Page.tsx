@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, MapPin, Trophy, Ticket, Compass, ShieldCheck, Calendar, Clock, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,7 +174,6 @@ function WorldCupMatchCard({
   locale: Locale;
   stadiumImage: string | null;
 }) {
-  const navigate = useNavigate();
   const ticombo: string | null = (match.ticombo_url ?? "").trim() ? match.ticombo_url : null;
   const status = statusFromRow(match.ticket_status);
   const statusLabel =
