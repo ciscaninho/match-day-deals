@@ -324,27 +324,65 @@ const WorldCup2026Page = () => {
   }, [heroSlides.length]);
   const current = heroSlides[slide];
 
-  const { confirmedMatches, knockoutMatches } = useMemo(() => {
-    const confirmed: WorldCupMatchRow[] = [];
-    const knockout: WorldCupMatchRow[] = [];
+  // Live tournament progression: pick the earliest phase that still has
+  // upcoming fixtures and surface those matches. This keeps the page useful
+  // even after the group stage has finished and knockout teams are TBD.
+  const { displayMatches, activePhase, knockoutTailMatches } = useMemo(() => {
+    const byPhase = new Map<string, WorldCupMatchRow[]>();
     for (const m of matches) {
-      const bothConfirmed = m.home_team_status === "confirmed" && m.away_team_status === "confirmed";
-      if (bothConfirmed) confirmed.push(m);
-      else if (m.phase && m.phase !== "group") {
-        // Hide knockout entries where BOTH teams are unknown.
-        if (m.home_team_status === "confirmed" || m.away_team_status === "confirmed") {
-          knockout.push(m);
-        }
-      }
+      const key = m.phase ?? "group";
+      const arr = byPhase.get(key) ?? [];
+      arr.push(m);
+      byPhase.set(key, arr);
     }
-    knockout.sort((a, b) => {
-      const pa = PHASE_ORDER[a.phase ?? ""] ?? 99;
-      const pb = PHASE_ORDER[b.phase ?? ""] ?? 99;
+    const phaseSequence = ["group", ...KNOCKOUT_PHASES];
+    const active = phaseSequence.find((p) => (byPhase.get(p)?.length ?? 0) > 0) ?? "group";
+
+    const isGroup = active === "group";
+    let display: WorldCupMatchRow[];
+    if (isGroup) {
+      // Group stage: keep the original "both teams confirmed" contract.
+      display = (byPhase.get("group") ?? []).filter(
+        (m) => m.home_team_status === "confirmed" && m.away_team_status === "confirmed",
+      );
+    } else {
+      // Knockout phase active: show fixtures at or after the active phase.
+      // TBD sides are rendered via formatTeamLabel (uses projected team).
+      display = matches.filter(
+        (m) => m.phase && m.phase !== "group" && (PHASE_ORDER[m.phase] ?? 99) >= (PHASE_ORDER[active] ?? 99),
+      );
+    }
+    display = [...display].sort((a, b) => {
+      const pa = PHASE_ORDER[a.phase ?? "group"] ?? 99;
+      const pb = PHASE_ORDER[b.phase ?? "group"] ?? 99;
       if (pa !== pb) return pa - pb;
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
-    return { confirmedMatches: confirmed, knockoutMatches: knockout };
+
+    // Legacy secondary section: only used while group stage is active, to
+    // preview knockout fixtures where at least one team is already known.
+    const knockoutTail: WorldCupMatchRow[] = isGroup
+      ? matches
+          .filter(
+            (m) =>
+              m.phase &&
+              m.phase !== "group" &&
+              (m.home_team_status === "confirmed" || m.away_team_status === "confirmed"),
+          )
+          .sort((a, b) => {
+            const pa = PHASE_ORDER[a.phase ?? ""] ?? 99;
+            const pb = PHASE_ORDER[b.phase ?? ""] ?? 99;
+            if (pa !== pb) return pa - pb;
+            return new Date(a.date).getTime() - new Date(b.date).getTime();
+          })
+      : [];
+
+    return { displayMatches: display, activePhase: active, knockoutTailMatches: knockoutTail };
   }, [matches]);
+
+  // Backwards-compatible aliases used further down the component.
+  const confirmedMatches = displayMatches;
+  const knockoutMatches = knockoutTailMatches;
 
   // Filter/sort/search state
   const [search, setSearch] = useState("");
