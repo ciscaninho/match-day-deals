@@ -661,7 +661,13 @@ const WorldCup2026Page = () => {
             </div>
 
             {filteredMatches.length === 0 ? (
-              <p className="text-white/60 font-body py-12 text-center">{confirmedMatches.length === 0 ? copy.matches_empty : copy.no_results}</p>
+              <p className="text-white/60 font-body py-12 text-center">
+                {confirmedMatches.length === 0
+                  ? (activePhase && activePhase !== "group"
+                      ? `${phaseLabel(activePhase)} — ${copy.team_tbd}`
+                      : copy.matches_empty)
+                  : copy.no_results}
+              </p>
             ) : (
               <>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
