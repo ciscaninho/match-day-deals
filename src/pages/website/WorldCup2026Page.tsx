@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, MapPin, Trophy, Ticket, Compass, ShieldCheck, Calendar, Clock, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,34 +174,60 @@ function WorldCupMatchCard({
   locale: Locale;
   stadiumImage: string | null;
 }) {
-  const navigate = useNavigate();
-  const ticombo: string | null = match.ticombo_url ?? null;
+  const ticombo: string | null = (match.ticombo_url ?? "").trim() ? match.ticombo_url : null;
   const status = statusFromRow(match.ticket_status);
   const statusLabel =
     status === "available" ? copy.status_available : status === "selling_fast" ? copy.status_selling_fast : copy.status_sold_out;
   const d = new Date(match.date);
   const dateStr = d.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
   const timeStr = d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+
+  // Label priority: confirmed real team → projected label → TBD.
+  const isSideKnown = (raw?: string | null, projected?: string | null, sideStatus?: string | null): boolean => {
+    if (sideStatus === "confirmed" && raw && raw.trim() && !/^tbd$/i.test(raw.trim())) return true;
+    if (projected && projected.trim()) return true;
+    return false;
+  };
   const home = formatTeamLabel({ raw: match.home_team, projected: match.home_team_projected, status: match.home_team_status });
   const away = formatTeamLabel({ raw: match.away_team, projected: match.away_team_projected, status: match.away_team_status });
+  const homeKnown = isSideKnown(match.home_team, match.home_team_projected, match.home_team_status);
+  const awayKnown = isSideKnown(match.away_team, match.away_team_projected, match.away_team_status);
+  const matchupPending = !homeKnown && !awayKnown;
+  const phaseLabel = (() => {
+    switch (match.phase) {
+      case "r32": return copy.phase_r32;
+      case "r16": return copy.phase_r16;
+      case "qf": return copy.phase_qf;
+      case "sf": return copy.phase_sf;
+      case "3p": return copy.phase_3p;
+      case "final": return copy.phase_final;
+      default: return null;
+    }
+  })();
+
   const isSoldOut = status === "sold_out";
+  const ticketsDisabled = isSoldOut || !ticombo;
 
   const handleClick = () => {
-    if (ticombo && !isSoldOut) {
-      const url = transformAffiliateUrl(ticombo);
-      trackAffiliateClick({
-        event: "ticket_click",
-        destination: ticombo,
-        provider: "ticombo",
-        stadiumName: match.stadium ?? null,
-        league: "FIFA World Cup 2026",
-        matchId: match.id,
-      });
-      window.open(url, "_blank", "noopener");
-    } else {
-      navigate(`/matches/${match.id}`);
-    }
+    if (!ticombo) return; // Never redirect to a generic page.
+    if (isSoldOut) return;
+    const url = transformAffiliateUrl(ticombo);
+    trackAffiliateClick({
+      event: "ticket_click",
+      destination: ticombo,
+      provider: "ticombo",
+      stadiumName: match.stadium ?? null,
+      league: "FIFA World Cup 2026",
+      matchId: match.id,
+    });
+    window.open(url, "_blank", "noopener");
   };
+
+  const buttonLabel = isSoldOut
+    ? copy.status_sold_out
+    : !ticombo
+    ? copy.tickets_coming_soon
+    : copy.view_tickets;
 
   return (
     <article className="group relative rounded-2xl border border-white/10 hover:border-[#2ECC71]/40 overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(46,204,113,0.35)] flex flex-col bg-[#0F1A2E]">
@@ -226,23 +252,38 @@ function WorldCupMatchCard({
                 {copy.filter_group} {match.group_code}
               </span>
             )}
+            {!match.group_code && phaseLabel && (
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/15 backdrop-blur-sm shrink-0">
+                {phaseLabel}
+              </span>
+            )}
           </div>
           <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border backdrop-blur-sm shrink-0 ${statusStyles[status]}`}>
             {statusLabel}
           </span>
         </div>
 
-        <div className="px-4 pb-3 flex items-center justify-between gap-2">
-          <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
-            <CircleFlag label={home} size={52} />
-            <p className="font-display text-sm sm:text-base text-white leading-tight line-clamp-2">{home}</p>
+        {matchupPending ? (
+          <div className="px-4 pb-3 py-4 flex flex-col items-center text-center gap-1.5">
+            <Trophy className="w-8 h-8 text-white/40" />
+            <p className="font-display text-base sm:text-lg text-white leading-tight">
+              {phaseLabel ?? copy.team_tbd}
+            </p>
+            <p className="text-xs text-white/60">{copy.matchup_pending}</p>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 shrink-0">vs</span>
-          <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
-            <CircleFlag label={away} size={52} />
-            <p className="font-display text-sm sm:text-base text-white leading-tight line-clamp-2">{away}</p>
+        ) : (
+          <div className="px-4 pb-3 flex items-center justify-between gap-2">
+            <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
+              <CircleFlag label={home} size={52} />
+              <p className="font-display text-sm sm:text-base text-white leading-tight line-clamp-2">{home}</p>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 shrink-0">vs</span>
+            <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
+              <CircleFlag label={away} size={52} />
+              <p className="font-display text-sm sm:text-base text-white leading-tight line-clamp-2">{away}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="px-4 pb-3 space-y-1 text-xs text-white/75">
           <div className="flex items-center gap-1.5">
@@ -263,29 +304,30 @@ function WorldCupMatchCard({
         </div>
 
         <div className="mt-auto px-4 pb-4">
-          {match.starting_price != null && (
+          {match.starting_price != null && ticombo && (
             <p className="mb-2 text-sm font-semibold text-[#2ECC71]">
               {(copy.tickets_from ?? "Tickets from")} €{match.starting_price}
             </p>
           )}
           <button
             onClick={handleClick}
-            disabled={isSoldOut}
+            disabled={ticketsDisabled}
             className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${
-              isSoldOut
+              ticketsDisabled
                 ? "bg-white/10 text-white/50 cursor-not-allowed"
                 : "bg-[#2ECC71] hover:bg-[#27ae60] text-[#0F1A2E] shadow-[0_10px_24px_-10px_rgba(46,204,113,0.7)] hover:-translate-y-0.5 active:translate-y-0"
             }`}
           >
             <Ticket className="w-4 h-4" />
-            {isSoldOut ? copy.status_sold_out : copy.view_tickets}
-            {!isSoldOut && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />}
+            {buttonLabel}
+            {!ticketsDisabled && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />}
           </button>
         </div>
       </div>
     </article>
   );
 }
+
 
 const WorldCup2026Page = () => {
   const { locale, dir } = useLanguage();
