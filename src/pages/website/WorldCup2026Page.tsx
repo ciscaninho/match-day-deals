@@ -70,7 +70,8 @@ function useWorldCupMatches() {
   });
 }
 
-const PHASE_ORDER: Record<string, number> = { r32: 1, r16: 2, qf: 3, sf: 4, "3p": 5, final: 6 };
+const PHASE_ORDER: Record<string, number> = { group: 0, r32: 1, r16: 2, qf: 3, sf: 4, "3p": 5, final: 6 };
+const KNOCKOUT_PHASES = ["r32", "r16", "qf", "sf", "3p", "final"] as const;
 
 type StatusKey = "available" | "selling_fast" | "sold_out";
 const statusFromRow = (s: string | null | undefined): StatusKey => {
