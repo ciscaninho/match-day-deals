@@ -70,6 +70,87 @@ function useWorldCupMatches() {
   });
 }
 
+// Provider-agnostic ticket enrichment sourced from wc_ticket_coverage.
+// Any provider (ticombo, stubhub, viagogo, ticketmaster…) whose row is linked
+// to a match_id becomes eligible; we pick the best row per match by lowest price
+// then by kind priority (official > hospitality > resale > affiliate).
+export type CoverageEnrichment = {
+  provider: string;
+  url: string;
+  home_label: string | null;
+  away_label: string | null;
+  starting_price: number | null;
+  currency: string;
+  image_url: string | null;
+  is_available: boolean;
+};
+
+const COVERAGE_KIND_RANK: Record<string, number> = { official: 0, hospitality: 1, resale: 2, affiliate: 3 };
+
+function useWorldCupCoverageByMatch() {
+  return useQuery<Record<string, CoverageEnrichment>>({
+    queryKey: ["wc2026-coverage-by-match"],
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("wc_ticket_coverage")
+        .select("provider,url,ticket_url,home_label,away_label,starting_price,currency,image_url,is_available,kind,match_id,archived_at,status")
+        .eq("status", "active")
+        .is("archived_at", null)
+        .not("match_id", "is", null);
+      const rows = (data as Array<Record<string, unknown>> | null) ?? [];
+      const byMatch = new Map<string, Array<Record<string, unknown>>>();
+      for (const r of rows) {
+        const id = r.match_id as string;
+        const arr = byMatch.get(id) ?? [];
+        arr.push(r);
+        byMatch.set(id, arr);
+      }
+      const result: Record<string, CoverageEnrichment> = {};
+      for (const [id, arr] of byMatch.entries()) {
+        const sorted = arr.slice().sort((a, b) => {
+          const ka = COVERAGE_KIND_RANK[(a.kind as string) ?? ""] ?? 9;
+          const kb = COVERAGE_KIND_RANK[(b.kind as string) ?? ""] ?? 9;
+          if (ka !== kb) return ka - kb;
+          const pa = (a.starting_price as number | null) ?? Number.POSITIVE_INFINITY;
+          const pb = (b.starting_price as number | null) ?? Number.POSITIVE_INFINITY;
+          return pa - pb;
+        });
+        const best = sorted[0];
+        result[id] = {
+          provider: (best.provider as string) ?? "",
+          url: ((best.ticket_url as string) ?? (best.url as string) ?? "").trim(),
+          home_label: (best.home_label as string | null) ?? null,
+          away_label: (best.away_label as string | null) ?? null,
+          starting_price: (best.starting_price as number | null) ?? null,
+          currency: ((best.currency as string) ?? "EUR").toUpperCase(),
+          image_url: (best.image_url as string | null) ?? null,
+          is_available: (best.is_available as boolean | null) !== false,
+        };
+      }
+      return result;
+    },
+  });
+}
+
+const providerDisplayName = (p: string): string => {
+  const k = p.trim().toLowerCase();
+  if (k === "ticombo") return "Ticombo";
+  if (k === "stubhub") return "StubHub";
+  if (k === "viagogo") return "viagogo";
+  if (k === "ticketmaster") return "Ticketmaster";
+  return p ? p.charAt(0).toUpperCase() + p.slice(1) : "Marketplace";
+};
+
+const currencySymbol = (ccy: string): string => {
+  switch (ccy.toUpperCase()) {
+    case "EUR": return "€";
+    case "USD": return "$";
+    case "GBP": return "£";
+    default: return "";
+  }
+};
+
 const PHASE_ORDER: Record<string, number> = { group: 0, r32: 1, r16: 2, qf: 3, sf: 4, "3p": 5, final: 6 };
 const KNOCKOUT_PHASES = ["r32", "r16", "qf", "sf", "3p", "final"] as const;
 
@@ -168,13 +249,50 @@ function WorldCupMatchCard({
   copy,
   locale,
   stadiumImage,
+  coverage,
 }: {
   match: WorldCupMatchRow;
   copy: WorldCup2026Copy;
   locale: Locale;
   stadiumImage: string | null;
+  coverage: CoverageEnrichment | null;
 }) {
-  const ticombo: string | null = (match.ticombo_url ?? "").trim() ? match.ticombo_url : null;
+  // FIFA-confirmed side check (never overwritten by provider data).
+  const homeFifaConfirmed = match.home_team_status === "confirmed"
+    && !!match.home_team && !/^tbd$/i.test(match.home_team.trim());
+  const awayFifaConfirmed = match.away_team_status === "confirmed"
+    && !!match.away_team && !/^tbd$/i.test(match.away_team.trim());
+
+  // Provider label sanitizer — never accept placeholders as a team name.
+  const looksLikeTeam = (s?: string | null): s is string => {
+    if (!s) return false;
+    const t = s.trim();
+    if (!t) return false;
+    if (/^tbd$/i.test(t)) return false;
+    if (/^(winner|loser|runner|group)\b/i.test(t)) return false;
+    if (/^\d+[A-H]$/i.test(t)) return false; // FIFA slot code like "1A"
+    return true;
+  };
+
+  // Rendering priority per side: FIFA confirmed → coverage enrichment → FIFA projected slot → TBD.
+  const home = homeFifaConfirmed
+    ? formatTeamLabel({ raw: match.home_team, projected: match.home_team_projected, status: match.home_team_status })
+    : looksLikeTeam(coverage?.home_label)
+      ? (coverage!.home_label as string)
+      : formatTeamLabel({ raw: match.home_team, projected: match.home_team_projected, status: match.home_team_status });
+  const away = awayFifaConfirmed
+    ? formatTeamLabel({ raw: match.away_team, projected: match.away_team_projected, status: match.away_team_status })
+    : looksLikeTeam(coverage?.away_label)
+      ? (coverage!.away_label as string)
+      : formatTeamLabel({ raw: match.away_team, projected: match.away_team_projected, status: match.away_team_status });
+
+  const homeRealTeam = homeFifaConfirmed || looksLikeTeam(coverage?.home_label);
+  const awayRealTeam = awayFifaConfirmed || looksLikeTeam(coverage?.away_label);
+  const enrichedFromProvider = !homeFifaConfirmed || !awayFifaConfirmed
+    ? (looksLikeTeam(coverage?.home_label) || looksLikeTeam(coverage?.away_label))
+    : false;
+  const matchupPending = !homeRealTeam && !awayRealTeam;
+
   const status = statusFromRow(match.ticket_status);
   const statusLabel =
     status === "available" ? copy.status_available : status === "selling_fast" ? copy.status_selling_fast : copy.status_sold_out;
@@ -182,17 +300,6 @@ function WorldCupMatchCard({
   const dateStr = d.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
   const timeStr = d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 
-  // Label priority: confirmed real team → projected label → TBD.
-  const isSideKnown = (raw?: string | null, projected?: string | null, sideStatus?: string | null): boolean => {
-    if (sideStatus === "confirmed" && raw && raw.trim() && !/^tbd$/i.test(raw.trim())) return true;
-    if (projected && projected.trim()) return true;
-    return false;
-  };
-  const home = formatTeamLabel({ raw: match.home_team, projected: match.home_team_projected, status: match.home_team_status });
-  const away = formatTeamLabel({ raw: match.away_team, projected: match.away_team_projected, status: match.away_team_status });
-  const homeKnown = isSideKnown(match.home_team, match.home_team_projected, match.home_team_status);
-  const awayKnown = isSideKnown(match.away_team, match.away_team_projected, match.away_team_status);
-  const matchupPending = !homeKnown && !awayKnown;
   const phaseLabel = (() => {
     switch (match.phase) {
       case "r32": return copy.phase_r32;
@@ -205,17 +312,29 @@ function WorldCupMatchCard({
     }
   })();
 
-  const isSoldOut = status === "sold_out";
-  const ticketsDisabled = isSoldOut || !ticombo;
+  // Ticket URL priority: coverage (provider-agnostic) → FIFA-side ticombo_url.
+  const providerUrl = (coverage?.url ?? "").trim() || null;
+  const fallbackUrl = (match.ticombo_url ?? "").trim() || null;
+  const ticketUrl = providerUrl ?? fallbackUrl;
+  const providerName = coverage?.provider ?? (fallbackUrl ? "ticombo" : "");
+  const providerLabel = providerDisplayName(providerName);
+
+  // Price priority: coverage → FIFA row cache.
+  const priceValue = coverage?.starting_price ?? match.starting_price ?? null;
+  const priceCurrency = coverage?.currency ?? "EUR";
+  const priceSymbol = currencySymbol(priceCurrency);
+
+  const isSoldOut = status === "sold_out" || coverage?.is_available === false;
+  const ticketsDisabled = isSoldOut || !ticketUrl;
 
   const handleClick = () => {
-    if (!ticombo) return; // Never redirect to a generic page.
+    if (!ticketUrl) return;
     if (isSoldOut) return;
-    const url = transformAffiliateUrl(ticombo);
+    const url = transformAffiliateUrl(ticketUrl);
     trackAffiliateClick({
       event: "ticket_click",
-      destination: ticombo,
-      provider: "ticombo",
+      destination: ticketUrl,
+      provider: providerName || "ticombo",
       stadiumName: match.stadium ?? null,
       league: "FIFA World Cup 2026",
       matchId: match.id,
@@ -225,9 +344,9 @@ function WorldCupMatchCard({
 
   const buttonLabel = isSoldOut
     ? copy.status_sold_out
-    : !ticombo
-    ? copy.tickets_coming_soon
-    : copy.view_tickets;
+    : !ticketUrl
+      ? copy.tickets_coming_soon
+      : (providerLabel ? `${copy.view_tickets} · ${providerLabel}` : copy.view_tickets);
 
   return (
     <article className="group relative rounded-2xl border border-white/10 hover:border-[#2ECC71]/40 overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(46,204,113,0.35)] flex flex-col bg-[#0F1A2E]">
@@ -272,15 +391,22 @@ function WorldCupMatchCard({
             <p className="text-xs text-white/60">{copy.matchup_pending}</p>
           </div>
         ) : (
-          <div className="px-4 pb-3 flex items-center justify-between gap-2">
-            <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
-              <CircleFlag label={home} size={52} />
-              <p className="font-display text-sm sm:text-base text-white leading-tight line-clamp-2">{home}</p>
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 shrink-0">vs</span>
-            <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
-              <CircleFlag label={away} size={52} />
-              <p className="font-display text-sm sm:text-base text-white leading-tight line-clamp-2">{away}</p>
+          <div className="px-4 pb-3 flex flex-col gap-2">
+            {enrichedFromProvider && (
+              <span className="self-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-300 border border-emerald-400/30">
+                {copy.expected_matchup}
+              </span>
+            )}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
+                <CircleFlag label={home} size={52} />
+                <p className="font-display text-sm sm:text-base text-white leading-tight line-clamp-2">{home}</p>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 shrink-0">vs</span>
+              <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
+                <CircleFlag label={away} size={52} />
+                <p className="font-display text-sm sm:text-base text-white leading-tight line-clamp-2">{away}</p>
+              </div>
             </div>
           </div>
         )}
@@ -304,9 +430,9 @@ function WorldCupMatchCard({
         </div>
 
         <div className="mt-auto px-4 pb-4">
-          {match.starting_price != null && ticombo && (
+          {priceValue != null && ticketUrl && (
             <p className="mb-2 text-sm font-semibold text-[#2ECC71]">
-              {(copy.tickets_from ?? "Tickets from")} €{match.starting_price}
+              {(copy.tickets_from ?? "Tickets from")} {priceSymbol}{priceValue}
             </p>
           )}
           <button
@@ -334,6 +460,7 @@ const WorldCup2026Page = () => {
   const copy = getWorldCup2026Copy(locale);
   const { data: hosts = [] } = useWorldCupHosts();
   const { data: matches = [] } = useWorldCupMatches();
+  const { data: coverageByMatch = {} } = useWorldCupCoverageByMatch();
 
   useSEO({ title: copy.meta_title, description: copy.meta_description });
 
@@ -714,7 +841,7 @@ const WorldCup2026Page = () => {
               <>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                   {filteredMatches.slice(0, visibleCount).map((m) => (
-                    <WorldCupMatchCard key={m.id} match={m} copy={copy} locale={locale} stadiumImage={imageForStadium(m.stadium)} />
+                    <WorldCupMatchCard key={m.id} match={m} copy={copy} locale={locale} stadiumImage={imageForStadium(m.stadium)} coverage={coverageByMatch[m.id] ?? null} />
                   ))}
                 </div>
                 {visibleCount < filteredMatches.length && (
