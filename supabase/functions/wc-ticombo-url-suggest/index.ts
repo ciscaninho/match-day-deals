@@ -110,15 +110,22 @@ function dateFromSlug(url: string): string | null {
 // the two slot codes (which is common for TBD knockout pages), we still want
 // to be able to match against a DB fixture whose home_team/away_team are the
 // same slot codes ("1A", "W79", ...).
-function slotsFromSlug(url: string): { home: string; away: string; phase: string } | null {
+function slotsFromSlug(url: string): { home: string; away: string; phase: string; matchNumber: number | null } | null {
   try {
     const path = new URL(url).pathname.toLowerCase();
     // `match-<n>-<phase>-<slotA>-vs-<slotB>-football-world-cup-...`
-    const m = path.match(/\/match-\d+-(r32|r16|qf|sf|3p|final)-([a-z0-9]+)-vs-([a-z0-9]+)-/i);
+    const m = path.match(/\/match-(\d+)-(r32|r16|qf|sf|3p|final)-([a-z0-9]+)-vs-([a-z0-9]+)-/i);
     if (!m) return null;
-    return { phase: m[1].toLowerCase(), home: m[2].toUpperCase(), away: m[3].toUpperCase() };
+    return { matchNumber: Number(m[1]), phase: m[2].toLowerCase(), home: m[3].toUpperCase(), away: m[4].toUpperCase() };
   } catch { return null; }
 }
+
+// FIFA 2026 WC (48-team) knockout numbering. Match numbers within each phase
+// increase in chronological kickoff order, so `matchNumber - phaseStart` yields
+// the phase-relative index we can use to line Ticombo URLs up with the DB
+// knockout fixtures sorted by date.
+const PHASE_START: Record<string, number> = { r32: 73, r16: 89, qf: 97, sf: 101, "3p": 103, final: 104 };
+
 
 
 async function firecrawlMap(rootUrl: string, search: string | null, apiKey: string) {
