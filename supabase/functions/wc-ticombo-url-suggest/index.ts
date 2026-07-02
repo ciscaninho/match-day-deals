@@ -348,8 +348,15 @@ Deno.serve(async (req) => {
       // Find best fixture by date + team mentions
       let best: { fx: Fixture; bothHit: boolean; oneHit: boolean } | null = null;
       for (const fx of fxRows) {
-        if (fx.home_team_status !== "confirmed" || fx.away_team_status !== "confirmed") continue;
+        // Accept confirmed teams OR projected knockout slot codes (e.g. "1A", "W-M79").
+        // The DB stores slot codes as home_team/away_team for projected fixtures;
+        // Ticombo slugs/titles embed the same codes, so titleMentionsTeam still works.
+        const isConfirmed = fx.home_team_status === "confirmed" && fx.away_team_status === "confirmed";
+        const isProjected = fx.home_team_status === "projected" || fx.away_team_status === "projected";
+        if (!isConfirmed && !isProjected) continue;
+        if (knockoutOnly && (!fx.phase || fx.phase === "group")) continue;
         const fxUtcMs = new Date(fx.date).getTime();
+
         // Timezone-tolerant date check: Ticombo slug dates are local (often UTC-4..-8 for NA host cities).
         // Accept any candidate whose slug date is within ±1 day of the DB UTC kickoff date.
         if (ev.date_from_slug) {
