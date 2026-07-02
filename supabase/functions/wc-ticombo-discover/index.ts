@@ -71,8 +71,9 @@ const SINGLE_FIXTURE_PATH_RE = /\/football-tickets\/match-/i;
 
 // Hard blacklist of slug fragments that indicate non-single-fixture products.
 const BLACKLIST_FRAGMENTS = [
-  "all-",
+  "-all-", // e.g. "follow-usa-all-3-group-matches"  (avoid catching "football-" via "ball-")
   "matches-world-cup",
+
   "stadium-", // e.g. "los-angeles-stadium-8-matches"
   "-stadium-tickets",
   "package",
