@@ -360,20 +360,32 @@ Deno.serve(async (req) => {
     for (const ev of scrapes) {
       const slugSlots = slotsFromSlug(ev.url);
 
-      // For knockout URLs whose slug carries slot codes (e.g. `match-79-r32-1a-vs-3cefhi`),
-      // match directly against the DB fixture whose home_team/away_team equal those
-      // slot codes. Titles for TBD knockouts often omit team names, so this is the
-      // primary matching path for knockouts.
-      if (slugSlots) {
-        const home = slugSlots.home.toUpperCase();
-        const away = slugSlots.away.toUpperCase();
-        const slotFx = fxRows.find((fx) => {
-          if (knockoutOnly && (!fx.phase || fx.phase === "group")) return false;
-          const fh = (fx.home_team ?? "").toUpperCase();
-          const fa = (fx.away_team ?? "").toUpperCase();
-          return fh === home && fa === away;
+      // Knockout fallback: Ticombo publishes knockout pages with FIFA slot codes
+      // in the slug (`match-79-r32-1a-vs-3cefhi-...`). The DB stores slightly
+      // different labels ("1A"/"2B" for R32, "Winner R32-1" for R16+), so we
+      // can't do string equality. Instead we match by (phase, kickoff date)
+      // — safe when there's exactly one DB fixture in that bucket.
+      if (slugSlots && ev.date_from_slug) {
+        // Phase mapping between Ticombo slug tokens and DB phase values.
+        const phaseAliases: Record<string, string[]> = {
+          r32: ["r32"],
+          r16: ["r16"],
+          qf: ["qf", "quarter-final", "quarter_final"],
+          sf: ["sf", "semi-final", "semi_final"],
+          "3p": ["3p", "third-place", "third_place"],
+          final: ["final"],
+        };
+        const wantedPhases = phaseAliases[slugSlots.phase] ?? [slugSlots.phase];
+        const slugMs = new Date(`${ev.date_from_slug}T12:00:00Z`).getTime();
+        const bucket = fxRows.filter((fx) => {
+          if (!fx.phase || fx.phase === "group") return false;
+          if (!wantedPhases.includes(fx.phase.toLowerCase())) return false;
+          const fxMs = new Date(fx.date).getTime();
+          const diffDays = Math.abs(slugMs - fxMs) / 86_400_000;
+          return diffDays <= 1.5;
         });
-        if (slotFx) {
+        if (bucket.length === 1) {
+          const slotFx = bucket[0];
           bothTeamsVerified++;
           const proposal: Proposal = {
             match_id: slotFx.id,
@@ -386,15 +398,19 @@ Deno.serve(async (req) => {
             suggested_url: ev.url,
             provider_event_id: ev.uuid,
             ticombo_title: ev.title ?? "",
-            ticombo_home_label: home,
-            ticombo_away_label: away,
+            ticombo_home_label: slugSlots.home,
+            ticombo_away_label: slugSlots.away,
             ticombo_date: ev.date_from_slug,
             confidence: "high",
             score: 1000,
-            reasons: ["slug_slot_code_match", `phase=${slugSlots.phase}`],
+            reasons: ["slug_phase_date_unique", `phase=${slugSlots.phase}`],
             event_date: ev.date_from_slug,
           };
           if (!proposalsByMatch.has(proposal.match_id)) proposalsByMatch.set(proposal.match_id, proposal);
+          continue;
+        }
+        if (bucket.length > 1) {
+          rejected.push({ url: ev.url, title: ev.title, reason: `slug_phase_date_ambiguous_${bucket.length}` });
           continue;
         }
       }
@@ -403,7 +419,6 @@ Deno.serve(async (req) => {
       if (!ev.home_label || !ev.away_label) { titleParseFailed++; rejected.push({ url: ev.url, title: ev.title, reason: "title_parse_failed" }); continue; }
 
       const normTitle = normalize(ev.title);
-      // Find best fixture by date + team mentions
       let best: { fx: Fixture; bothHit: boolean; oneHit: boolean } | null = null;
       for (const fx of fxRows) {
         const isConfirmed = fx.home_team_status === "confirmed" && fx.away_team_status === "confirmed";
@@ -431,6 +446,7 @@ Deno.serve(async (req) => {
 
       if (best.bothHit) bothTeamsVerified++;
       else { oneTeamVerified++; rejected.push({ url: ev.url, title: ev.title, reason: "only_one_team_matched" }); continue; }
+
 
 
       const confidence: "high" | "medium" | "low" = "high";
