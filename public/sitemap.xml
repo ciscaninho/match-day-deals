@@ -91,614 +91,134 @@
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gb-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gd-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gb-md1-3v4</loc>
-    <lastmod>2026-06-09</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gc-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gc-md1-3v4</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gd-md1-3v4</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ge-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gf-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ge-md1-3v4</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gf-md1-3v4</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gh-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gg-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gh-md1-3v4</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gg-md1-3v4</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gi-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gi-md1-3v4</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gj-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gj-md1-3v4</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gk-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gl-md1-1v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gl-md1-3v4</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gk-md1-3v4</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ga-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gb-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gb-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ga-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gd-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gc-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gc-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gd-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gf-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ge-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ge-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gf-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gh-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gg-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gh-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gg-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gj-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gi-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gi-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gj-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gk-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gl-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gl-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gk-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gb-md2-4v2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gb-md2-1v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gc-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gc-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ga-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ga-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ge-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-ge-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gf-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gf-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gd-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gd-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gi-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gi-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gh-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gh-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gg-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gg-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gl-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gl-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gk-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gk-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gj-md3-4v1</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-gj-md3-2v3</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-r32-01-att</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-r32-02-mercedes</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-r32-13-akron</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-r32-07-lumen</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-r32-08-gillette</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-r32-14-bbva</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-r32-09-metlife</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-r32-03-sofi</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-r32-10-hardrock</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://footticketfinder.com/matches/wc_wc2026-r32-15-bcplace</loc>
-    <lastmod>2026-06-09</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r32-04-nrg</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r32-16-bmo</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r32-05-arrowhead</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r32-12-azteca</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r32-11-lincoln</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r32-06-levis</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r16-01-bcplace</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r16-05-arrowhead</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r16-02-mercedes</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r16-06-gillette</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r16-03-sofi</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r16-07-levis</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r16-04-metlife</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-r16-08-hardrock</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-qf-01-mercedes</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-qf-02-sofi</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-qf-03-metlife</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-qf-04-gillette</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-sf-01-att</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-sf-02-mercedes</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-3p-hardrock</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/matches/wc_wc2026-final-metlife</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
@@ -800,49 +320,49 @@
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/how-to-buy-tickets-safely</loc>
-    <lastmod>2026-06-12</lastmod>
+    <lastmod>2026-07-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/matchday-travel-checklist</loc>
-    <lastmod>2026-06-12</lastmod>
+    <lastmod>2026-07-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/league-coverage</loc>
-    <lastmod>2026-06-12</lastmod>
+    <lastmod>2026-07-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/stadium-experience</loc>
-    <lastmod>2026-06-12</lastmod>
+    <lastmod>2026-07-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/comment-acheter-billets-football-en-securite</loc>
-    <lastmod>2026-06-12</lastmod>
+    <lastmod>2026-07-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/checklist-matchday-voyage</loc>
-    <lastmod>2026-06-12</lastmod>
+    <lastmod>2026-07-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/guides-championnats</loc>
-    <lastmod>2026-06-12</lastmod>
+    <lastmod>2026-07-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://footticketfinder.com/guides/guides-experience-stade</loc>
-    <lastmod>2026-06-12</lastmod>
+    <lastmod>2026-07-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
