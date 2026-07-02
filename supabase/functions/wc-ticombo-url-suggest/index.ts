@@ -414,19 +414,24 @@ Deno.serve(async (req) => {
     if (apply) {
       // Safety guard: refuse to apply (and never clear) when discovery looks broken.
       // This prevents wiping good URLs when Ticombo rate-limits every map call.
-      const currentlySet = fxRows.filter((f) => f.ticombo_url).length;
+      // When knockoutOnly is true, only consider knockout fixtures for the guard
+      // AND for the stale-clear (never touch group-stage URLs already set).
+      const scopedFx = knockoutOnly
+        ? fxRows.filter((f) => f.phase && f.phase !== "group")
+        : fxRows;
+      const currentlySet = scopedFx.filter((f) => f.ticombo_url).length;
       if (uniqueUrls.length === 0) {
         applyAborted = "discovery_empty";
       } else if (proposals.length === 0) {
         applyAborted = "no_proposals";
-      } else if (currentlySet > 0 && proposals.length < Math.ceil(currentlySet * 0.5)) {
+      } else if (!knockoutOnly && currentlySet > 0 && proposals.length < Math.ceil(currentlySet * 0.5)) {
         applyAborted = `degraded_discovery (proposals=${proposals.length} < 50% of currently_set=${currentlySet})`;
       }
 
       if (!applyAborted) {
         const verifiedIds = new Set(proposals.map((p) => p.match_id));
-        // Clear ticombo_url on any WC fixture not in the verified set (kills wrong mappings)
-        const staleIds = fxRows.filter((f) => f.ticombo_url && !verifiedIds.has(f.id)).map((f) => f.id);
+        // Clear ticombo_url on any (scoped) fixture not in the verified set.
+        const staleIds = scopedFx.filter((f) => f.ticombo_url && !verifiedIds.has(f.id)).map((f) => f.id);
         if (staleIds.length > 0) {
           const { error: clearErr } = await supabase
             .from("matches")
@@ -434,6 +439,7 @@ Deno.serve(async (req) => {
             .in("id", staleIds);
           if (!clearErr) clearedCount = staleIds.length;
         }
+
         for (const p of proposals) {
           if (p.current_url === p.suggested_url) continue;
           const { error } = await supabase
