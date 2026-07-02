@@ -104,6 +104,23 @@ function dateFromSlug(url: string): string | null {
   return `20${m[1]}-${m[2]}-${m[3]}`;
 }
 
+// Extract Ticombo knockout slot codes from the URL slug itself. Ticombo publishes
+// knockout pages under slugs like `match-79-r32-1a-vs-3cefhi-...` or
+// `match-92-r16-w79-vs-w80-...`. When the scraped <title> doesn't spell out
+// the two slot codes (which is common for TBD knockout pages), we still want
+// to be able to match against a DB fixture whose home_team/away_team are the
+// same slot codes ("1A", "W79", ...).
+function slotsFromSlug(url: string): { home: string; away: string; phase: string } | null {
+  try {
+    const path = new URL(url).pathname.toLowerCase();
+    // `match-<n>-<phase>-<slotA>-vs-<slotB>-football-world-cup-...`
+    const m = path.match(/\/match-\d+-(r32|r16|qf|sf|3p|final)-([a-z0-9]+)-vs-([a-z0-9]+)-/i);
+    if (!m) return null;
+    return { phase: m[1].toLowerCase(), home: m[2].toUpperCase(), away: m[3].toUpperCase() };
+  } catch { return null; }
+}
+
+
 async function firecrawlMap(rootUrl: string, search: string | null, apiKey: string) {
   try {
     const body: Record<string, unknown> = { url: rootUrl, limit: 5000, includeSubdomains: false };
