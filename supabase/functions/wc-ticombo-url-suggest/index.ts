@@ -104,6 +104,30 @@ function dateFromSlug(url: string): string | null {
   return `20${m[1]}-${m[2]}-${m[3]}`;
 }
 
+// Extract Ticombo knockout slot codes from the URL slug itself. Ticombo publishes
+// knockout pages under slugs like `match-79-r32-1a-vs-3cefhi-...` or
+// `match-92-r16-w79-vs-w80-...`. When the scraped <title> doesn't spell out
+// the two slot codes (which is common for TBD knockout pages), we still want
+// to be able to match against a DB fixture whose home_team/away_team are the
+// same slot codes ("1A", "W79", ...).
+function slotsFromSlug(url: string): { home: string; away: string; phase: string; matchNumber: number | null } | null {
+  try {
+    const path = new URL(url).pathname.toLowerCase();
+    // `match-<n>-<phase>-<slotA>-vs-<slotB>-football-world-cup-...`
+    const m = path.match(/\/match-(\d+)-(r32|r16|qf|sf|3p|final)-([a-z0-9]+)-vs-([a-z0-9]+)-/i);
+    if (!m) return null;
+    return { matchNumber: Number(m[1]), phase: m[2].toLowerCase(), home: m[3].toUpperCase(), away: m[4].toUpperCase() };
+  } catch { return null; }
+}
+
+// FIFA 2026 WC (48-team) knockout numbering. Match numbers within each phase
+// increase in chronological kickoff order, so `matchNumber - phaseStart` yields
+// the phase-relative index we can use to line Ticombo URLs up with the DB
+// knockout fixtures sorted by date.
+const PHASE_START: Record<string, number> = { r32: 73, r16: 89, qf: 97, sf: 101, "3p": 103, final: 104 };
+
+
+
 async function firecrawlMap(rootUrl: string, search: string | null, apiKey: string) {
   try {
     const body: Record<string, unknown> = { url: rootUrl, limit: 5000, includeSubdomains: false };
@@ -244,6 +268,8 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const apply = !!body?.apply;
     const audit = !!body?.audit;
+    const knockoutOnly = !!body?.knockout_only;
+
 
     // ---- 1. Fetch fixtures FIRST (needed for date pre-filter) ----
     const { data: fixtures, error: fxErr } = await supabase
@@ -339,17 +365,108 @@ Deno.serve(async (req) => {
     let scrapeFailed = 0;
 
     for (const ev of scrapes) {
+      const slugSlots = slotsFromSlug(ev.url);
+
+      // Knockout fallback: Ticombo publishes knockout pages with FIFA slot codes
+      // in the slug (`match-79-r32-1a-vs-3cefhi-...`). The DB stores slightly
+      // different labels ("1A"/"2B" for R32, "Winner R32-1" for R16+), so we
+      // can't do string equality. Instead we match by (phase, kickoff date)
+      // — safe when there's exactly one DB fixture in that bucket.
+      if (slugSlots && ev.date_from_slug) {
+        // Phase mapping between Ticombo slug tokens and DB phase values.
+        const phaseAliases: Record<string, string[]> = {
+          r32: ["r32"],
+          r16: ["r16"],
+          qf: ["qf", "quarter-final", "quarter_final"],
+          sf: ["sf", "semi-final", "semi_final"],
+          "3p": ["3p", "third-place", "third_place"],
+          final: ["final"],
+        };
+        const wantedPhases = phaseAliases[slugSlots.phase] ?? [slugSlots.phase];
+        const slugMs = new Date(`${ev.date_from_slug}T12:00:00Z`).getTime();
+        const bucket = fxRows.filter((fx) => {
+          if (!fx.phase || fx.phase === "group") return false;
+          if (!wantedPhases.includes(fx.phase.toLowerCase())) return false;
+          const fxMs = new Date(fx.date).getTime();
+          const diffDays = Math.abs(slugMs - fxMs) / 86_400_000;
+          return diffDays <= 1.5;
+        });
+        if (bucket.length === 1) {
+          const slotFx = bucket[0];
+          bothTeamsVerified++;
+          const proposal: Proposal = {
+            match_id: slotFx.id,
+            home_team: slotFx.home_team,
+            away_team: slotFx.away_team,
+            kickoff: slotFx.date,
+            stadium: slotFx.stadium,
+            city: slotFx.city,
+            current_url: slotFx.ticombo_url,
+            suggested_url: ev.url,
+            provider_event_id: ev.uuid,
+            ticombo_title: ev.title ?? "",
+            ticombo_home_label: slugSlots.home,
+            ticombo_away_label: slugSlots.away,
+            ticombo_date: ev.date_from_slug,
+            confidence: "high",
+            score: 1000,
+            reasons: ["slug_phase_date_unique", `phase=${slugSlots.phase}`],
+            event_date: ev.date_from_slug,
+          };
+          if (!proposalsByMatch.has(proposal.match_id)) proposalsByMatch.set(proposal.match_id, proposal);
+          continue;
+        }
+        if (bucket.length > 1) {
+          // Ambiguous by date alone — use FIFA match numbering. Sort the phase's
+          // DB fixtures chronologically and pick the one at index (N - phaseStart).
+          const phaseStart = PHASE_START[slugSlots.phase];
+          if (phaseStart && slugSlots.matchNumber) {
+            const idx = slugSlots.matchNumber - phaseStart;
+            const phaseFx = fxRows
+              .filter((fx) => fx.phase && wantedPhases.includes(fx.phase.toLowerCase()))
+              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            const target = phaseFx[idx];
+            if (target && !proposalsByMatch.has(target.id)) {
+              bothTeamsVerified++;
+              proposalsByMatch.set(target.id, {
+                match_id: target.id,
+                home_team: target.home_team,
+                away_team: target.away_team,
+                kickoff: target.date,
+                stadium: target.stadium,
+                city: target.city,
+                current_url: target.ticombo_url,
+                suggested_url: ev.url,
+                provider_event_id: ev.uuid,
+                ticombo_title: ev.title ?? "",
+                ticombo_home_label: slugSlots.home,
+                ticombo_away_label: slugSlots.away,
+                ticombo_date: ev.date_from_slug,
+                confidence: "high",
+                score: 1000,
+                reasons: ["fifa_match_number_index", `M${slugSlots.matchNumber}`, `phase=${slugSlots.phase}`],
+                event_date: ev.date_from_slug,
+              });
+              continue;
+            }
+          }
+          rejected.push({ url: ev.url, title: ev.title, reason: `slug_phase_date_ambiguous_${bucket.length}` });
+          continue;
+        }
+      }
+
+
       if (!ev.scrape_ok || !ev.title) { scrapeFailed++; rejected.push({ url: ev.url, title: ev.title, reason: ev.err ?? "scrape_failed" }); continue; }
       if (!ev.home_label || !ev.away_label) { titleParseFailed++; rejected.push({ url: ev.url, title: ev.title, reason: "title_parse_failed" }); continue; }
 
       const normTitle = normalize(ev.title);
-      // Find best fixture by date + team mentions
       let best: { fx: Fixture; bothHit: boolean; oneHit: boolean } | null = null;
       for (const fx of fxRows) {
-        if (fx.home_team_status !== "confirmed" || fx.away_team_status !== "confirmed") continue;
+        const isConfirmed = fx.home_team_status === "confirmed" && fx.away_team_status === "confirmed";
+        const isProjected = fx.home_team_status === "projected" || fx.away_team_status === "projected";
+        if (!isConfirmed && !isProjected) continue;
+        if (knockoutOnly && (!fx.phase || fx.phase === "group")) continue;
         const fxUtcMs = new Date(fx.date).getTime();
-        // Timezone-tolerant date check: Ticombo slug dates are local (often UTC-4..-8 for NA host cities).
-        // Accept any candidate whose slug date is within ±1 day of the DB UTC kickoff date.
         if (ev.date_from_slug) {
           const slugMs = new Date(`${ev.date_from_slug}T12:00:00Z`).getTime();
           const diffDays = Math.abs(slugMs - fxUtcMs) / 86_400_000;
@@ -370,6 +487,8 @@ Deno.serve(async (req) => {
 
       if (best.bothHit) bothTeamsVerified++;
       else { oneTeamVerified++; rejected.push({ url: ev.url, title: ev.title, reason: "only_one_team_matched" }); continue; }
+
+
 
       const confidence: "high" | "medium" | "low" = "high";
       const proposal: Proposal = {
@@ -405,19 +524,24 @@ Deno.serve(async (req) => {
     if (apply) {
       // Safety guard: refuse to apply (and never clear) when discovery looks broken.
       // This prevents wiping good URLs when Ticombo rate-limits every map call.
-      const currentlySet = fxRows.filter((f) => f.ticombo_url).length;
+      // When knockoutOnly is true, only consider knockout fixtures for the guard
+      // AND for the stale-clear (never touch group-stage URLs already set).
+      const scopedFx = knockoutOnly
+        ? fxRows.filter((f) => f.phase && f.phase !== "group")
+        : fxRows;
+      const currentlySet = scopedFx.filter((f) => f.ticombo_url).length;
       if (uniqueUrls.length === 0) {
         applyAborted = "discovery_empty";
       } else if (proposals.length === 0) {
         applyAborted = "no_proposals";
-      } else if (currentlySet > 0 && proposals.length < Math.ceil(currentlySet * 0.5)) {
+      } else if (!knockoutOnly && currentlySet > 0 && proposals.length < Math.ceil(currentlySet * 0.5)) {
         applyAborted = `degraded_discovery (proposals=${proposals.length} < 50% of currently_set=${currentlySet})`;
       }
 
       if (!applyAborted) {
         const verifiedIds = new Set(proposals.map((p) => p.match_id));
-        // Clear ticombo_url on any WC fixture not in the verified set (kills wrong mappings)
-        const staleIds = fxRows.filter((f) => f.ticombo_url && !verifiedIds.has(f.id)).map((f) => f.id);
+        // Clear ticombo_url on any (scoped) fixture not in the verified set.
+        const staleIds = scopedFx.filter((f) => f.ticombo_url && !verifiedIds.has(f.id)).map((f) => f.id);
         if (staleIds.length > 0) {
           const { error: clearErr } = await supabase
             .from("matches")
@@ -425,6 +549,7 @@ Deno.serve(async (req) => {
             .in("id", staleIds);
           if (!clearErr) clearedCount = staleIds.length;
         }
+
         for (const p of proposals) {
           if (p.current_url === p.suggested_url) continue;
           const { error } = await supabase

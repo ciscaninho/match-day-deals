@@ -10,6 +10,57 @@ const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
 const DEFAULT_ROOT =
   "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=group-date&key=bab812da-41b7-42b7-aabe-cb3908cbc347";
 
+// Additional Ticombo pages to seed link discovery from. The overview only lists
+// group-stage + a handful of knockout pages; the round/team/stadium routes
+// expose the R16, QF, SF, 3P and per-team fixtures.
+const EXTRA_SEED_URLS: string[] = [
+  // Knockout round groupings
+  "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=group-round",
+  "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=group-stadium",
+  "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=group-team",
+  // Per-team pages (top FIFA seeds most likely to reach late rounds)
+  "https://www.ticombo.com/en/football-tickets/national-teams/spain",
+  "https://www.ticombo.com/en/football-tickets/national-teams/england",
+  "https://www.ticombo.com/en/football-tickets/national-teams/france",
+  "https://www.ticombo.com/en/football-tickets/national-teams/germany",
+  "https://www.ticombo.com/en/football-tickets/national-teams/brazil",
+  "https://www.ticombo.com/en/football-tickets/national-teams/argentina",
+  "https://www.ticombo.com/en/football-tickets/national-teams/portugal",
+  "https://www.ticombo.com/en/football-tickets/national-teams/netherlands",
+  "https://www.ticombo.com/en/football-tickets/national-teams/belgium",
+  "https://www.ticombo.com/en/football-tickets/national-teams/italy",
+  // Host stadium pages
+  "https://www.ticombo.com/en/football-tickets/stadiums/metlife-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/sofi-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/att-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/mercedes-benz-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/hard-rock-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/gillette-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/lincoln-financial-field",
+  "https://www.ticombo.com/en/football-tickets/stadiums/lumen-field",
+  "https://www.ticombo.com/en/football-tickets/stadiums/nrg-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/levis-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/arrowhead-stadium",
+];
+
+// Normalize any Ticombo URL to its canonical /en/ form so the queue dedup on
+// the `url` unique index catches locale variants (/da/, /de/, /fr/, ...).
+const LOCALE_RE = /^\/(en|da|de|fr|es|it|pt|nl|sv|no|pl)(\/|$)/i;
+const canonicalizeUrl = (raw: string): string => {
+  try {
+    const u = new URL(raw);
+    u.hash = "";
+    u.search = "";
+    u.pathname = u.pathname.replace(LOCALE_RE, "/en$2");
+    let out = u.toString();
+    if (out.endsWith("/")) out = out.slice(0, -1);
+    return out;
+  } catch {
+    return raw;
+  }
+};
+
+
 // Direct Ticombo SINGLE-FIXTURE event page heuristics.
 // We only accept pages that look like ONE specific match (Team A vs Team B at one stadium on one date).
 // We REJECT stadium bundles, city packages, multi-match offers, hospitality, "follow team" products, etc.
@@ -20,8 +71,9 @@ const SINGLE_FIXTURE_PATH_RE = /\/football-tickets\/match-/i;
 
 // Hard blacklist of slug fragments that indicate non-single-fixture products.
 const BLACKLIST_FRAGMENTS = [
-  "all-",
+  "-all-", // e.g. "follow-usa-all-3-group-matches"  (avoid catching "football-" via "ball-")
   "matches-world-cup",
+
   "stadium-", // e.g. "los-angeles-stadium-8-matches"
   "-stadium-tickets",
   "package",
@@ -90,28 +142,37 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // 1. discover via map + scrape (run both, dedupe)
-    const [mapped, scraped] = await Promise.all([
-      fcMap(root).catch((e) => { console.error("map failed", e); return [] as string[]; }),
-      fcScrapeLinks(root).catch((e) => { console.error("scrape failed", e); return [] as string[]; }),
-    ]);
-    const candidates = Array.from(new Set<string>([...mapped, ...scraped]))
-      .map((u) => { try { const x = new URL(u); x.hash = ""; return x.toString(); } catch { return u; } })
+    // 1. Discover via map + scrape from the primary root AND all extra seeds
+    //    (round pages, team pages, stadium pages). Run in parallel, dedupe.
+    const seeds = Array.from(new Set([root, ...EXTRA_SEED_URLS]));
+    const results = await Promise.all(
+      seeds.flatMap((seed) => [
+        fcMap(seed).catch((e) => { console.error("map failed", seed, e); return [] as string[]; }),
+        fcScrapeLinks(seed).catch((e) => { console.error("scrape failed", seed, e); return [] as string[]; }),
+      ])
+    );
+    const rawLinks = results.flat();
+    // Canonicalize (locale → /en/, strip query/hash/trailing slash) BEFORE dedup.
+    const candidates = Array.from(new Set<string>(rawLinks.map(canonicalizeUrl)))
       .filter(isEventUrl);
 
-    // 2. queue (upsert on url uniqueness)
+
+    // 2. Queue (dedup against canonicalized existing URLs so /da/ /de/ etc.
+    //    variants don't create duplicates of the /en/ canonical row).
+    const { data: existingRows } = await admin
+      .from("wc_ticombo_discovery_queue")
+      .select("url");
+    const existingCanon = new Set<string>((existingRows ?? []).map((r: { url: string }) => canonicalizeUrl(r.url)));
     let inserted = 0;
     for (const url of candidates) {
-      const { data: existing } = await admin
-        .from("wc_ticombo_discovery_queue")
-        .select("id")
-        .eq("url", url)
-        .maybeSingle();
-      if (!existing) {
-        await admin.from("wc_ticombo_discovery_queue").insert({ url, status: "pending" });
+      if (existingCanon.has(url)) continue;
+      const { error } = await admin.from("wc_ticombo_discovery_queue").insert({ url, status: "pending" });
+      if (!error) {
+        existingCanon.add(url);
         inserted++;
       }
     }
+
 
     // 3. retroactively purge pending/failed queue rows that no longer pass the
     // hardened single-fixture filter (stadium bundles, packages, follow-team, etc.)
@@ -142,14 +203,15 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       ok: true,
       root,
+      seeds_crawled: seeds.length,
       discovered: candidates.length,
       newly_queued: inserted,
       purged_non_single_fixture: purged,
       pending_total: pending ?? null,
       sample: candidates.slice(0, 10),
-      raw_map_count: mapped.length,
-      raw_scrape_count: scraped.length,
+      raw_link_count: rawLinks.length,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
   } catch (e) {
     return new Response(JSON.stringify({ ok: false, error: String((e as Error).message ?? e) }), {
       status: 400,
