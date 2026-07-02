@@ -141,14 +141,20 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // 1. discover via map + scrape (run both, dedupe)
-    const [mapped, scraped] = await Promise.all([
-      fcMap(root).catch((e) => { console.error("map failed", e); return [] as string[]; }),
-      fcScrapeLinks(root).catch((e) => { console.error("scrape failed", e); return [] as string[]; }),
-    ]);
-    const candidates = Array.from(new Set<string>([...mapped, ...scraped]))
-      .map((u) => { try { const x = new URL(u); x.hash = ""; return x.toString(); } catch { return u; } })
+    // 1. Discover via map + scrape from the primary root AND all extra seeds
+    //    (round pages, team pages, stadium pages). Run in parallel, dedupe.
+    const seeds = Array.from(new Set([root, ...EXTRA_SEED_URLS]));
+    const results = await Promise.all(
+      seeds.flatMap((seed) => [
+        fcMap(seed).catch((e) => { console.error("map failed", seed, e); return [] as string[]; }),
+        fcScrapeLinks(seed).catch((e) => { console.error("scrape failed", seed, e); return [] as string[]; }),
+      ])
+    );
+    const rawLinks = results.flat();
+    // Canonicalize (locale → /en/, strip query/hash/trailing slash) BEFORE dedup.
+    const candidates = Array.from(new Set<string>(rawLinks.map(canonicalizeUrl)))
       .filter(isEventUrl);
+
 
     // 2. queue (upsert on url uniqueness)
     let inserted = 0;
