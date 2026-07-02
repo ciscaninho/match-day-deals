@@ -358,6 +358,47 @@ Deno.serve(async (req) => {
     let scrapeFailed = 0;
 
     for (const ev of scrapes) {
+      const slugSlots = slotsFromSlug(ev.url);
+
+      // For knockout URLs whose slug carries slot codes (e.g. `match-79-r32-1a-vs-3cefhi`),
+      // match directly against the DB fixture whose home_team/away_team equal those
+      // slot codes. Titles for TBD knockouts often omit team names, so this is the
+      // primary matching path for knockouts.
+      if (slugSlots) {
+        const home = slugSlots.home.toUpperCase();
+        const away = slugSlots.away.toUpperCase();
+        const slotFx = fxRows.find((fx) => {
+          if (knockoutOnly && (!fx.phase || fx.phase === "group")) return false;
+          const fh = (fx.home_team ?? "").toUpperCase();
+          const fa = (fx.away_team ?? "").toUpperCase();
+          return fh === home && fa === away;
+        });
+        if (slotFx) {
+          bothTeamsVerified++;
+          const proposal: Proposal = {
+            match_id: slotFx.id,
+            home_team: slotFx.home_team,
+            away_team: slotFx.away_team,
+            kickoff: slotFx.date,
+            stadium: slotFx.stadium,
+            city: slotFx.city,
+            current_url: slotFx.ticombo_url,
+            suggested_url: ev.url,
+            provider_event_id: ev.uuid,
+            ticombo_title: ev.title ?? "",
+            ticombo_home_label: home,
+            ticombo_away_label: away,
+            ticombo_date: ev.date_from_slug,
+            confidence: "high",
+            score: 1000,
+            reasons: ["slug_slot_code_match", `phase=${slugSlots.phase}`],
+            event_date: ev.date_from_slug,
+          };
+          if (!proposalsByMatch.has(proposal.match_id)) proposalsByMatch.set(proposal.match_id, proposal);
+          continue;
+        }
+      }
+
       if (!ev.scrape_ok || !ev.title) { scrapeFailed++; rejected.push({ url: ev.url, title: ev.title, reason: ev.err ?? "scrape_failed" }); continue; }
       if (!ev.home_label || !ev.away_label) { titleParseFailed++; rejected.push({ url: ev.url, title: ev.title, reason: "title_parse_failed" }); continue; }
 
@@ -365,17 +406,11 @@ Deno.serve(async (req) => {
       // Find best fixture by date + team mentions
       let best: { fx: Fixture; bothHit: boolean; oneHit: boolean } | null = null;
       for (const fx of fxRows) {
-        // Accept confirmed teams OR projected knockout slot codes (e.g. "1A", "W-M79").
-        // The DB stores slot codes as home_team/away_team for projected fixtures;
-        // Ticombo slugs/titles embed the same codes, so titleMentionsTeam still works.
         const isConfirmed = fx.home_team_status === "confirmed" && fx.away_team_status === "confirmed";
         const isProjected = fx.home_team_status === "projected" || fx.away_team_status === "projected";
         if (!isConfirmed && !isProjected) continue;
         if (knockoutOnly && (!fx.phase || fx.phase === "group")) continue;
         const fxUtcMs = new Date(fx.date).getTime();
-
-        // Timezone-tolerant date check: Ticombo slug dates are local (often UTC-4..-8 for NA host cities).
-        // Accept any candidate whose slug date is within ±1 day of the DB UTC kickoff date.
         if (ev.date_from_slug) {
           const slugMs = new Date(`${ev.date_from_slug}T12:00:00Z`).getTime();
           const diffDays = Math.abs(slugMs - fxUtcMs) / 86_400_000;
@@ -396,6 +431,7 @@ Deno.serve(async (req) => {
 
       if (best.bothHit) bothTeamsVerified++;
       else { oneTeamVerified++; rejected.push({ url: ev.url, title: ev.title, reason: "only_one_team_matched" }); continue; }
+
 
       const confidence: "high" | "medium" | "low" = "high";
       const proposal: Proposal = {
