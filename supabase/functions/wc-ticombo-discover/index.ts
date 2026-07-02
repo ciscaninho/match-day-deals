@@ -199,14 +199,15 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       ok: true,
       root,
+      seeds_crawled: seeds.length,
       discovered: candidates.length,
       newly_queued: inserted,
       purged_non_single_fixture: purged,
       pending_total: pending ?? null,
       sample: candidates.slice(0, 10),
-      raw_map_count: mapped.length,
-      raw_scrape_count: scraped.length,
+      raw_link_count: rawLinks.length,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
   } catch (e) {
     return new Response(JSON.stringify({ ok: false, error: String((e as Error).message ?? e) }), {
       status: 400,
