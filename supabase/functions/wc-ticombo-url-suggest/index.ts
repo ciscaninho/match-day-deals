@@ -417,10 +417,44 @@ Deno.serve(async (req) => {
           continue;
         }
         if (bucket.length > 1) {
+          // Ambiguous by date alone — use FIFA match numbering. Sort the phase's
+          // DB fixtures chronologically and pick the one at index (N - phaseStart).
+          const phaseStart = PHASE_START[slugSlots.phase];
+          if (phaseStart && slugSlots.matchNumber) {
+            const idx = slugSlots.matchNumber - phaseStart;
+            const phaseFx = fxRows
+              .filter((fx) => fx.phase && wantedPhases.includes(fx.phase.toLowerCase()))
+              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            const target = phaseFx[idx];
+            if (target && !proposalsByMatch.has(target.id)) {
+              bothTeamsVerified++;
+              proposalsByMatch.set(target.id, {
+                match_id: target.id,
+                home_team: target.home_team,
+                away_team: target.away_team,
+                kickoff: target.date,
+                stadium: target.stadium,
+                city: target.city,
+                current_url: target.ticombo_url,
+                suggested_url: ev.url,
+                provider_event_id: ev.uuid,
+                ticombo_title: ev.title ?? "",
+                ticombo_home_label: slugSlots.home,
+                ticombo_away_label: slugSlots.away,
+                ticombo_date: ev.date_from_slug,
+                confidence: "high",
+                score: 1000,
+                reasons: ["fifa_match_number_index", `M${slugSlots.matchNumber}`, `phase=${slugSlots.phase}`],
+                event_date: ev.date_from_slug,
+              });
+              continue;
+            }
+          }
           rejected.push({ url: ev.url, title: ev.title, reason: `slug_phase_date_ambiguous_${bucket.length}` });
           continue;
         }
       }
+
 
       if (!ev.scrape_ok || !ev.title) { scrapeFailed++; rejected.push({ url: ev.url, title: ev.title, reason: ev.err ?? "scrape_failed" }); continue; }
       if (!ev.home_label || !ev.away_label) { titleParseFailed++; rejected.push({ url: ev.url, title: ev.title, reason: "title_parse_failed" }); continue; }
