@@ -10,6 +10,57 @@ const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
 const DEFAULT_ROOT =
   "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=group-date&key=bab812da-41b7-42b7-aabe-cb3908cbc347";
 
+// Additional Ticombo pages to seed link discovery from. The overview only lists
+// group-stage + a handful of knockout pages; the round/team/stadium routes
+// expose the R16, QF, SF, 3P and per-team fixtures.
+const EXTRA_SEED_URLS: string[] = [
+  // Knockout round groupings
+  "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=group-round",
+  "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=group-stadium",
+  "https://www.ticombo.com/en/sports-tickets/football-tickets/world-cup-2026?group=group-team",
+  // Per-team pages (top FIFA seeds most likely to reach late rounds)
+  "https://www.ticombo.com/en/football-tickets/national-teams/spain",
+  "https://www.ticombo.com/en/football-tickets/national-teams/england",
+  "https://www.ticombo.com/en/football-tickets/national-teams/france",
+  "https://www.ticombo.com/en/football-tickets/national-teams/germany",
+  "https://www.ticombo.com/en/football-tickets/national-teams/brazil",
+  "https://www.ticombo.com/en/football-tickets/national-teams/argentina",
+  "https://www.ticombo.com/en/football-tickets/national-teams/portugal",
+  "https://www.ticombo.com/en/football-tickets/national-teams/netherlands",
+  "https://www.ticombo.com/en/football-tickets/national-teams/belgium",
+  "https://www.ticombo.com/en/football-tickets/national-teams/italy",
+  // Host stadium pages
+  "https://www.ticombo.com/en/football-tickets/stadiums/metlife-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/sofi-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/att-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/mercedes-benz-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/hard-rock-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/gillette-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/lincoln-financial-field",
+  "https://www.ticombo.com/en/football-tickets/stadiums/lumen-field",
+  "https://www.ticombo.com/en/football-tickets/stadiums/nrg-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/levis-stadium",
+  "https://www.ticombo.com/en/football-tickets/stadiums/arrowhead-stadium",
+];
+
+// Normalize any Ticombo URL to its canonical /en/ form so the queue dedup on
+// the `url` unique index catches locale variants (/da/, /de/, /fr/, ...).
+const LOCALE_RE = /^\/(en|da|de|fr|es|it|pt|nl|sv|no|pl)(\/|$)/i;
+const canonicalizeUrl = (raw: string): string => {
+  try {
+    const u = new URL(raw);
+    u.hash = "";
+    u.search = "";
+    u.pathname = u.pathname.replace(LOCALE_RE, "/en$2");
+    let out = u.toString();
+    if (out.endsWith("/")) out = out.slice(0, -1);
+    return out;
+  } catch {
+    return raw;
+  }
+};
+
+
 // Direct Ticombo SINGLE-FIXTURE event page heuristics.
 // We only accept pages that look like ONE specific match (Team A vs Team B at one stadium on one date).
 // We REJECT stadium bundles, city packages, multi-match offers, hospitality, "follow team" products, etc.
