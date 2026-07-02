@@ -42,6 +42,7 @@ export type WorldCup2026Copy = {
   phase_final: string;
   team_tbd: string;
   matchup_pending: string;
+  expected_matchup: string;
   tickets_coming_soon: string;
   search_placeholder: string;
   filter_team: string;
@@ -106,6 +107,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     phase_final: "Final",
     team_tbd: "TBD",
     matchup_pending: "Draw pending",
+    expected_matchup: "Expected matchup",
     tickets_coming_soon: "Tickets coming soon",
     search_placeholder: "Search teams...",
     filter_team: "Team",
@@ -168,6 +170,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     phase_final: "Finale",
     team_tbd: "À déterminer",
     matchup_pending: "Tirage en attente",
+    expected_matchup: "Affiche attendue",
     tickets_coming_soon: "Billets bientôt disponibles",
     search_placeholder: "Rechercher une équipe...",
     filter_team: "Équipe",
@@ -230,6 +233,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     phase_final: "Final",
     team_tbd: "Por definir",
     matchup_pending: "Sorteo pendiente",
+    expected_matchup: "Enfrentamiento esperado",
     tickets_coming_soon: "Entradas próximamente",
     search_placeholder: "Buscar selecciones...",
     filter_team: "Selección",
@@ -292,6 +296,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     phase_final: "Finale",
     team_tbd: "Offen",
     matchup_pending: "Auslosung ausstehend",
+    expected_matchup: "Erwartete Paarung",
     tickets_coming_soon: "Tickets bald verfügbar",
     search_placeholder: "Teams suchen...",
     filter_team: "Team",
@@ -354,6 +359,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     phase_final: "Finale",
     team_tbd: "Da definire",
     matchup_pending: "Sorteggio in attesa",
+    expected_matchup: "Sfida attesa",
     tickets_coming_soon: "Biglietti in arrivo",
     search_placeholder: "Cerca squadre...",
     filter_team: "Squadra",
@@ -416,6 +422,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     phase_final: "Final",
     team_tbd: "A definir",
     matchup_pending: "Sorteio pendente",
+    expected_matchup: "Confronto esperado",
     tickets_coming_soon: "Ingressos em breve",
     search_placeholder: "Buscar seleções...",
     filter_team: "Seleção",
@@ -478,6 +485,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     phase_final: "Finale",
     team_tbd: "Nog te bepalen",
     matchup_pending: "Loting nog te doen",
+    expected_matchup: "Verwachte affiche",
     tickets_coming_soon: "Tickets binnenkort",
     search_placeholder: "Teams zoeken...",
     filter_team: "Team",
@@ -540,6 +548,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     phase_final: "النهائي",
     team_tbd: "يُحدد لاحقًا",
     matchup_pending: "بانتظار القرعة",
+    expected_matchup: "المباراة المتوقعة",
     tickets_coming_soon: "التذاكر قريبًا",
     search_placeholder: "ابحث عن المنتخبات...",
     filter_team: "المنتخب",
@@ -602,6 +611,7 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     phase_final: "Финал",
     team_tbd: "Будет определено",
     matchup_pending: "Жеребьёвка ожидается",
+    expected_matchup: "Ожидаемая пара",
     tickets_coming_soon: "Билеты скоро",
     search_placeholder: "Поиск сборных...",
     filter_team: "Сборная",
