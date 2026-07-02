@@ -156,19 +156,22 @@ Deno.serve(async (req) => {
       .filter(isEventUrl);
 
 
-    // 2. queue (upsert on url uniqueness)
+    // 2. Queue (dedup against canonicalized existing URLs so /da/ /de/ etc.
+    //    variants don't create duplicates of the /en/ canonical row).
+    const { data: existingRows } = await admin
+      .from("wc_ticombo_discovery_queue")
+      .select("url");
+    const existingCanon = new Set<string>((existingRows ?? []).map((r: { url: string }) => canonicalizeUrl(r.url)));
     let inserted = 0;
     for (const url of candidates) {
-      const { data: existing } = await admin
-        .from("wc_ticombo_discovery_queue")
-        .select("id")
-        .eq("url", url)
-        .maybeSingle();
-      if (!existing) {
-        await admin.from("wc_ticombo_discovery_queue").insert({ url, status: "pending" });
+      if (existingCanon.has(url)) continue;
+      const { error } = await admin.from("wc_ticombo_discovery_queue").insert({ url, status: "pending" });
+      if (!error) {
+        existingCanon.add(url);
         inserted++;
       }
     }
+
 
     // 3. retroactively purge pending/failed queue rows that no longer pass the
     // hardened single-fixture filter (stadium bundles, packages, follow-team, etc.)
