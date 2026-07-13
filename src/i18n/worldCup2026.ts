@@ -32,6 +32,8 @@ export type WorldCup2026Copy = {
   status_sold_out: string;
   confirmed_section_title: string;
   confirmed_section_subtitle: string;
+  final_stage_title: string;
+  final_stage_subtitle: string;
   knockout_section_title: string;
   knockout_section_subtitle: string;
   phase_r32: string;
@@ -97,6 +99,8 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     status_sold_out: "Sold Out",
     confirmed_section_title: "Confirmed World Cup 2026 matches",
     confirmed_section_subtitle: "Group-stage fixtures with both teams confirmed. Tickets via verified marketplaces.",
+    final_stage_title: "World Cup 2026 — Final matches",
+    final_stage_subtitle: "Semi-finals, third-place match and final. Compare available ticket options.",
     knockout_section_title: "Knockout stage — teams TBD",
     knockout_section_subtitle: "Bracket dates, stadiums and kickoff times are fixed. Teams will be confirmed as the group stage unfolds.",
     phase_r32: "Round of 32",
@@ -160,6 +164,8 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     status_sold_out: "Épuisé",
     confirmed_section_title: "Matchs confirmés de la Coupe du Monde 2026",
     confirmed_section_subtitle: "Matchs de groupe avec les deux équipes confirmées. Billets via marketplaces vérifiées.",
+    final_stage_title: "Coupe du Monde 2026 — Derniers matchs",
+    final_stage_subtitle: "Demi-finales, match pour la 3e place et finale. Consultez les billets disponibles.",
     knockout_section_title: "Phase finale — équipes à confirmer",
     knockout_section_subtitle: "Dates, stades et heures sont fixés. Les équipes seront confirmées au fil de la phase de groupes.",
     phase_r32: "Seizièmes de finale",
@@ -223,6 +229,8 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     status_sold_out: "Agotado",
     confirmed_section_title: "Partidos confirmados del Mundial 2026",
     confirmed_section_subtitle: "Partidos de fase de grupos con ambas selecciones confirmadas. Entradas vía marketplaces verificados.",
+    final_stage_title: "Mundial 2026 — Últimos partidos",
+    final_stage_subtitle: "Semifinales, partido por el tercer puesto y final. Compara las entradas disponibles.",
     knockout_section_title: "Fase eliminatoria — equipos por confirmar",
     knockout_section_subtitle: "Fechas, estadios y horarios están fijados. Los equipos se confirmarán según avance la fase de grupos.",
     phase_r32: "Dieciseisavos de final",
@@ -286,6 +294,8 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     status_sold_out: "Ausverkauft",
     confirmed_section_title: "Bestätigte WM-2026-Spiele",
     confirmed_section_subtitle: "Gruppenspiele mit beiden Mannschaften bestätigt. Tickets über geprüfte Marktplätze.",
+    final_stage_title: "WM 2026 — Finalspiele",
+    final_stage_subtitle: "Halbfinale, Spiel um Platz 3 und Finale. Verfügbare Tickets vergleichen.",
     knockout_section_title: "K.-o.-Runde — Teams noch offen",
     knockout_section_subtitle: "Termine, Stadien und Anstoßzeiten stehen fest. Die Teams werden im Verlauf der Gruppenphase bestätigt.",
     phase_r32: "Sechzehntelfinale",
@@ -349,6 +359,8 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     status_sold_out: "Esaurito",
     confirmed_section_title: "Partite confermate dei Mondiali 2026",
     confirmed_section_subtitle: "Partite della fase a gironi con entrambe le squadre confermate. Biglietti via marketplace verificati.",
+    final_stage_title: "Mondiali 2026 — Ultime partite",
+    final_stage_subtitle: "Semifinali, finale per il terzo posto e finale. Confronta i biglietti disponibili.",
     knockout_section_title: "Fase a eliminazione — squadre da definire",
     knockout_section_subtitle: "Date, stadi e orari sono fissati. Le squadre verranno confermate al termine della fase a gironi.",
     phase_r32: "Sedicesimi di finale",
@@ -412,6 +424,8 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     status_sold_out: "Esgotado",
     confirmed_section_title: "Jogos confirmados da Copa 2026",
     confirmed_section_subtitle: "Jogos da fase de grupos com ambas as seleções confirmadas. Ingressos via marketplaces verificados.",
+    final_stage_title: "Copa 2026 — Últimos jogos",
+    final_stage_subtitle: "Semifinais, disputa do terceiro lugar e final. Compare os ingressos disponíveis.",
     knockout_section_title: "Mata-mata — seleções a confirmar",
     knockout_section_subtitle: "Datas, estádios e horários estão definidos. As seleções serão confirmadas ao longo da fase de grupos.",
     phase_r32: "Dezesseis avos de final",
@@ -475,6 +489,8 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     status_sold_out: "Uitverkocht",
     confirmed_section_title: "Bevestigde WK-2026-wedstrijden",
     confirmed_section_subtitle: "Groepswedstrijden waarvan beide ploegen bekend zijn. Tickets via geverifieerde marktplaatsen.",
+    final_stage_title: "WK 2026 — Laatste wedstrijden",
+    final_stage_subtitle: "Halve finales, troostfinale en finale. Vergelijk beschikbare tickets.",
     knockout_section_title: "Knock-outfase — teams nog te bevestigen",
     knockout_section_subtitle: "Data, stadions en aftraptijden liggen vast. De teams worden bevestigd tijdens de groepsfase.",
     phase_r32: "Zestiende finale",
@@ -538,6 +554,8 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     status_sold_out: "نفدت",
     confirmed_section_title: "مباريات كأس العالم 2026 المؤكدة",
     confirmed_section_subtitle: "مباريات دور المجموعات مع تأكيد المنتخبين. التذاكر عبر أسواق موثوقة.",
+    final_stage_title: "كأس العالم 2026 — المباريات النهائية",
+    final_stage_subtitle: "نصف النهائي، مباراة المركز الثالث والنهائي. قارن خيارات التذاكر المتاحة.",
     knockout_section_title: "الأدوار الإقصائية — المنتخبات لم تُحدد بعد",
     knockout_section_subtitle: "المواعيد والملاعب وأوقات الانطلاق ثابتة. سيتم تأكيد المنتخبات عند انتهاء دور المجموعات.",
     phase_r32: "دور الـ32",
@@ -601,6 +619,8 @@ const COPY: Record<Locale, WorldCup2026Copy> = {
     status_sold_out: "Распроданы",
     confirmed_section_title: "Подтверждённые матчи ЧМ-2026",
     confirmed_section_subtitle: "Матчи группового этапа с подтверждёнными составами. Билеты через проверенные площадки.",
+    final_stage_title: "ЧМ-2026 — Финальные матчи",
+    final_stage_subtitle: "Полуфиналы, матч за третье место и финал. Сравните доступные билеты.",
     knockout_section_title: "Плей-офф — команды будут определены",
     knockout_section_subtitle: "Даты, стадионы и время начала зафиксированы. Команды будут определены по итогам группового этапа.",
     phase_r32: "1/16 финала",

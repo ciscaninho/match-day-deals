@@ -270,7 +270,8 @@ function WorldCupMatchCard({
     if (!t) return false;
     if (/^tbd$/i.test(t)) return false;
     if (/^(winner|loser|runner|group)\b/i.test(t)) return false;
-    if (/^\d+[A-H]$/i.test(t)) return false; // FIFA slot code like "1A"
+    if (/^\d+[A-H]$/i.test(t)) return false; // FIFA group slot code like "1A"
+    if (/^[WL]\d+$/i.test(t)) return false;   // Bracket slot code like "W99", "L101"
     return true;
   };
 
@@ -740,10 +741,12 @@ const WorldCup2026Page = () => {
               <Ticket className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-[0.2em]">{copy.eyebrow}</span>
             </div>
-            <h2 className="font-display text-3xl sm:text-5xl text-white mb-3 max-w-3xl leading-tight">{copy.confirmed_section_title}</h2>
+            <h2 className="font-display text-3xl sm:text-5xl text-white mb-3 max-w-3xl leading-tight">
+              {(activePhase === "sf" || activePhase === "3p" || activePhase === "final") ? copy.final_stage_title : copy.confirmed_section_title}
+            </h2>
             <p className="text-white/65 font-body mb-8 max-w-2xl flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-              {copy.confirmed_section_subtitle}
+              {(activePhase === "sf" || activePhase === "3p" || activePhase === "final") ? copy.final_stage_subtitle : copy.confirmed_section_subtitle}
             </p>
 
             {/* Filter bar */}
