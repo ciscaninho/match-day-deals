@@ -270,7 +270,8 @@ function WorldCupMatchCard({
     if (!t) return false;
     if (/^tbd$/i.test(t)) return false;
     if (/^(winner|loser|runner|group)\b/i.test(t)) return false;
-    if (/^\d+[A-H]$/i.test(t)) return false; // FIFA slot code like "1A"
+    if (/^\d+[A-H]$/i.test(t)) return false; // FIFA group slot code like "1A"
+    if (/^[WL]\d+$/i.test(t)) return false;   // Bracket slot code like "W99", "L101"
     return true;
   };
 
