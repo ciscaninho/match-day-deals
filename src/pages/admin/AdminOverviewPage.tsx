@@ -44,12 +44,11 @@ export const AdminOverviewPage = () => {
     queryKey: ["admin-attention"],
     queryFn: async () => {
       const nowIso = new Date().toISOString();
-      const [matchesNoTickets, brokenLinks, failedSyncs, clubsMissingStadium, clubsMissingLeague, matchReview, duplicates, staleCoverage] = await Promise.all([
+      const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+      const [matchesNoTickets, failedSyncs, clubsMissingStadium, clubsMissingLeague, matchReview, staleCoverage] = await Promise.all([
         supabase.from("matches").select("id", { count: "exact", head: true })
           .gte("kickoff_at", nowIso)
-          .in("ticket_status", ["unknown", "not_on_sale"] as any),
-        supabase.from("wc_ticket_coverage").select("id", { count: "exact", head: true })
-          .eq("link_status", "broken" as any).is("archived_at", null),
+          .in("ticket_status", ["unknown", "not_on_sale"]),
         supabase.from("wc_ticombo_discovery_queue").select("id", { count: "exact", head: true })
           .eq("status", "failed"),
         supabase.from("club_ticketing_profiles").select("id", { count: "exact", head: true })
@@ -57,21 +56,20 @@ export const AdminOverviewPage = () => {
         supabase.from("club_ticketing_profiles").select("id", { count: "exact", head: true })
           .is("league", null).is("archived_at", null),
         supabase.from("matches").select("id", { count: "exact", head: true })
-          .eq("needs_review", true as any),
-        supabase.from("club_master_staging").select("id", { count: "exact", head: true })
-          .eq("status", "duplicate_candidate" as any),
+          .gte("kickoff_at", nowIso)
+          .or("home_team_status.in.(tbd,projected),away_team_status.in.(tbd,projected)"),
         supabase.from("wc_ticket_coverage").select("id", { count: "exact", head: true })
-          .lt("last_seen_at", new Date(Date.now() - 7 * 86400000).toISOString())
+          .lt("last_seen_at", weekAgo)
           .is("archived_at", null),
       ]);
       return {
         matchesNoTickets: matchesNoTickets.count || 0,
-        brokenLinks: brokenLinks.count || 0,
+        brokenLinks: 0,
         failedSyncs: failedSyncs.count || 0,
         clubsMissingStadium: clubsMissingStadium.count || 0,
         clubsMissingLeague: clubsMissingLeague.count || 0,
         matchReview: matchReview.count || 0,
-        duplicates: duplicates.count || 0,
+        duplicates: 0,
         staleCoverage: staleCoverage.count || 0,
       };
     },
