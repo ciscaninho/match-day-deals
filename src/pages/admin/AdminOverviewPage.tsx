@@ -51,8 +51,8 @@ export const AdminOverviewPage = () => {
           .in("ticket_status", ["unknown", "not_on_sale"]),
         supabase.from("wc_ticombo_discovery_queue").select("id", { count: "exact", head: true })
           .eq("status", "failed"),
-        supabase.from("club_ticketing_profiles").select("id", { count: "exact", head: true })
-          .is("stadium_id", null).is("archived_at", null),
+        supabase.from("clubs").select("id", { count: "exact", head: true })
+          .is("home_stadium_id", null),
         supabase.from("club_ticketing_profiles").select("id", { count: "exact", head: true })
           .is("league", null).is("archived_at", null),
         supabase.from("matches").select("id", { count: "exact", head: true })
