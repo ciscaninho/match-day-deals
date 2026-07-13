@@ -1,43 +1,105 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { HeaderAuthButton } from "@/components/auth/HeaderAuthButton";
-import { Link } from "react-router-dom";
 import {
   LayoutDashboard, Users, MapPin, CalendarDays, Trophy, Ticket, Image as ImageIcon,
-  Map as MapIcon, Inbox, Sparkles, Settings as SettingsIcon, Shield, Ticket as TicketLogo,
-  ShieldCheck, ListChecks, Globe, Megaphone, BarChart3, CalendarRange, Table as TableIcon,
-  ClipboardCheck,
+  Map as MapIcon, Inbox, Sparkles, Shield, ShieldCheck, ListChecks, Megaphone,
+  BarChart3, CalendarRange, Table as TableIcon, ClipboardCheck, ChevronDown,
+  Search, FileText, AlertTriangle, Wrench, Database, Globe, Settings as SettingsIcon,
 } from "lucide-react";
+
+type NavLeaf = { to: string; label: string; icon: any; end?: boolean };
+type NavGroup = { id: string; label: string; icon: any; children: NavLeaf[] };
+
+const LS_KEY = "admin.sidebar.openGroup";
 
 const AdminShell = () => {
   const { t } = useLanguage();
   const { pathname } = useLocation();
 
-  const nav = [
-    { to: "/admin", end: true, label: t("admin.nav.overview"), icon: LayoutDashboard },
-    { to: "/admin/insights", label: "Insights", icon: BarChart3 },
-    { to: "/admin/clubs", label: t("admin.nav.clubs"), icon: Users },
-    { to: "/admin/clubs-master", label: t("admin.nav.clubsMaster"), icon: Users },
-    { to: "/admin/clubs-master/review", label: t("admin.nav.clubsReview"), icon: ShieldCheck },
-    { to: "/admin/stadiums", label: t("admin.nav.stadiums"), icon: MapPin },
-    { to: "/admin/matches", label: t("admin.nav.matches"), icon: CalendarDays },
-    { to: "/admin/match-review", label: t("admin.nav.match_review"), icon: ListChecks },
-    { to: "/admin/leagues", label: t("admin.nav.leagues"), icon: Trophy },
-    { to: "/admin/football-audit", label: "Football Audit", icon: ClipboardCheck },
-    { to: "/admin/data-quality", label: "Data Quality", icon: TableIcon },
-    { to: "/admin/seasons", label: t("admin.nav.seasons"), icon: CalendarRange },
-    { to: "/admin/world-cup-2026", label: "World Cup 2026", icon: Globe },
-    { to: "/admin/marketing", label: "Marketing Hub", icon: Megaphone },
-    { to: "/admin/ticketing", label: t("admin.nav.ticketing"), icon: Ticket },
-    { to: "/admin/media", label: t("admin.nav.media"), icon: ImageIcon },
-    { to: "/admin/map", label: t("admin.nav.map"), icon: MapIcon },
-    { to: "/admin/map-review", label: t("admin.nav.map_review"), icon: MapIcon },
-    { to: "/admin/suggestions", label: t("admin.nav.suggestions"), icon: Inbox },
-    { to: "/admin/assistant", label: t("admin.nav.assistant"), icon: Sparkles },
-    { to: "/admin/audit", label: t("admin.nav.audit"), icon: ShieldCheck },
-    { to: "/admin/legacy", label: t("admin.nav.legacy"), icon: SettingsIcon },
+  const groups: NavGroup[] = [
+    {
+      id: "football",
+      label: "Football",
+      icon: Trophy,
+      children: [
+        { to: "/admin/clubs", label: "Clubs", icon: Users },
+        { to: "/admin/leagues", label: "Leagues", icon: Trophy },
+        { to: "/admin/stadiums", label: "Stadiums", icon: MapPin },
+        { to: "/admin/matches", label: "Matches", icon: CalendarDays },
+      ],
+    },
+    {
+      id: "ticketing",
+      label: "Ticketing",
+      icon: Ticket,
+      children: [
+        { to: "/admin/ticketing", label: "Coverage", icon: Ticket, end: true },
+        { to: "/admin/ticketing/leagues", label: "Providers", icon: Globe },
+        { to: "/admin/match-review", label: "Issues", icon: AlertTriangle },
+      ],
+    },
+    {
+      id: "growth",
+      label: "Growth",
+      icon: BarChart3,
+      children: [
+        { to: "/admin/insights", label: "SEO & Insights", icon: BarChart3 },
+        { to: "/admin/marketing/content", label: "Content", icon: FileText },
+        { to: "/admin/marketing", label: "Marketing", icon: Megaphone, end: true },
+        { to: "/admin/media", label: "Media", icon: ImageIcon },
+      ],
+    },
+    {
+      id: "system",
+      label: "System",
+      icon: Wrench,
+      children: [
+        { to: "/admin/football-audit", label: "Data Health", icon: ClipboardCheck },
+        { to: "/admin/data-quality", label: "Data Quality", icon: TableIcon },
+        { to: "/admin/seasons", label: "Seasons", icon: CalendarRange },
+        { to: "/admin/clubs-master", label: "Clubs Master", icon: Database },
+        { to: "/admin/clubs-master/review", label: "Duplicate Clubs", icon: ShieldCheck },
+        { to: "/admin/map", label: "World Map", icon: MapIcon },
+        { to: "/admin/map-review", label: "Map Review", icon: MapIcon },
+        { to: "/admin/suggestions", label: "Suggestions", icon: Inbox },
+        { to: "/admin/assistant", label: "AI Copilot", icon: Sparkles },
+        { to: "/admin/audit", label: "Audit Log", icon: ShieldCheck },
+        { to: "/admin/world-cup-2026", label: "World Cup 2026", icon: Globe },
+        { to: "/admin/legacy", label: "Legacy Admin", icon: SettingsIcon },
+      ],
+    },
   ];
+
+  const findActiveGroup = () => {
+    for (const g of groups) {
+      if (g.children.some((c) => (c.end ? pathname === c.to : pathname.startsWith(c.to)))) return g.id;
+    }
+    return null;
+  };
+
+  const [openGroup, setOpenGroup] = useState<string | null>(() => {
+    const active = findActiveGroup();
+    if (active) return active;
+    try { return localStorage.getItem(LS_KEY); } catch { return null; }
+  });
+
+  useEffect(() => {
+    const active = findActiveGroup();
+    if (active) setOpenGroup(active);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  useEffect(() => {
+    try { if (openGroup) localStorage.setItem(LS_KEY, openGroup); } catch {}
+  }, [openGroup]);
+
+  const isLeafActive = (leaf: NavLeaf) =>
+    leaf.end ? pathname === leaf.to : pathname.startsWith(leaf.to);
+
+  const dashboardActive = pathname === "/admin";
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -60,38 +122,77 @@ const AdminShell = () => {
       </header>
 
       <div className="flex-1 flex">
-        <aside className="hidden lg:block w-60 shrink-0 border-r border-slate-200 bg-white">
-          <nav className="p-3 space-y-0.5">
-            {nav.map((n) => (
-              <NavLink
-                key={n.to}
-                to={n.to}
-                end={n.end}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                    isActive ? "bg-[#2C3E50] text-white" : "text-[#2C3E50]/80 hover:bg-slate-100"
-                  }`
-                }
-              >
-                <n.icon className="w-4 h-4 shrink-0" />
-                <span className="truncate">{n.label}</span>
-              </NavLink>
-            ))}
+        <aside className="hidden lg:block w-64 shrink-0 border-r border-slate-200 bg-white">
+          <nav className="p-3 space-y-1">
+            <NavLink
+              to="/admin"
+              end
+              className={({ isActive }) =>
+                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                  isActive ? "bg-[#2C3E50] text-white" : "text-[#2C3E50] hover:bg-slate-100"
+                }`
+              }
+            >
+              <LayoutDashboard className="w-4 h-4 shrink-0" />
+              <span>Dashboard</span>
+            </NavLink>
+
+            {groups.map((g) => {
+              const isOpen = openGroup === g.id;
+              const hasActive = g.children.some(isLeafActive);
+              return (
+                <div key={g.id} className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setOpenGroup(isOpen ? null : g.id)}
+                    className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                      hasActive ? "text-[#2C3E50]" : "text-[#2C3E50]/80 hover:bg-slate-100"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <g.icon className="w-4 h-4 shrink-0" />
+                      <span>{g.label}</span>
+                    </span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="mt-1 ml-4 pl-3 border-l border-slate-200 space-y-0.5">
+                      {g.children.map((c) => (
+                        <NavLink
+                          key={c.to}
+                          to={c.to}
+                          end={c.end}
+                          className={({ isActive }) =>
+                            `flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] font-medium transition ${
+                              isActive ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            }`
+                          }
+                        >
+                          <c.icon className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">{c.label}</span>
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </nav>
         </aside>
 
-        {/* Mobile horizontal nav */}
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 overflow-x-auto shadow-[0_-4px_12px_-4px_rgba(0,0,0,0.08)]" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-          <div className="flex gap-1 px-2 py-2 min-w-max">
-            {nav.map((n) => {
-              const active = n.end ? pathname === n.to : pathname.startsWith(n.to);
+        {/* Mobile bottom nav — top-level sections only */}
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 shadow-[0_-4px_12px_-4px_rgba(0,0,0,0.08)]" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+          <div className="grid grid-cols-5 gap-1 px-2 py-2">
+            <NavLink to="/admin" end className={`flex flex-col items-center gap-1 px-1 py-1.5 rounded-lg text-[10px] font-bold transition ${dashboardActive ? "bg-slate-900 text-white" : "text-slate-700"}`}>
+              <LayoutDashboard className="w-5 h-5" />
+              <span>Home</span>
+            </NavLink>
+            {groups.map((g) => {
+              const hasActive = g.children.some(isLeafActive);
               return (
-                <NavLink key={n.to} to={n.to} end={n.end}
-                  className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold min-w-[60px] min-h-[52px] transition ${
-                    active ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100 active:bg-slate-200"
-                  }`}>
-                  <n.icon className="w-5 h-5" />
-                  <span className="truncate max-w-[60px]">{n.label}</span>
+                <NavLink key={g.id} to={g.children[0].to} className={`flex flex-col items-center gap-1 px-1 py-1.5 rounded-lg text-[10px] font-bold transition ${hasActive ? "bg-slate-900 text-white" : "text-slate-700"}`}>
+                  <g.icon className="w-5 h-5" />
+                  <span className="truncate max-w-full">{g.label}</span>
                 </NavLink>
               );
             })}
