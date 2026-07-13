@@ -5,15 +5,16 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   AlertTriangle, CheckCircle2, ArrowRight, Users, MapPin, CalendarDays, Trophy,
-  Ticket, LinkIcon, ShieldAlert, Activity, Sparkles, TrendingUp,
+  Ticket, ShieldAlert, Activity, Sparkles, TrendingUp, HelpCircle,
 } from "lucide-react";
 
-type Severity = "critical" | "warning" | "healthy";
+type Severity = "critical" | "warning" | "healthy" | "unknown";
 
 const sevPillCls: Record<Severity, string> = {
   critical: "bg-red-100 text-red-800 border-red-200",
   warning: "bg-amber-100 text-amber-800 border-amber-200",
   healthy: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  unknown: "bg-slate-100 text-slate-600 border-slate-200",
 };
 
 const priorityCls: Record<"P1"|"P2"|"P3"|"P4", string> = {
@@ -21,6 +22,23 @@ const priorityCls: Record<"P1"|"P2"|"P3"|"P4", string> = {
   P2: "bg-orange-500 text-white",
   P3: "bg-amber-500 text-white",
   P4: "bg-slate-400 text-white",
+};
+
+// Diagnostic result: value | "unknown". Failures never silently become 0.
+type Diag = { value: number | null; ok: boolean; error?: string };
+
+const runDiag = async (name: string, fn: () => Promise<{ count: number | null; error: any }>): Promise<Diag> => {
+  try {
+    const { count, error } = await fn();
+    if (error) {
+      console.warn(`[admin-diag] ${name} failed`, error);
+      return { value: null, ok: false, error: error.message };
+    }
+    return { value: count ?? 0, ok: true };
+  } catch (e: any) {
+    console.warn(`[admin-diag] ${name} threw`, e);
+    return { value: null, ok: false, error: String(e?.message ?? e) };
+  }
 };
 
 export const AdminOverviewPage = () => {
@@ -40,37 +58,119 @@ export const AdminOverviewPage = () => {
     },
   });
 
-  const { data: attention, isLoading: attentionLoading } = useQuery({
-    queryKey: ["admin-attention"],
+  const { data: diag, isLoading: diagLoading } = useQuery({
+    queryKey: ["admin-diag-v2"],
     queryFn: async () => {
       const nowIso = new Date().toISOString();
-      const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-      const [matchesNoTickets, failedSyncs, clubsMissingStadium, clubsMissingLeague, matchReview, staleCoverage] = await Promise.all([
-        supabase.from("matches").select("id", { count: "exact", head: true })
-          .gte("kickoff_at", nowIso)
-          .in("ticket_status", ["unknown", "not_on_sale"]),
-        supabase.from("wc_ticombo_discovery_queue").select("id", { count: "exact", head: true })
-          .eq("status", "failed"),
-        supabase.from("clubs").select("id", { count: "exact", head: true })
-          .is("home_stadium_id", null),
-        supabase.from("club_ticketing_profiles").select("id", { count: "exact", head: true })
-          .is("league", null).is("archived_at", null),
-        supabase.from("matches").select("id", { count: "exact", head: true })
-          .gte("kickoff_at", nowIso)
-          .or("home_team_status.in.(tbd,projected),away_team_status.in.(tbd,projected)"),
-        supabase.from("wc_ticket_coverage").select("id", { count: "exact", head: true })
-          .lt("last_seen_at", weekAgo)
-          .is("archived_at", null),
+      const weekAgoIso = new Date(Date.now() - 7 * 86400000).toISOString();
+
+      const [
+        upcomingNoProvider,
+        recentFailedSyncs,
+        clubsMissingStadium,
+        clubsMissingLeague,
+        clubsMissingCountry,
+        ticketingMissingLeague,
+        matchReview,
+        pendingDuplicates,
+        staleUpcomingCoverage,
+        upcomingMatches,
+      ] = await Promise.all([
+        runDiag("upcoming_no_provider", async () => {
+          // Upcoming, non-archived matches with no usable provider destination.
+          const { count, error } = await supabase
+            .from("matches")
+            .select("id", { count: "exact", head: true })
+            .gte("date", nowIso)
+            .is("archived_at", null)
+            .or("ticombo_url.is.null,ticombo_url.eq.")
+            .or("official_link.is.null,official_link.eq.");
+          return { count, error };
+        }),
+        runDiag("recent_failed_syncs", async () =>
+          supabase
+            .from("wc_ticombo_discovery_queue")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "failed")
+            .gte("discovered_at", weekAgoIso),
+        ),
+        runDiag("clubs_missing_stadium", async () =>
+          supabase
+            .from("clubs")
+            .select("id", { count: "exact", head: true })
+            .is("archived_at", null)
+            .eq("publication_status", "published")
+            .neq("club_type", "identity_only")
+            .is("home_stadium_id", null),
+        ),
+        runDiag("clubs_missing_league", async () =>
+          supabase
+            .from("clubs")
+            .select("id", { count: "exact", head: true })
+            .is("archived_at", null)
+            .eq("publication_status", "published")
+            .neq("club_type", "identity_only")
+            .is("primary_league_id", null),
+        ),
+        runDiag("clubs_missing_country", async () =>
+          supabase
+            .from("clubs")
+            .select("id", { count: "exact", head: true })
+            .is("archived_at", null)
+            .eq("publication_status", "published")
+            .neq("club_type", "identity_only")
+            .is("country_id", null),
+        ),
+        runDiag("ticketing_missing_league", async () =>
+          supabase
+            .from("club_ticketing_profiles")
+            .select("id", { count: "exact", head: true })
+            .is("archived_at", null)
+            .is("league", null),
+        ),
+        runDiag("match_review", async () =>
+          supabase
+            .from("matches")
+            .select("id", { count: "exact", head: true })
+            .gte("date", nowIso)
+            .is("archived_at", null)
+            .or("home_team_status.in.(tbd,projected),away_team_status.in.(tbd,projected)"),
+        ),
+        runDiag("pending_duplicates", async () =>
+          supabase
+            .from("club_merge_candidates" as never)
+            .select("id", { count: "exact", head: true })
+            .eq("status", "pending"),
+        ),
+        runDiag("stale_upcoming_coverage", async () =>
+          supabase
+            .from("wc_ticket_coverage")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "active")
+            .is("archived_at", null)
+            .gte("event_date", nowIso)
+            .or(`last_sync_at.is.null,last_sync_at.lt.${weekAgoIso}`),
+        ),
+        runDiag("upcoming_matches", async () =>
+          supabase
+            .from("matches")
+            .select("id", { count: "exact", head: true })
+            .gte("date", nowIso)
+            .is("archived_at", null),
+        ),
       ]);
+
       return {
-        matchesNoTickets: matchesNoTickets.count || 0,
-        brokenLinks: 0,
-        failedSyncs: failedSyncs.count || 0,
-        clubsMissingStadium: clubsMissingStadium.count || 0,
-        clubsMissingLeague: clubsMissingLeague.count || 0,
-        matchReview: matchReview.count || 0,
-        duplicates: 0,
-        staleCoverage: staleCoverage.count || 0,
+        upcomingNoProvider,
+        recentFailedSyncs,
+        clubsMissingStadium,
+        clubsMissingLeague,
+        clubsMissingCountry,
+        ticketingMissingLeague,
+        matchReview,
+        pendingDuplicates,
+        staleUpcomingCoverage,
+        upcomingMatches,
       };
     },
   });
@@ -93,91 +193,134 @@ export const AdminOverviewPage = () => {
     icon: any;
   };
 
-  const a = attention;
+  const hasActionable = (d?: Diag) => d?.ok && (d.value ?? 0) > 0;
+
   const issues: Issue[] = [
-    a?.matchesNoTickets ? {
-      priority: "P1", severity: "critical", count: a.matchesNoTickets,
+    hasActionable(diag?.upcomingNoProvider) && {
+      priority: "P1", severity: "critical", count: diag!.upcomingNoProvider.value!,
       title: "Upcoming matches without a ticket provider",
-      explain: "These matches are visible to visitors but have no way to buy tickets. Fix or hide them.",
+      explain: "These matches are visible to visitors but have no usable ticket provider destination.",
       action: "Review matches", to: "/admin/matches?filter=no-tickets", icon: Ticket,
-    } : null,
-    a?.brokenLinks ? {
-      priority: "P2", severity: "critical", count: a.brokenLinks,
-      title: "Broken ticket provider links",
-      explain: "Provider URLs returned errors on last check. Visitors clicking through see broken pages.",
-      action: "Fix links", to: "/admin/ticketing", icon: LinkIcon,
-    } : null,
-    a?.failedSyncs ? {
-      priority: "P2", severity: "warning", count: a.failedSyncs,
-      title: "Ticket sync failed",
+    },
+    hasActionable(diag?.recentFailedSyncs) && {
+      priority: "P2", severity: "warning", count: diag!.recentFailedSyncs.value!,
+      title: "Recent ticket sync failures (last 7 days)",
       explain: "Recent synchronization jobs did not complete. Prices and availability may be outdated.",
       action: "Open diagnostics", to: "/admin/ticketing", icon: Activity,
-    } : null,
-    a?.matchReview ? {
-      priority: "P3", severity: "warning", count: a.matchReview,
-      title: "Matches waiting for review",
-      explain: "Recent imports flagged for manual verification before publishing.",
+    },
+    hasActionable(diag?.matchReview) && {
+      priority: "P3", severity: "warning", count: diag!.matchReview.value!,
+      title: "Upcoming matches waiting for team confirmation",
+      explain: "Upcoming fixtures with unresolved (TBD/projected) team names.",
       action: "Open review queue", to: "/admin/match-review", icon: ShieldAlert,
-    } : null,
-    a?.clubsMissingStadium ? {
-      priority: "P3", severity: "warning", count: a.clubsMissingStadium,
-      title: "Clubs missing a stadium",
-      explain: "These clubs cannot be linked to matchday content until a stadium is assigned.",
+    },
+    hasActionable(diag?.clubsMissingStadium) && {
+      priority: "P3", severity: "warning", count: diag!.clubsMissingStadium.value!,
+      title: "Published clubs missing a stadium",
+      explain: "Public clubs without a home stadium assignment.",
       action: "Assign stadiums", to: "/admin/clubs", icon: MapPin,
-    } : null,
-    a?.clubsMissingLeague ? {
-      priority: "P3", severity: "warning", count: a.clubsMissingLeague,
-      title: "Clubs missing a league",
-      explain: "League-based filtering and grouping won't include these clubs.",
+    },
+    hasActionable(diag?.clubsMissingLeague) && {
+      priority: "P3", severity: "warning", count: diag!.clubsMissingLeague.value!,
+      title: "Published clubs missing a league",
+      explain: "Public clubs with no primary league assigned.",
       action: "Assign leagues", to: "/admin/clubs", icon: Trophy,
-    } : null,
-    a?.duplicates ? {
-      priority: "P3", severity: "warning", count: a.duplicates,
-      title: "Duplicate club candidates",
+    },
+    hasActionable(diag?.pendingDuplicates) && {
+      priority: "P3", severity: "warning", count: diag!.pendingDuplicates.value!,
+      title: "Duplicate club candidates awaiting review",
       explain: "Automated matching flagged possible duplicates awaiting a decision.",
       action: "Review duplicates", to: "/admin/clubs-master/review", icon: Users,
-    } : null,
-    a?.staleCoverage ? {
-      priority: "P4", severity: "warning", count: a.staleCoverage,
-      title: "Ticket prices not refreshed recently",
-      explain: "These provider records haven't been re-checked in over a week.",
+    },
+    hasActionable(diag?.staleUpcomingCoverage) && {
+      priority: "P4", severity: "warning", count: diag!.staleUpcomingCoverage.value!,
+      title: "Stale coverage on upcoming matches",
+      explain: "Active provider rows for upcoming events not refreshed in over a week.",
       action: "Refresh coverage", to: "/admin/ticketing", icon: TrendingUp,
-    } : null,
+    },
   ].filter(Boolean) as Issue[];
 
   const sortedIssues = [...issues].sort((x, y) => x.priority.localeCompare(y.priority));
 
-  // System health
-  const health = [
-    {
+  // ---- System health rules ---------------------------------------------
+  type HealthCard = { label: string; status: Severity; note: string; to: string };
+
+  const anyFailed = (...ds: (Diag | undefined)[]) => ds.some((d) => d && !d.ok);
+  const sumIf = (...ds: (Diag | undefined)[]) => ds.reduce((s, d) => s + (d?.ok ? (d.value ?? 0) : 0), 0);
+
+  const footballHealth = (): HealthCard => {
+    const ds = [
+      diag?.clubsMissingCountry, diag?.clubsMissingLeague, diag?.clubsMissingStadium,
+      diag?.matchReview, diag?.pendingDuplicates,
+    ];
+    if (anyFailed(...ds)) return { label: "Football data", status: "unknown", note: "Diagnostic unavailable", to: "/admin/football-audit" };
+    const parts: string[] = [];
+    if ((diag?.clubsMissingStadium.value ?? 0) > 0) parts.push(`${diag!.clubsMissingStadium.value} clubs without stadium`);
+    if ((diag?.clubsMissingLeague.value ?? 0) > 0) parts.push(`${diag!.clubsMissingLeague.value} clubs without league`);
+    if ((diag?.clubsMissingCountry.value ?? 0) > 0) parts.push(`${diag!.clubsMissingCountry.value} clubs without country`);
+    if ((diag?.matchReview.value ?? 0) > 0) parts.push(`${diag!.matchReview.value} matches awaiting review`);
+    if ((diag?.pendingDuplicates.value ?? 0) > 0) parts.push(`${diag!.pendingDuplicates.value} duplicate candidates`);
+    const status: Severity = parts.length === 0 ? "healthy" : (diag?.pendingDuplicates.value ?? 0) > 10 ? "critical" : "warning";
+    return {
       label: "Football data",
-      status: (a?.matchReview ?? 0) > 20 ? "warning" : "healthy",
-      note: (a?.matchReview ?? 0) > 20 ? `${a?.matchReview} matches awaiting review` : "All imports clean",
+      status,
+      note: parts.length === 0 ? "No current football data issues" : parts.join(" · "),
       to: "/admin/football-audit",
-    },
-    {
+    };
+  };
+
+  const ticketingHealth = (): HealthCard => {
+    const ds = [diag?.recentFailedSyncs, diag?.upcomingNoProvider, diag?.staleUpcomingCoverage];
+    if (anyFailed(...ds)) return { label: "Ticketing pipeline", status: "unknown", note: "Diagnostic unavailable", to: "/admin/ticketing" };
+    const parts: string[] = [];
+    if ((diag?.recentFailedSyncs.value ?? 0) > 0) parts.push(`${diag!.recentFailedSyncs.value} recent sync failures`);
+    if ((diag?.upcomingNoProvider.value ?? 0) > 0) parts.push(`${diag!.upcomingNoProvider.value} upcoming matches without provider`);
+    if ((diag?.staleUpcomingCoverage.value ?? 0) > 0) parts.push(`${diag!.staleUpcomingCoverage.value} stale active coverage rows`);
+    const status: Severity =
+      parts.length === 0 ? "healthy" : (diag?.upcomingNoProvider.value ?? 0) > 0 ? "critical" : "warning";
+    return {
       label: "Ticketing pipeline",
-      status: (a?.failedSyncs ?? 0) > 0 || (a?.brokenLinks ?? 0) > 0 ? "warning" : "healthy",
-      note: (a?.failedSyncs ?? 0) > 0
-        ? `${a?.failedSyncs} recent sync jobs failed`
-        : (a?.brokenLinks ?? 0) > 0
-          ? `${a?.brokenLinks} broken links`
-          : "All jobs successful",
+      status,
+      note: parts.length === 0 ? "No recent sync failures" : parts.join(" · "),
       to: "/admin/ticketing",
-    },
-    {
+    };
+  };
+
+  const publicPagesHealth = (): HealthCard => {
+    const ds = [diag?.upcomingNoProvider, diag?.upcomingMatches];
+    if (anyFailed(...ds)) return { label: "Public pages", status: "unknown", note: "Diagnostic unavailable", to: "/admin/matches" };
+    const missing = diag?.upcomingNoProvider.value ?? 0;
+    const upcoming = diag?.upcomingMatches.value ?? 0;
+    if (upcoming === 0) return { label: "Public pages", status: "healthy", note: "No current coverage gaps", to: "/admin/matches" };
+    if (missing === 0) return { label: "Public pages", status: "healthy", note: `${upcoming} upcoming matches — all have provider coverage`, to: "/admin/matches" };
+    return {
       label: "Public pages",
-      status: (a?.matchesNoTickets ?? 0) > 5 ? "critical" : (a?.matchesNoTickets ?? 0) > 0 ? "warning" : "healthy",
-      note: (a?.matchesNoTickets ?? 0) > 0 ? `${a?.matchesNoTickets} matches without providers` : "Fully covered",
+      status: missing > 5 ? "critical" : "warning",
+      note: `${missing} of ${upcoming} upcoming matches missing provider coverage`,
       to: "/admin/matches",
-    },
-    {
+    };
+  };
+
+  const dataIntegrityHealth = (): HealthCard => {
+    const ds = [diag?.pendingDuplicates, diag?.clubsMissingCountry, diag?.clubsMissingLeague, diag?.clubsMissingStadium];
+    if (anyFailed(...ds)) return { label: "Data integrity", status: "unknown", note: "Diagnostic unavailable", to: "/admin/data-quality" };
+    const dups = diag?.pendingDuplicates.value ?? 0;
+    const clubGaps = sumIf(diag?.clubsMissingCountry, diag?.clubsMissingLeague, diag?.clubsMissingStadium);
+    if (dups === 0 && clubGaps === 0) return { label: "Data integrity", status: "healthy", note: "No integrity issues detected", to: "/admin/data-quality" };
+    const parts: string[] = [];
+    if (dups > 0) parts.push(`${dups} duplicate candidates`);
+    if (clubGaps > 0) parts.push(`${clubGaps} club relationship gaps`);
+    return {
       label: "Data integrity",
-      status: (a?.duplicates ?? 0) > 0 || (a?.clubsMissingStadium ?? 0) > 5 ? "warning" : "healthy",
-      note: (a?.duplicates ?? 0) > 0 ? `${a?.duplicates} duplicate candidates` : "Consistent",
+      status: dups > 10 ? "critical" : "warning",
+      note: parts.join(" · "),
       to: "/admin/data-quality",
-    },
-  ] as { label: string; status: Severity; note: string; to: string }[];
+    };
+  };
+
+  const health: HealthCard[] = diag
+    ? [footballHealth(), ticketingHealth(), publicPagesHealth(), dataIntegrityHealth()]
+    : [];
 
   return (
     <div className="space-y-8">
@@ -200,14 +343,14 @@ export const AdminOverviewPage = () => {
           </span>
         </div>
 
-        {attentionLoading && (
+        {diagLoading && (
           <div className="text-sm text-slate-500 rounded-xl border border-slate-200 bg-white p-6">Loading operational issues…</div>
         )}
 
-        {!attentionLoading && sortedIssues.length === 0 && (
+        {!diagLoading && sortedIssues.length === 0 && (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            <p className="text-sm text-emerald-900 font-semibold">Nothing needs your attention. All operational checks are green.</p>
+            <p className="text-sm text-emerald-900 font-semibold">No urgent issues right now.</p>
           </div>
         )}
 
@@ -275,10 +418,12 @@ export const AdminOverviewPage = () => {
               <CardContent className="p-4">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{h.label}</p>
                 <div className={`inline-flex mt-2 items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-extrabold uppercase ${sevPillCls[h.status]}`}>
-                  {h.status === "healthy" ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+                  {h.status === "healthy" ? <CheckCircle2 className="w-3 h-3" />
+                    : h.status === "unknown" ? <HelpCircle className="w-3 h-3" />
+                    : <AlertTriangle className="w-3 h-3" />}
                   {h.status}
                 </div>
-                <p className="text-xs text-slate-600 mt-2 line-clamp-2 min-h-[2.4em]">{h.note}</p>
+                <p className="text-xs text-slate-600 mt-2 line-clamp-3 min-h-[2.4em]">{h.note}</p>
                 <Link to={h.to} className="text-xs font-bold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1 mt-2">
                   View diagnostics <ArrowRight className="w-3 h-3" />
                 </Link>
