@@ -32,6 +32,8 @@ export type WorldCup2026Copy = {
   status_sold_out: string;
   confirmed_section_title: string;
   confirmed_section_subtitle: string;
+  final_stage_title: string;
+  final_stage_subtitle: string;
   knockout_section_title: string;
   knockout_section_subtitle: string;
   phase_r32: string;
