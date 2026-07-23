@@ -72,6 +72,7 @@ import { AIAssistantWidget } from "./components/AIAssistantWidget";
 import { RequireAdmin } from "./components/RequireAdmin";
 import { RequireAuth } from "./components/auth/RequireAuth";
 import { AuthGateProvider } from "./components/auth/AuthGate";
+import OAuthConsentPage from "./pages/OAuthConsentPage";
 import { PremiumGateProvider } from "./components/premium/PremiumGate";
 import { TrackPriceSheetProvider } from "./components/track/TrackPriceSheet";
 import ScrollToTop from "./components/ScrollToTop";
@@ -107,6 +108,8 @@ const App = () => (
             <PremiumGateProvider>
             <TrackPriceSheetProvider>
             <Routes>
+              {/* ========== OAUTH CONSENT (MCP) ========== */}
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsentPage />} />
               {/* ========== PUBLIC SEO WEBSITE ========== */}
               <Route path="/" element={<WebsiteHomePage />} />
               <Route path="/site" element={<WebsiteHomePage />} />
