@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://efhbpagnaaafdmvlwqbp.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "foot-ticket-finder-mcp",
+      "version": "0.1.0",
+      "title": "Foot Ticket Finder"
+    },
+    "tools": [
+      {
+        "name": "search_matches",
+        "title": "Search upcoming matches",
+        "description": "Search upcoming football matches on Foot Ticket Finder. Filter by team name, city, competition, or country. Returns kickoff date, venue, teams, ticket status, and ticket link when available.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "maxLength": 120,
+              "description": "Free-text search over team names, city, or competition."
+            },
+            "country": {
+              "type": "string",
+              "maxLength": 80,
+              "description": "Filter by country (e.g. 'England')."
+            },
+            "competition": {
+              "type": "string",
+              "maxLength": 120,
+              "description": "Filter by competition (e.g. 'Premier League', 'FIFA World Cup 2026')."
+            },
+            "limit": {
+              "default": 15,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_match",
+        "title": "Get match details",
+        "description": "Return full details for a single match by its id or slug: teams, kickoff, stadium, competition, ticket status, provider link and starting price.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "match": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Match id or slug."
+            }
+          },
+          "required": [
+            "match"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_stadiums",
+        "title": "Search stadiums",
+        "description": "Search football stadiums by name, city or country. Returns capacity, coordinates, resident clubs and Foot Ticket Finder slug.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "maxLength": 120,
+              "description": "Free-text search over stadium name, city, aliases."
+            },
+            "country": {
+              "type": "string",
+              "maxLength": 80,
+              "description": "Filter by country."
+            },
+            "world_cup_host": {
+              "type": "boolean",
+              "description": "If true, only return 2026 World Cup host stadiums."
+            },
+            "limit": {
+              "default": 15,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_clubs",
+        "title": "Search football clubs",
+        "description": "Search football clubs in the Foot Ticket Finder catalog by name, league or country.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "maxLength": 120,
+              "description": "Free-text search over club name and aliases."
+            },
+            "country": {
+              "type": "string",
+              "maxLength": 80,
+              "description": "Filter by country name."
+            },
+            "limit": {
+              "default": 15,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_my_favorites",
+        "title": "List my saved matches",
+        "description": "List the matches the signed-in Foot Ticket Finder user has saved to their favorites, with kickoff, teams, venue and ticket status.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "save_match",
+        "title": "Save match to favorites",
+        "description": "Save a match to the signed-in user's favorites on Foot Ticket Finder. Optionally enable ticket alerts for that match.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "match_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120,
+              "description": "The match id (from search_matches / get_match)."
+            },
+            "alerts_enabled": {
+              "default": true,
+              "description": "Enable ticket alerts for this match.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "match_id"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
